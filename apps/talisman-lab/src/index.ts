@@ -3,13 +3,17 @@ import {
   runSigilApp,
   SigilAppInstance,
   SIGIL_COMPONENTS,
+  getSigilServerAssets,
+  SigilServerAssets,
 } from '@arcanewizards/sigil';
-import { ToolkitOptions } from '@arcanejs/toolkit';
+import { ToolkitAdditionalFiles, ToolkitOptions } from '@arcanejs/toolkit';
 import pino from 'pino';
 import { AppApi, createApp, TalismanLabAppProps } from './app';
 import { C } from './components/backend';
 import { version } from '../package.json';
 import { AppEdition } from '@arcanewizards/apis';
+import { readFile } from 'fs/promises';
+import { LOGO_URL_PATH } from './components/proto';
 
 export type { AppApi };
 
@@ -42,4 +46,14 @@ export const runTalismanLabServer = ({
     },
     createApp,
     componentNamespaces: [CoreComponents, SIGIL_COMPONENTS, C],
+    additionalFiles: () =>
+      ({
+        ...getSigilServerAssets(),
+        [LOGO_URL_PATH]: async () => ({
+          content: await readFile(
+            require.resolve('@arcanewizards/talisman-lab/assets/logo-animated.svg'),
+          ),
+          contentType: 'image/svg+xml',
+        }),
+      }) satisfies SigilServerAssets & ToolkitAdditionalFiles,
   });
