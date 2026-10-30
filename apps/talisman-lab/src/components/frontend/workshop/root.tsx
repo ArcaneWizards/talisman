@@ -1,5 +1,6 @@
 import { FC, useCallback, useContext } from 'react';
 import {
+  LOGO_URL_PATH,
   TalismanLabComponentCalls,
   TalismanLabRootComponent,
   TalismanLabSwitchMode,
@@ -126,7 +127,13 @@ export const TalismanLabRoot: FC<Props> = ({ info }) => {
             justify-center gap-2 p-2
           "
         >
-          <span>LOGO</span>
+          <img
+            src={`/${LOGO_URL_PATH}`}
+            alt="LOGO"
+            height="200"
+            width="100%"
+            className="max-h-[20svh]"
+          />
           <UserConfigEditor
             midi={midi}
             status={status}

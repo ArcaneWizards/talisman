@@ -10,6 +10,8 @@ import { MidiMessageBufferSlice } from './frontend/shared/midi-message-monitor';
 import { MidiMessageDescription } from '@arcanewizards/talisman/util';
 import { MidiDeviceReadiness } from '@arcanewizards/talisman/profile';
 
+export const LOGO_URL_PATH = 'logo-animated.svg';
+
 // Data
 
 export type ConnectionStatus =

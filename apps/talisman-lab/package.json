@@ -26,11 +26,13 @@
       "require": "./dist/components/frontend/shared/index.js"
     },
     "./components/frontend/shared/shared.css": "./dist/components/frontend/shared/shared.css",
+    "./assets/logo-animated.svg": "./assets/logo-animated.svg",
     "./package.json": "./package.json"
   },
   "files": [
     "LICENSE",
-    "dist"
+    "dist",
+    "assets"
   ],
   "scripts": {
     "build": "pnpm check:types && pnpm clean && tsup && pnpm build:entrypoint && pnpm build:frontend && pnpm build:styles && check-export-map",
