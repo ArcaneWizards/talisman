@@ -1,0 +1,59 @@
+@import '@arcanejs/toolkit-frontend/styles/theme.css';
+
+@import '@arcanewizards/sigil/frontend/styles/theme.css';
+@import '@arcanewizards/sigil/frontend/styles/sigil.css';
+
+@import './shared/shared.css';
+
+@source './**/*.{ts,tsx}';
+
+@theme inline {
+  --text-block-icon: max(
+    2rem,
+    min(calc(var(--size-aware-div-width) * 0.05), 5rem)
+  );
+
+  /**
+    * Any (non-theme) tailwind variables that need to be used by component
+    * classes should be defined here,
+    * other than those that already exist in `@arcanewizards/sigil`
+    */
+
+  --font-mono: var(--font-mono);
+}
+
+:root {
+  --font-mono:
+    'SF Mono', SF Mono, SF Mono Regular, Consolas, 'Liberation Mono', Menlo,
+    Courier, monospace;
+}
+
+body {
+  /* prevent window scrollbars from appearing */
+  overflow: hidden;
+}
+
+.arcane-theme-root {
+  /* TODO: move this into @arcanejs */
+  background: var(--arcane-page-bg);
+}
+
+body {
+  user-select: none;
+  /* TODO: fix arcane bg variable in @arcanejs */
+  --arcane-page-bg: #1f1f1f;
+}
+
+@utility app-title-bar {
+  app-region: drag;
+}
+
+@utility text-hint-gradient {
+  background: linear-gradient(
+    to bottom right,
+    var(--sigil-usage-hint-gradient-light),
+    var(--sigil-usage-hint-gradient-dark)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}

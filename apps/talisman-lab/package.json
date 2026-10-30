@@ -1,0 +1,91 @@
+{
+  "name": "@arcanewizards/talisman-lab",
+  "version": "0.0.1",
+  "private": false,
+  "bin": {
+    "mana-workshop": "./dist/start.js"
+  },
+  "exports": {
+    ".": {
+      "@arcanewizards/talisman-source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./frontend": {
+      "@arcanewizards/talisman-source": "./src/components/frontend/index.tsx",
+      "types": "./dist/components/frontend/index.d.ts",
+      "require": "./dist/frontend.js"
+    },
+    "./entrypoint": "./dist/entrypoint.js",
+    "./entrypoint.css": "./dist/entrypoint.css",
+    "./components/frontend/shared": {
+      "@arcanewizards/talisman-source": "./src/components/frontend/shared/index.tsx",
+      "types": "./dist/components/frontend/shared/index.d.ts",
+      "import": "./dist/components/frontend/shared/index.mjs",
+      "require": "./dist/components/frontend/shared/index.js"
+    },
+    "./components/frontend/shared/shared.css": "./dist/components/frontend/shared/shared.css",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "LICENSE",
+    "dist"
+  ],
+  "scripts": {
+    "build": "pnpm check:types && pnpm clean && tsup && pnpm build:entrypoint && pnpm build:frontend && pnpm build:styles && check-export-map",
+    "build:entrypoint": "arcane-build-frontend --entry src/components/frontend/entrypoint.ts --outfile dist/entrypoint.js --sourcemap",
+    "build:frontend": "arcane-build-frontend --entry src/components/frontend/index.tsx --outfile dist/frontend.js --sourcemap",
+    "build:styles": "pnpm build:styles:entrypoint && pnpm build:styles:shared",
+    "build:styles:entrypoint": "tailwindcss -i ./src/components/frontend/frontend.css -o ./dist/entrypoint.css",
+    "build:styles:shared": "tailwindcss -i ./src/components/frontend/shared/shared.css -o ./dist/components/frontend/shared/shared.css",
+    "clean": "rm -rf dist",
+    "check:types": "tsc --noEmit",
+    "dev": "pnpm watch:entrypoint & pnpm watch:styles:entrypoint & tsx watch --conditions=@arcanewizards/talisman-source src/start",
+    "format:fix": "cd .. && pnpm format:fix",
+    "lint": "eslint . --max-warnings 0",
+    "lint:fix": "eslint . --max-warnings 0 --fix",
+    "start": "pnpm build:entrypoint && pnpm build:styles && NODE_ENV=production node --import=tsx --conditions=@arcanewizards/talisman-source src/start",
+    "watch:entrypoint": "arcane-build-frontend --watch --dev --entry src/components/frontend/entrypoint.ts --outfile dist/entrypoint.js --sourcemap",
+    "watch:styles:entrypoint": "tailwindcss --watch -i ./src/components/frontend/frontend.css -o ./dist/entrypoint.css"
+  },
+  "devDependencies": {
+    "@arcanejs/build-utils": "^0.2.0",
+    "@arcanejs/diff": "^0.6.1",
+    "@arcanejs/protocol": "^0.9.2",
+    "@arcanewizards/apis": "^0.1.0",
+    "@arcanewizards/talisman-eslint-config": "workspace:^",
+    "@arcanewizards/talisman-typescript-config": "workspace:^",
+    "@tailwindcss/cli": "^4.2.2",
+    "@types/lodash": "^4.17.24",
+    "@types/luxon": "^3.7.1",
+    "@types/node": "^22.19.15",
+    "@types/react": "^19.2.14",
+    "check-export-map": "^1.3.1",
+    "esbuild": "^0.25.12",
+    "eslint": "^9.39.4",
+    "eslint-plugin-better-tailwindcss": "^4.3.2",
+    "lodash": "^4.18.1",
+    "luxon": "^3.7.2",
+    "radix-ui": "^1.4.3",
+    "tailwindcss": "^4.2.2",
+    "tsup": "^8.5.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "uuid": "^11.1.1",
+    "zod": "^3.25.76"
+  },
+  "dependencies": {
+    "@arcanejs/react-toolkit": "^0.16.6",
+    "@arcanejs/toolkit": "^9.2.0",
+    "@arcanejs/toolkit-frontend": "^0.12.3",
+    "@arcanewizards/talisman": "workspace:^",
+    "@arcanewizards/talisman-profiles": "workspace:^",
+    "@arcanewizards/midi": "^0.1.3",
+    "@arcanewizards/net-utils-native": "^0.2.0",
+    "@arcanewizards/sigil": "^0.5.2",
+    "pino": "^9.14.0",
+    "pino-pretty": "^11.3.0",
+    "react": "^19.2.4"
+  }
+}

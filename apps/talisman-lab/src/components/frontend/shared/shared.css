@@ -1,0 +1,23 @@
+@import '@arcanejs/toolkit-frontend/styles/core.css';
+@import '@arcanejs/toolkit-frontend/styles/base.css';
+
+@import '@arcanewizards/sigil/frontend/styles/base.css';
+
+@source './**/*.{ts,tsx}';
+
+@utility grid-table-midi-messages {
+  display: grid;
+  grid-template-columns: [time-start] max-content [time-end type-start] max-content [type-end channel-start] max-content [channel-end note-start] max-content [note-end value-start] max-content [value-end behavior-start] 1fr [behavior-end msg-start] max-content [msg-end];
+  grid-gap: var(--sigil-control-gap);
+  padding: var(--sigil-control-gap);
+}
+
+@utility grid-table-midi-messages-row {
+  display: grid;
+  grid-area: auto / time-start / span 1 / msg-end;
+  grid-template-columns: subgrid;
+}
+
+@utility grid-table-midi-messages-row-span {
+  grid-column: time-start / msg-end;
+}
