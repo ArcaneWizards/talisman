@@ -1,0 +1,71 @@
+name: Check, Build & Release
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
+jobs:
+  checks-and-npm-releases:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: ${{ github.ref_name == 'main' && 'release' || 'ci' }}
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Use Node.js
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: 24.14.1
+      - name: Enable pnpm
+        run: corepack enable pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm lint
+      - run: pnpm format:check
+      - run: pnpm test
+      - uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        if: github.ref_name == 'main'
+        id: app-token
+        with:
+          client-id: ${{ vars.FAMILIAR_CLIENT_ID }}
+          private-key: ${{ secrets.FAMILIAR_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: |
+            open-source
+      - name: Run Changeset Workflow
+        if: github.ref_name == 'main'
+        uses: changesets/action@e0145edc7d9d8679003495b11f87bd8ef63c0cba # v1.5.3
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+        with:
+          publish: pnpm changeset publish
+          version: pnpm run version
+          createGithubReleases: true
+          commitMode: github-api
+  build-and-release-apps:
+    strategy:
+      matrix:
+        app: [talisman-lab, talisman-arcade]
+    name: build-and-release-${{ matrix.app }}
+    uses: ./.github/workflows/build-and-release-app.yaml
+    permissions:
+      contents: write
+    with:
+      app: ${{ matrix.app }}
+      macos_build_requested: ${{ contains(github.event.pull_request.labels.*.name, format('build-macos-{0}', matrix.app)) }}
+      windows_build_requested: ${{ contains(github.event.pull_request.labels.*.name, format('build-windows-{0}', matrix.app)) }}
+      notarize: ${{ github.ref_name == 'main' }}
+      release: ${{ github.ref_name == 'main' }}
+      require_os_jobs: true
+      arch: all
+    secrets: inherit
