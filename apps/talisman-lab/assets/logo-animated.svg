@@ -5,7 +5,174 @@
   xmlns:xlink="http://www.w3.org/1999/xlink"
   xmlns="http://www.w3.org/2000/svg"
   xmlns:svg="http://www.w3.org/2000/svg">
+  <style>
+    * {
+      transform-origin: 481.9025px 481.90007px;
+    }
+
+    @keyframes blades-spin {
+      0% {
+        transform: rotate(0deg);
+      }
+      10% {
+        transform: rotate(0deg);
+      }
+      12% {
+        transform: rotate(90deg);
+      }
+      30% {
+        transform: rotate(90deg);
+      }
+      35% {
+        transform: rotate(-180deg);
+      }
+      65% {
+        transform: rotate(-180deg);
+      }
+      75% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(0deg);
+      }
+    }
+
+    .blades {
+      animation: blades-spin 20s ease-in-out infinite;
+    }
+
+    @keyframes slider-move {
+      0% {
+        transform: rotate(0deg);
+      }
+      10% {
+        transform: rotate(0deg);
+      }
+      15% {
+        transform: rotate(20deg);
+      }
+      40% {
+        transform: rotate(20deg);
+      }
+      45% {
+        transform: rotate(-20deg);
+      }
+      60% {
+        transform: rotate(-20deg);
+      }
+      70% {
+        transform: rotate(-15deg);
+      }
+      85% {
+        transform: rotate(-15deg);
+      }
+      90% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(0deg);
+      }
+    }
+
+    #slider_n {
+      animation: slider-move 15s ease-in-out infinite;
+    }
+
+    #slider_s {
+      animation: slider-move 20s 1s ease-in-out infinite;
+    }
+
+    #slider_e {
+      animation: slider-move 17s 3s ease-in-out infinite;
+    }
+
+    #slider_w {
+      animation: slider-move 19s 5s ease-in-out infinite;
+    }
+
+    @keyframes color-change {
+      0% {
+        fill: #ef5350ff;
+      }
+      16.6% {
+        fill: #efef50ff;
+      }
+      33.3% {
+        fill: #50ef50ff;
+      }
+      50% {
+        fill: #50efefff;
+      }
+      66.6% {
+        fill: #5050efff;
+      }
+      83.3% {
+        fill: #ef50efff;
+      }
+      100% {
+        fill: #ef5350ff;
+      }
+    }
+
+    #base {
+      animation: color-change 20s linear infinite;
+    }
+
+    #button_nw {
+      animation: color-change 20s linear infinite;
+    }
+
+    #button_ne {
+      animation: color-change 20s -5s linear infinite;
+    }
+
+    #button_sw {
+      animation: color-change 20s -10s linear infinite;
+    }
+
+    #button_se {
+      animation: color-change 20s -15s linear infinite;
+    }
+
+    @keyframes flash {
+      0% {
+        fill: rgba(255, 255, 255, 0);
+      }
+      10% {
+        fill: rgba(255, 255, 255, 0);
+      }
+      12% {
+        fill: rgba(255, 255, 255, 1);
+      }
+      14% {
+        fill: rgba(255, 255, 255, 0);
+      }
+      100% {
+        fill: rgba(255, 255, 255, 0);
+      }
+    }
+
+    #button_nw_flash {
+      animation: flash 5s linear infinite;
+    }
+
+    #button_ne_flash {
+      animation: flash 5s 0.5s linear infinite;
+    }
+
+    #button_sw_flash {
+      animation: flash 5s 1s linear infinite;
+    }
+
+    #button_se_flash {
+      animation: flash 5s 1.5s linear infinite;
+    }
+
+  </style>
   <defs>
+    <filter id="glow">
+      <feDropShadow dx="0" dy="0" stdDeviation="20" flood-color="#fff" flood-opacity="0.7" />
+    </filter>
     <linearGradient
       id="blade_shine_gradient"
       x1="480.93109"
@@ -23,10 +190,7 @@
     <mask
       maskUnits="userSpaceOnUse"
       id="blades_mask">
-      <g
-        id="blades_mask_contents"
-        transform="rotate(-90)"
-        transform-origin="481.9025 481.90007">
+      <g id="blades_mask_contents" class="blades">
         <path
           d="m 10,704.01648 c 51.63152,109.51377 140.26587,198.14811 249.77964,249.77956 0.0802,-69.481 72.35077,-115.30047 135.16313,-85.59823 l 3e-5,-204.66369 c -52.29074,0 -94.68075,-42.39004 -94.68075,-94.68078 l -204.66382,-3e-5 C 125.30051,631.66568 79.48102,703.93628 9.99999,704.01648 Z"
           fill="#ffffff"
@@ -63,310 +227,345 @@
       </g>
     </mask>
   </defs>
-  <circle
-    cx="481.96621"
-    cy="481.85783"
-    r="448.64216"
-    fill="#ef5350"
-    stroke="#263238"
-    stroke-miterlimit="10"
-    stroke-width="20" />
-  <g id="blades">
-    <path
-      d="m 10,704.01648 c 51.63152,109.51377 140.26587,198.14811 249.77964,249.77956 0.0802,-69.481 72.35077,-115.30047 135.16313,-85.59823 l 3e-5,-204.66369 c -52.29074,0 -94.68075,-42.39004 -94.68075,-94.68078 l -204.66382,-3e-5 C 125.30051,631.66568 79.48102,703.93628 9.99999,704.01648 Z"
-      fill="#78909c"
-      stroke="#263238"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      stroke-width="20" />
-    <path
-      d="m 568.85059,663.53415 -3e-5,204.66637 c 62.81227,-29.70116 135.08076,16.11834 135.16197,85.5988 109.52061,-51.63092 198.15859,-140.26656 249.79152,-249.7825 -69.48112,-0.0802 -115.30059,-72.351 -85.59811,-135.16338 l -204.67457,-3e-5 c 0,52.29074 -42.39004,94.68075 -94.68078,94.68075 z"
-      fill="#78909c"
-      stroke="#263238"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      stroke-width="20" />
-    <path
-      d="m 394.9429,95.60585 -3e-5,204.65924 c -52.29074,0 -94.68077,42.39 -94.68078,94.68075 l -204.66323,-3e-5 C 125.30168,332.1334 79.48222,259.86201 10.00093,259.78206 61.63243,150.27133 150.26602,61.641 259.77871,10.00809 c 0.08,69.48152 72.35172,115.301 135.16418,85.59776 z"
-      fill="#78909c"
-      stroke="#263238"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      stroke-width="20" />
-    <path
-      d="M 953.80411,259.78258 C 902.17122,150.26663 813.53326,61.63096 704.01267,10 c -0.0812,69.48045 -72.34974,115.29994 -135.162,85.59875 l -3e-5,204.66637 c 52.29074,0 94.68075,42.39004 94.68075,94.68078 l 204.67457,3e-5 C 838.5035,332.13354 884.32299,259.86274 953.80411,259.78258 Z"
-      fill="#78909c"
-      stroke="#263238"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      stroke-width="20" />
-  </g>
-  <g id="blade_lighting" mask="url(#blades_mask)">
-    <ellipse
-      id="blade_shadow"
-      cx="481.90207"
-      cy="539.78882"
-      rx="397.29077"
-      ry="391.09518"
-      fill="#546e7a"
-    />
-    <path
-      id="blade_shine"
-      fill="url(#blade_shine_gradient)"
-      d="M -75.121094,-99.128906 V 415.87695 h 56.259766 A 505.71323,471.63758 0 0 1 481.90234,10.068359 505.71323,471.63758 0 0 1 982.66602,415.87695 h 41.15238 V -99.128906 Z" />
-  </g>
-  <g id="face">
+  <g id="talisman" transform="scale(0.83)" filter="url(#glow)">
     <circle
-      cx="481.96622"
-      cy="481.85782"
-      r="400.15454"
-      fill="#90a4ae"
+      id="base"
+      cx="481.96621"
+      cy="481.85783"
+      r="448.64216"
+      fill="#ef5350"
       stroke="#263238"
       stroke-miterlimit="10"
       stroke-width="20" />
-    <circle
-      cx="481.96576"
-      cy="498.94135"
-      r="382.46707"
-      fill="#546e7a" />
-    <path
-      d="m 733.82426,651.67639 c 10.91651,-16.15856 20.31895,-33.42408 28.00375,-51.59298 7.6848,-18.1689 13.65196,-37.2412 17.69792,-57.01332 4.04596,-19.77212 6.17072,-40.24407 6.17072,-61.21228 0,-20.96821 -2.12476,-41.44016 -6.17072,-61.21228 -4.04596,-19.77212 -10.01312,-38.84441 -17.69792,-57.01332 -7.6848,-18.1689 -17.08723,-35.43442 -28.00375,-51.59298"
-      fill="none"
-      stroke="#263238"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      stroke-width="20" />
-    <path
-      d="m 312.14762,733.71587 c 16.15856,10.91651 33.42408,20.31895 51.59298,28.00375 18.1689,7.6848 37.2412,13.65196 57.01332,17.69792 19.77212,4.04596 40.24407,6.17072 61.21228,6.17072 20.96821,0 41.44016,-2.12476 61.21228,-6.17072 19.77212,-4.04596 38.84441,-10.01312 57.01332,-17.69792 18.1689,-7.6848 35.43442,-17.08723 51.59298,-28.00375"
-      fill="none"
-      stroke="#263238"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      stroke-width="20" />
-    <path
-      d="m 230.10815,312.03923 c -10.91651,16.15856 -20.31895,33.42408 -28.00375,51.59298 -7.6848,18.1689 -13.65196,37.2412 -17.69792,57.01332 -4.04596,19.77212 -6.17072,40.24407 -6.17072,61.21228 0,20.96821 2.12476,41.44016 6.17072,61.21228 4.04596,19.77212 10.01312,38.84441 17.69792,57.01332 7.6848,18.1689 17.08723,35.43442 28.00375,51.59298"
-      fill="none"
-      stroke="#263238"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      stroke-width="20" />
-    <path
-      d="M 651.78479,229.99975 C 635.62623,219.08324 618.36071,209.6808 600.19181,201.996 c -18.1689,-7.6848 -37.2412,-13.65196 -57.01332,-17.69792 -19.77212,-4.04596 -40.24407,-6.17072 -61.21228,-6.17072 -20.96821,0 -41.44016,2.12476 -61.21228,6.17072 -19.77212,4.04596 -38.84441,10.01312 -57.01332,17.69792 -18.16891,7.6848 -35.43442,17.08723 -51.59298,28.00375"
-      fill="none"
-      stroke="#263238"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      stroke-width="20" />
-    <circle
-      cx="481.96622"
-      cy="481.85782"
-      r="400.15454"
-      fill="none"
-      stroke="#263238"
-      stroke-miterlimit="10"
-      stroke-width="20" />
-  </g>
-  <rect
-    x="276.26932"
-    y="276.10211"
-    width="186.67651"
-    height="186.67651"
-    fill="#ef5350" />
-  <rect
-    x="500.66028"
-    y="276.10211"
-    width="186.67651"
-    height="186.67651"
-    fill="#9575cd" />
-  <rect
-    x="276.26932"
-    y="500.49307"
-    width="186.67652"
-    height="186.67652"
-    fill="#9575cd" />
-  <rect
-    x="500.66028"
-    y="500.49307"
-    width="186.67652"
-    height="186.67652"
-    fill="#9575cd" />
-  <g id="button_overlay">
-    <polygon
-      points="276.26932,463.22255 276.26932,276.1021 311.84588,311.67848 311.84588,427.64636 "
-      fill="#ffffff" />
-    <polygon
-      points="311.84588,311.67848 276.26932,276.1021 463.38977,276.1021 427.81357,311.67848 "
-      fill="#ffffff" />
-    <polygon
-      points="500.66028,463.22255 500.66028,276.1021 536.23684,311.67848 536.23684,427.64636 "
-      fill="#ffffff" />
-    <polygon
-      points="536.23684,311.67848 500.66028,276.1021 687.78073,276.1021 652.20454,311.67848 "
-      fill="#ffffff" />
-    <polygon
-      points="276.26932,687.61352 276.26932,500.49307 311.84588,536.06944 311.84588,652.03732 "
-      fill="#ffffff" />
-    <polygon
-      points="311.84588,536.06944 276.26932,500.49307 463.38977,500.49307 427.81357,536.06944 "
-      fill="#ffffff" />
-    <polygon
-      points="500.66028,687.61352 500.66028,500.49307 536.23684,536.06944 536.23684,652.03732 "
-      fill="#ffffff" />
-    <polygon
-      points="536.23684,536.06944 500.66028,500.49307 687.78073,500.49307 652.20454,536.06944 "
-      fill="#ffffff" />
+    <g id="blades" class="blades">
+      <path
+        d="m 10,704.01648 c 51.63152,109.51377 140.26587,198.14811 249.77964,249.77956 0.0802,-69.481 72.35077,-115.30047 135.16313,-85.59823 l 3e-5,-204.66369 c -52.29074,0 -94.68075,-42.39004 -94.68075,-94.68078 l -204.66382,-3e-5 C 125.30051,631.66568 79.48102,703.93628 9.99999,704.01648 Z"
+        fill="#78909c"
+        stroke="#263238"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="20" />
+      <path
+        d="m 568.85059,663.53415 -3e-5,204.66637 c 62.81227,-29.70116 135.08076,16.11834 135.16197,85.5988 109.52061,-51.63092 198.15859,-140.26656 249.79152,-249.7825 -69.48112,-0.0802 -115.30059,-72.351 -85.59811,-135.16338 l -204.67457,-3e-5 c 0,52.29074 -42.39004,94.68075 -94.68078,94.68075 z"
+        fill="#78909c"
+        stroke="#263238"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="20" />
+      <path
+        d="m 394.9429,95.60585 -3e-5,204.65924 c -52.29074,0 -94.68077,42.39 -94.68078,94.68075 l -204.66323,-3e-5 C 125.30168,332.1334 79.48222,259.86201 10.00093,259.78206 61.63243,150.27133 150.26602,61.641 259.77871,10.00809 c 0.08,69.48152 72.35172,115.301 135.16418,85.59776 z"
+        fill="#78909c"
+        stroke="#263238"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="20" />
+      <path
+        d="M 953.80411,259.78258 C 902.17122,150.26663 813.53326,61.63096 704.01267,10 c -0.0812,69.48045 -72.34974,115.29994 -135.162,85.59875 l -3e-5,204.66637 c 52.29074,0 94.68075,42.39004 94.68075,94.68078 l 204.67457,3e-5 C 838.5035,332.13354 884.32299,259.86274 953.80411,259.78258 Z"
+        fill="#78909c"
+        stroke="#263238"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="20" />
+    </g>
+    <g id="blade_lighting" mask="url(#blades_mask)">
+      <ellipse
+        id="blade_shadow"
+        cx="481.90207"
+        cy="539.78882"
+        rx="397.29077"
+        ry="391.09518"
+        fill="#546e7a"
+      />
+      <path
+        id="blade_shine"
+        fill="url(#blade_shine_gradient)"
+        d="M -75.121094,-99.128906 V 415.87695 h 56.259766 A 505.71323,471.63758 0 0 1 481.90234,10.068359 505.71323,471.63758 0 0 1 982.66602,415.87695 h 41.15238 V -99.128906 Z" />
+    </g>
+    <g id="face">
+      <circle
+        cx="481.96622"
+        cy="481.85782"
+        r="400.15454"
+        fill="#90a4ae"
+        stroke="#263238"
+        stroke-miterlimit="10"
+        stroke-width="20" />
+      <circle
+        cx="481.96576"
+        cy="498.94135"
+        r="382.46707"
+        fill="#546e7a" />
+      <path
+        d="m 733.82426,651.67639 c 10.91651,-16.15856 20.31895,-33.42408 28.00375,-51.59298 7.6848,-18.1689 13.65196,-37.2412 17.69792,-57.01332 4.04596,-19.77212 6.17072,-40.24407 6.17072,-61.21228 0,-20.96821 -2.12476,-41.44016 -6.17072,-61.21228 -4.04596,-19.77212 -10.01312,-38.84441 -17.69792,-57.01332 -7.6848,-18.1689 -17.08723,-35.43442 -28.00375,-51.59298"
+        fill="none"
+        stroke="#263238"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="20" />
+      <path
+        d="m 312.14762,733.71587 c 16.15856,10.91651 33.42408,20.31895 51.59298,28.00375 18.1689,7.6848 37.2412,13.65196 57.01332,17.69792 19.77212,4.04596 40.24407,6.17072 61.21228,6.17072 20.96821,0 41.44016,-2.12476 61.21228,-6.17072 19.77212,-4.04596 38.84441,-10.01312 57.01332,-17.69792 18.1689,-7.6848 35.43442,-17.08723 51.59298,-28.00375"
+        fill="none"
+        stroke="#263238"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="20" />
+      <path
+        d="m 230.10815,312.03923 c -10.91651,16.15856 -20.31895,33.42408 -28.00375,51.59298 -7.6848,18.1689 -13.65196,37.2412 -17.69792,57.01332 -4.04596,19.77212 -6.17072,40.24407 -6.17072,61.21228 0,20.96821 2.12476,41.44016 6.17072,61.21228 4.04596,19.77212 10.01312,38.84441 17.69792,57.01332 7.6848,18.1689 17.08723,35.43442 28.00375,51.59298"
+        fill="none"
+        stroke="#263238"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="20" />
+      <path
+        d="M 651.78479,229.99975 C 635.62623,219.08324 618.36071,209.6808 600.19181,201.996 c -18.1689,-7.6848 -37.2412,-13.65196 -57.01332,-17.69792 -19.77212,-4.04596 -40.24407,-6.17072 -61.21228,-6.17072 -20.96821,0 -41.44016,2.12476 -61.21228,6.17072 -19.77212,4.04596 -38.84441,10.01312 -57.01332,17.69792 -18.16891,7.6848 -35.43442,17.08723 -51.59298,28.00375"
+        fill="none"
+        stroke="#263238"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="20" />
+      <circle
+        cx="481.96622"
+        cy="481.85782"
+        r="400.15454"
+        fill="none"
+        stroke="#263238"
+        stroke-miterlimit="10"
+        stroke-width="20" />
+    </g>
     <rect
-      x="311.84589"
-      y="311.67847"
-      width="115.96769"
-      height="115.96788"
-      fill="#ffffff"
-      opacity="0.5" />
-    <rect
-      x="536.23682"
-      y="311.67847"
-      width="115.96769"
-      height="115.96788"
-      fill="#ffffff"
-      opacity="0.5" />
-    <rect
-      x="311.84589"
-      y="536.06946"
-      width="115.96769"
-      height="115.96788"
-      fill="#ffffff"
-      opacity="0.5" />
-    <rect
-      x="536.23682"
-      y="536.06946"
-      width="115.96769"
-      height="115.96788"
-      fill="#ffffff"
-      opacity="0.5" />
-    <rect
+      id="button_nw"
       x="276.26932"
       y="276.10211"
       width="186.67651"
       height="186.67651"
-      rx="22.671619"
-      ry="22.671619"
-      fill="none"
-      stroke="#263238"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      stroke-width="20" />
+      fill="#ef5350" />
     <rect
+      id="button_ne"
       x="500.66028"
       y="276.10211"
       width="186.67651"
       height="186.67651"
-      rx="22.671619"
-      ry="22.671619"
-      fill="none"
-      stroke="#263238"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      stroke-width="20" />
+      fill="#9575cd" />
     <rect
+      id="button_sw"
       x="276.26932"
       y="500.49307"
-      width="186.67651"
-      height="186.67651"
-      rx="22.671619"
-      ry="22.671619"
-      fill="none"
-      stroke="#263238"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      stroke-width="20" />
+      width="186.67652"
+      height="186.67652"
+      fill="#9575cd" />
     <rect
+      id="button_se"
       x="500.66028"
       y="500.49307"
+      width="186.67652"
+      height="186.67652"
+      fill="#9575cd" />
+    <rect
+      id="button_nw_flash"
+      x="276.26932"
+      y="276.10211"
       width="186.67651"
       height="186.67651"
-      rx="22.671619"
-      ry="22.671619"
-      fill="none"
-      stroke="#263238"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      stroke-width="20" />
-  </g>
-  <g id="slider_n">
-    <path
-      d="m 481.98201,140.47949 c -18.17808,0 -35.94987,1.73593 -53.15637,5.06394 l 14.1487,72.72008 c 12.62854,-2.43652 25.67076,-3.71057 39.00767,-3.71057 13.40845,0 26.51442,1.28999 39.20673,3.75023 l 13.96558,-72.75157 c -17.21427,-3.3284 -34.98646,-5.0721 -53.17231,-5.0721 z"
-      fill="#263238"
-      stroke="#263238"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      stroke-width="20" />
-    <line
-      x1="481.98203"
-      y1="150.40108"
-      x2="481.98203"
-      y2="204.63136"
-      fill="none"
-      stroke="#ffffff"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      stroke-width="10"
-      id="line33" />
-  </g>
-  <g id="slider_s">
-    <path
-      d="m 481.95044,823.23616 c 18.17808,0 35.94987,-1.73593 53.15637,-5.06394 l -14.1487,-72.72008 c -12.62854,2.43652 -25.67076,3.71057 -39.00767,3.71057 -13.40845,0 -26.51442,-1.28999 -39.20673,-3.75023 l -13.96558,72.75157 c 17.21427,3.3284 34.98646,5.0721 53.17231,5.0721 z"
-      fill="#263238"
-      stroke="#263238"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      stroke-width="20" />
-    <line
-      x1="481.95044"
-      y1="813.31458"
-      x2="481.95044"
-      y2="759.08429"
-      fill="none"
-      stroke="#ffffff"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      stroke-width="10" />
-  </g>
-  <g id="slider_w">
-    <path
-      d="m 140.58789,481.84204 c 0,18.17808 1.73593,35.94987 5.06394,53.15637 l 72.72008,-14.1487 c -2.43652,-12.62854 -3.71057,-25.67076 -3.71057,-39.00767 0,-13.40845 1.28999,-26.51442 3.75023,-39.20673 L 145.66,428.66973 c -3.3284,17.21427 -5.0721,34.98646 -5.0721,53.17231 z"
-      fill="#263238"
-      stroke="#263238"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      stroke-width="20" />
-    <line
-      x1="150.50948"
-      y1="481.84204"
-      x2="204.73975"
-      y2="481.84204"
-      fill="none"
-      stroke="#ffffff"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      stroke-width="10" />
-  </g>
-  <g id="slider_e">
-    <path
-      d="m 823.34456,481.87361 c 0,-18.17808 -1.73593,-35.94987 -5.06394,-53.15637 l -72.72008,14.1487 c 2.43652,12.62854 3.71057,25.67076 3.71057,39.00767 0,13.40845 -1.28999,26.51442 -3.75023,39.20673 l 72.75157,13.96558 c 3.3284,-17.21427 5.0721,-34.98646 5.0721,-53.17231 z"
-      fill="#263238"
-      stroke="#263238"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      stroke-width="20" />
-    <line
-      x1="813.42297"
-      y1="481.8736"
-      x2="759.19269"
-      y2="481.8736"
-      fill="none"
-      stroke="#ffffff"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      stroke-width="10" />
+      fill="rgba(255, 255, 255, 0)" />
+    <rect
+      id="button_ne_flash"
+      x="500.66028"
+      y="276.10211"
+      width="186.67651"
+      height="186.67651"
+      fill="rgba(255, 255, 255, 0)" />
+    <rect
+      id="button_sw_flash"
+      x="276.26932"
+      y="500.49307"
+      width="186.67652"
+      height="186.67652"
+      fill="rgba(255, 255, 255, 0)" />
+    <rect
+      id="button_se_flash"
+      x="500.66028"
+      y="500.49307"
+      width="186.67652"
+      height="186.67652"
+      fill="rgba(255, 255, 255, 0)" />
+    <g id="button_overlay">
+      <polygon
+        points="276.26932,463.22255 276.26932,276.1021 311.84588,311.67848 311.84588,427.64636 "
+        fill="#ffffff" />
+      <polygon
+        points="311.84588,311.67848 276.26932,276.1021 463.38977,276.1021 427.81357,311.67848 "
+        fill="#ffffff" />
+      <polygon
+        points="500.66028,463.22255 500.66028,276.1021 536.23684,311.67848 536.23684,427.64636 "
+        fill="#ffffff" />
+      <polygon
+        points="536.23684,311.67848 500.66028,276.1021 687.78073,276.1021 652.20454,311.67848 "
+        fill="#ffffff" />
+      <polygon
+        points="276.26932,687.61352 276.26932,500.49307 311.84588,536.06944 311.84588,652.03732 "
+        fill="#ffffff" />
+      <polygon
+        points="311.84588,536.06944 276.26932,500.49307 463.38977,500.49307 427.81357,536.06944 "
+        fill="#ffffff" />
+      <polygon
+        points="500.66028,687.61352 500.66028,500.49307 536.23684,536.06944 536.23684,652.03732 "
+        fill="#ffffff" />
+      <polygon
+        points="536.23684,536.06944 500.66028,500.49307 687.78073,500.49307 652.20454,536.06944 "
+        fill="#ffffff" />
+      <rect
+        x="311.84589"
+        y="311.67847"
+        width="115.96769"
+        height="115.96788"
+        fill="#ffffff"
+        opacity="0.5" />
+      <rect
+        x="536.23682"
+        y="311.67847"
+        width="115.96769"
+        height="115.96788"
+        fill="#ffffff"
+        opacity="0.5" />
+      <rect
+        x="311.84589"
+        y="536.06946"
+        width="115.96769"
+        height="115.96788"
+        fill="#ffffff"
+        opacity="0.5" />
+      <rect
+        x="536.23682"
+        y="536.06946"
+        width="115.96769"
+        height="115.96788"
+        fill="#ffffff"
+        opacity="0.5" />
+      <rect
+        x="276.26932"
+        y="276.10211"
+        width="186.67651"
+        height="186.67651"
+        rx="22.671619"
+        ry="22.671619"
+        fill="none"
+        stroke="#263238"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="20" />
+      <rect
+        x="500.66028"
+        y="276.10211"
+        width="186.67651"
+        height="186.67651"
+        rx="22.671619"
+        ry="22.671619"
+        fill="none"
+        stroke="#263238"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="20" />
+      <rect
+        x="276.26932"
+        y="500.49307"
+        width="186.67651"
+        height="186.67651"
+        rx="22.671619"
+        ry="22.671619"
+        fill="none"
+        stroke="#263238"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="20" />
+      <rect
+        x="500.66028"
+        y="500.49307"
+        width="186.67651"
+        height="186.67651"
+        rx="22.671619"
+        ry="22.671619"
+        fill="none"
+        stroke="#263238"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="20" />
+    </g>
+    <g id="slider_n">
+      <path
+        d="m 481.98201,140.47949 c -18.17808,0 -35.94987,1.73593 -53.15637,5.06394 l 14.1487,72.72008 c 12.62854,-2.43652 25.67076,-3.71057 39.00767,-3.71057 13.40845,0 26.51442,1.28999 39.20673,3.75023 l 13.96558,-72.75157 c -17.21427,-3.3284 -34.98646,-5.0721 -53.17231,-5.0721 z"
+        fill="#263238"
+        stroke="#263238"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="20" />
+      <line
+        x1="481.98203"
+        y1="150.40108"
+        x2="481.98203"
+        y2="204.63136"
+        fill="none"
+        stroke="#ffffff"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="10"
+        id="line33" />
+    </g>
+    <g id="slider_s">
+      <path
+        d="m 481.95044,823.23616 c 18.17808,0 35.94987,-1.73593 53.15637,-5.06394 l -14.1487,-72.72008 c -12.62854,2.43652 -25.67076,3.71057 -39.00767,3.71057 -13.40845,0 -26.51442,-1.28999 -39.20673,-3.75023 l -13.96558,72.75157 c 17.21427,3.3284 34.98646,5.0721 53.17231,5.0721 z"
+        fill="#263238"
+        stroke="#263238"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="20" />
+      <line
+        x1="481.95044"
+        y1="813.31458"
+        x2="481.95044"
+        y2="759.08429"
+        fill="none"
+        stroke="#ffffff"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="10" />
+    </g>
+    <g id="slider_w">
+      <path
+        d="m 140.58789,481.84204 c 0,18.17808 1.73593,35.94987 5.06394,53.15637 l 72.72008,-14.1487 c -2.43652,-12.62854 -3.71057,-25.67076 -3.71057,-39.00767 0,-13.40845 1.28999,-26.51442 3.75023,-39.20673 L 145.66,428.66973 c -3.3284,17.21427 -5.0721,34.98646 -5.0721,53.17231 z"
+        fill="#263238"
+        stroke="#263238"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="20" />
+      <line
+        x1="150.50948"
+        y1="481.84204"
+        x2="204.73975"
+        y2="481.84204"
+        fill="none"
+        stroke="#ffffff"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="10" />
+    </g>
+    <g id="slider_e">
+      <path
+        d="m 823.34456,481.87361 c 0,-18.17808 -1.73593,-35.94987 -5.06394,-53.15637 l -72.72008,14.1487 c 2.43652,12.62854 3.71057,25.67076 3.71057,39.00767 0,13.40845 -1.28999,26.51442 -3.75023,39.20673 l 72.75157,13.96558 c 3.3284,-17.21427 5.0721,-34.98646 5.0721,-53.17231 z"
+        fill="#263238"
+        stroke="#263238"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="20" />
+      <line
+        x1="813.42297"
+        y1="481.8736"
+        x2="759.19269"
+        y2="481.8736"
+        fill="none"
+        stroke="#ffffff"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="10" />
+    </g>
   </g>
 </svg>
