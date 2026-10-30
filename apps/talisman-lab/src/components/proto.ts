@@ -27,7 +27,7 @@ export type ConnectionStatus =
 
 // Proto
 
-export const NAMESPACE = 'mana-workshop';
+export const NAMESPACE = 'talisman-lab';
 
 export type Namespace = typeof NAMESPACE;
 
@@ -95,7 +95,7 @@ export const DEFAULT_USER_CONFIG: UserConfig = {
 
 export type TalismanLabRootComponent = BaseComponentProto<
   Namespace,
-  'mana-workshop-root'
+  'talisman-lab-root'
 > & {
   midi: MIDINetworkState;
   config: UserConfig;
@@ -113,13 +113,13 @@ export const isTalismanLabComponent = (
 ): component is TalismanLabComponent => component.namespace === NAMESPACE;
 
 export type TalismanLabUpdateConfig = BaseClientComponentMessage<Namespace> & {
-  component: 'mana-workshop-root';
+  component: 'talisman-lab-root';
   action: 'update-config';
   diff: Diff<UserConfig>;
 };
 
 export type TalismanLabSwitchMode = BaseClientComponentMessage<Namespace> & {
-  component: 'mana-workshop-root';
+  component: 'talisman-lab-root';
   action: 'switch-mode';
 };
 
@@ -137,7 +137,7 @@ export const isTalismanLabComponentMessage = <
 
 export type TalismanLabGetMidiMessages = BaseClientComponentCall<
   Namespace,
-  'mana-workshop-get-midi-messages'
+  'talisman-lab-get-midi-messages'
 > & {
   device: 'input' | 'output';
   fromIndex: number;
@@ -147,7 +147,7 @@ export type TalismanLabGetMidiMessagesReturn =
   MidiMessageBufferSlice<MidiMessageDescription | null>;
 
 export type TalismanLabComponentCalls = {
-  'mana-workshop-get-midi-messages': {
+  'talisman-lab-get-midi-messages': {
     call: TalismanLabGetMidiMessages;
     return: TalismanLabGetMidiMessagesReturn;
   };

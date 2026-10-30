@@ -73,7 +73,7 @@ module.exports = {
   packagerConfig: {
     name: APP_NAME,
     executableName: 'arcane-midi-tester',
-    appBundleId: 'com.arcanewizards.mana-workshop',
+    appBundleId: 'com.arcanewizards.talisman-lab',
     icon: 'assets/icon',
     appCategoryType: 'public.app-category.music',
     derefSymlinks: true,
@@ -87,9 +87,7 @@ module.exports = {
     osxSign:
       process.env.FULL_BUILD == 'false'
         ? undefined
-        : {
-            /* must exist to enable notarization */
-          },
+        : {/* must exist to enable notarization */},
     osxNotarize:
       process.env.FULL_BUILD == 'false'
         ? undefined

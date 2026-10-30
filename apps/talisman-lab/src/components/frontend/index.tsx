@@ -18,7 +18,7 @@ export const manaWorkshopFrontendComponents =
       }
 
       switch (info.component) {
-        case 'mana-workshop-root':
+        case 'talisman-lab-root':
           return <TalismanLabRoot info={info} />;
       }
     },
