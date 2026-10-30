@@ -156,8 +156,7 @@ const addControllerButtons = (
   items: Record<string, MidiControllerItem>,
   controllers: Record<number, NovationButtonInfo>,
   buttons:
-    | typeof UNIVERSAL_CONTROLLER_BUTTONS
-    | typeof SESSION_CONTROLLER_BUTTONS,
+    typeof UNIVERSAL_CONTROLLER_BUTTONS | typeof SESSION_CONTROLLER_BUTTONS,
 ) => {
   // Add controller buttons logic here
   for (const button of buttons) {

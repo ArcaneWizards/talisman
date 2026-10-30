@@ -124,8 +124,7 @@ export type TalismanLabSwitchMode = BaseClientComponentMessage<Namespace> & {
 };
 
 export type TalismanLabComponentMessage =
-  | TalismanLabUpdateConfig
-  | TalismanLabSwitchMode;
+  TalismanLabUpdateConfig | TalismanLabSwitchMode;
 
 export const isTalismanLabComponentMessage = <
   C extends TalismanLabComponentMessage['component'],

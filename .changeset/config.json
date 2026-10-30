@@ -7,5 +7,9 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["@arcanewizards/talisman-lab-desktop"]
+  "ignore": [
+    "@arcanewizards/talisman-lab-desktop",
+    "@arcanewizards/talisman-eslint-config",
+    "@arcanewizards/talisman-typescript-config"
+  ]
 }
