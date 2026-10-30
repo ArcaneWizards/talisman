@@ -14,7 +14,7 @@ if (
   !window.startTalismanLabServerFrontend ||
   !window.createBrowserMediaSession
 ) {
-  throw new Error('Mana Workshop frontend is not loaded properly.');
+  throw new Error('Talisman MIDI Lab frontend is not loaded properly.');
 }
 
 const closeListeners = new Set<BrowserCloseListener>();

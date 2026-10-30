@@ -31,8 +31,8 @@ export const TalismanLabRoot: FC<Props> = ({ info }) => {
       const diff = diffJson(config, change(config));
       sendMessage?.<TalismanLabUpdateConfig>({
         type: 'component-message',
-        namespace: 'mana-workshop',
-        component: 'mana-workshop-root',
+        namespace: 'talisman-lab',
+        component: 'talisman-lab-root',
         componentKey: info.key,
         action: 'update-config',
         diff,
@@ -45,8 +45,8 @@ export const TalismanLabRoot: FC<Props> = ({ info }) => {
     () =>
       sendMessage?.<TalismanLabSwitchMode>({
         type: 'component-message',
-        namespace: 'mana-workshop',
-        component: 'mana-workshop-root',
+        namespace: 'talisman-lab',
+        component: 'talisman-lab-root',
         componentKey: info.key,
         action: 'switch-mode',
       }),
@@ -59,14 +59,14 @@ export const TalismanLabRoot: FC<Props> = ({ info }) => {
         throw new Error('No call function available');
       }
       return call<
-        'mana-workshop',
+        'talisman-lab',
         TalismanLabComponentCalls,
-        'mana-workshop-get-midi-messages'
+        'talisman-lab-get-midi-messages'
       >({
         type: 'component-call',
-        namespace: 'mana-workshop',
+        namespace: 'talisman-lab',
         componentKey: info.key,
-        action: 'mana-workshop-get-midi-messages',
+        action: 'talisman-lab-get-midi-messages',
         device,
         fromIndex,
       });

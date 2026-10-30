@@ -61,7 +61,7 @@ const DEFAULT_PROPS: AppRootProps = {
   },
 };
 
-type SupportedCalls = 'mana-workshop-get-midi-messages';
+type SupportedCalls = 'talisman-lab-get-midi-messages';
 
 export class TalismanLabRoot
   extends Base<
@@ -97,7 +97,7 @@ export class TalismanLabRoot
 
   /** @hidden */
   public handleMessage = (message: AnyClientComponentMessage) => {
-    if (isTalismanLabComponentMessage(message, 'mana-workshop-root')) {
+    if (isTalismanLabComponentMessage(message, 'talisman-lab-root')) {
       if (message.action === 'update-config') {
         this.events.emit('updateConfig', message.diff);
       } else if (message.action === 'switch-mode') {
@@ -108,7 +108,7 @@ export class TalismanLabRoot
 
   /** @hidden */
   public handleCall = async (call: AnyClientComponentCall) => {
-    if (isTalismanLabComponentCall(call, 'mana-workshop-get-midi-messages')) {
+    if (isTalismanLabComponentCall(call, 'talisman-lab-get-midi-messages')) {
       return this.events.call('getMidiMessages', call);
     }
     throw new Error(`Unhandled call action: ${call.action}`);
@@ -117,8 +117,8 @@ export class TalismanLabRoot
   /** @hidden */
   public getProtoInfo(idMap: IDMap): TalismanLabRootComponent {
     return {
-      namespace: 'mana-workshop',
-      component: 'mana-workshop-root',
+      namespace: 'talisman-lab',
+      component: 'talisman-lab-root',
       key: idMap.getId(this),
       midi: this.props.midi,
       config: this.props.config,

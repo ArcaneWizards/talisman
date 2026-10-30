@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": false,
   "bin": {
-    "mana-workshop": "./dist/start.js"
+    "talisman-lab": "./dist/start.js"
   },
   "exports": {
     ".": {
