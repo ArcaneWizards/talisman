@@ -7,8 +7,5 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": [
-    "@arcanewizards/talisman-lab-desktop",
-    "@arcanewizards/talisman-arcade-desktop"
-  ]
+  "ignore": ["@arcanewizards/talisman-lab-desktop"]
 }

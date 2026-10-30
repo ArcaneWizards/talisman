@@ -15,7 +15,7 @@
     "test": "turbo test",
     "test:watch": "turbo test:watch",
     "start": "cd apps/server && pnpm start",
-    "version": "changeset version && pnpm --dir apps/talisman-lab-desktop version-sync && pnpm --dir apps/talisman-arcade-desktop version-sync"
+    "version": "changeset version && pnpm --dir apps/talisman-lab-desktop version-sync"
   },
   "devDependencies": {
     "@changesets/cli": "^2.30.0",
