@@ -3,22 +3,21 @@
   "version": "0.0.0",
   "private": true,
   "files": [
-    "dependencies.js",
     "library.js",
-    "next.js",
     "react-internal.js",
     "react-tailwind.js"
   ],
   "dependencies": {
+    "@eslint/js": "^9.39.4",
     "@typescript-eslint/eslint-plugin": "^8.57.2",
     "@typescript-eslint/parser": "^8.57.2",
-    "eslint-config-next": "^15.5.14",
     "eslint-config-prettier": "^9.1.2",
     "eslint-config-turbo": "^2.8.21",
     "eslint-plugin-jest": "^28.14.0",
     "eslint-plugin-jsdoc": "^65.0.1",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-unused-imports": "^4.4.1",
+    "globals": "^16.0.0",
     "typescript": "^5.9.3"
   }
 }
