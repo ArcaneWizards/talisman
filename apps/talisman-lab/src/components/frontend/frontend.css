@@ -13,6 +13,11 @@
     min(calc(var(--size-aware-div-width) * 0.05), 5rem)
   );
 
+  --spacing-logo: max(
+    6rem,
+    min(calc(var(--size-aware-div-width, 0px) * 0.15), 15rem)
+  );
+
   /**
     * Any (non-theme) tailwind variables that need to be used by component
     * classes should be defined here,

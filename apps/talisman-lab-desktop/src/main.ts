@@ -254,9 +254,13 @@ if (shouldStartApp) {
 
     Menu.setApplicationMenu(APP_MENU);
 
+    const dataDirectory = app.getPath('userData');
+
     const arcane = runTalismanLabServer({
       logger,
-      appProps: {},
+      appProps: {
+        dataDirectory,
+      },
       toolkitOptions: {
         entrypointJsFile: path.resolve(__dirname, './frontend.js'),
       },

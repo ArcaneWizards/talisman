@@ -4,6 +4,9 @@ import path from 'path';
 import pino from 'pino';
 import { runTalismanLabServer } from '.';
 import { TALISMAN_LAB_APP_NAME } from './constants';
+import { homedir } from 'os';
+
+const DATA_DIR = path.join(homedir(), 'talisman-lab');
 
 const logger = pino({
   level: 'info',
@@ -14,7 +17,9 @@ const logger = pino({
 
 const server = runTalismanLabServer({
   logger,
-  appProps: {},
+  appProps: {
+    dataDirectory: DATA_DIR,
+  },
   toolkitOptions: {
     entrypointJsFile: path.join(path.dirname(__dirname), 'dist/entrypoint.js'),
   },

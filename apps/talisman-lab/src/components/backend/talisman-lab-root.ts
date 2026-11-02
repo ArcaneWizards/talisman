@@ -1,8 +1,8 @@
 import { IDMap } from '@arcanejs/toolkit/util';
 import type {
+  LabConfig,
   TalismanLabGetMidiMessages,
   TalismanLabGetMidiMessagesReturn,
-  UserConfig,
 } from '../proto';
 import {
   Base,
@@ -15,7 +15,7 @@ import {
   TalismanLabComponentCalls,
   isTalismanLabComponentMessage,
   isTalismanLabComponentCall,
-  DEFAULT_USER_CONFIG,
+  DEFAULT_CONFIG,
 } from '../proto';
 import {
   AnyClientComponentCall,
@@ -24,7 +24,7 @@ import {
 import { Diff } from '@arcanejs/diff';
 
 export type Events = {
-  updateConfig: (diff: Diff<UserConfig>) => void;
+  updateConfig: (diff: Diff<LabConfig>) => void;
   switchMode: () => void;
   getMidiMessages: (
     args: TalismanLabGetMidiMessages,
@@ -33,7 +33,7 @@ export type Events = {
 
 export type AppRootProps = Pick<
   TalismanLabRootComponent,
-  'midi' | 'config' | 'status'
+  'midi' | 'config' | 'state' | 'license'
 > & {
   onUpdateConfig?: Events['updateConfig'];
   onSwitchMode?: Events['switchMode'];
@@ -49,8 +49,8 @@ const DEFAULT_PROPS: AppRootProps = {
     },
     profiles: {},
   },
-  config: DEFAULT_USER_CONFIG,
-  status: {
+  config: DEFAULT_CONFIG,
+  state: {
     input: {
       status: 'disabled',
     },
@@ -58,7 +58,9 @@ const DEFAULT_PROPS: AppRootProps = {
       status: 'disabled',
     },
     midiDeviceReadiness: null,
+    updates: null,
   },
+  license: null,
 };
 
 type SupportedCalls = 'talisman-lab-get-midi-messages';
@@ -120,9 +122,10 @@ export class TalismanLabRoot
       namespace: 'talisman-lab',
       component: 'talisman-lab-root',
       key: idMap.getId(this),
+      license: this.props.license,
       midi: this.props.midi,
       config: this.props.config,
-      status: this.props.status,
+      state: this.props.state,
     };
   }
 }
