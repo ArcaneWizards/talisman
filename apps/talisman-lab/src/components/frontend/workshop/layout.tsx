@@ -4,12 +4,18 @@ import {
   ToolbarRow,
   ToolbarWrapper,
 } from '@arcanewizards/sigil/frontend/toolbars';
-import { Fragment, ReactNode, useContext, useState } from 'react';
+import { Fragment, ReactNode, useCallback, useContext, useState } from 'react';
 import { Footer } from './footer';
 import { SizeAwareDiv } from './size-aware-div';
 import { Icon } from '@arcanejs/toolkit-frontend/components/core';
 import { StageContext } from '@arcanejs/toolkit-frontend';
 import { TALISMAN_LAB_APP_NAME, STRINGS } from '../../../constants';
+import { UpdateBanner } from '@arcanewizards/sigil/frontend/updates';
+import { useRootHintVariables } from '@arcanewizards/sigil/frontend/styling.hooks';
+import { useApplicationState } from './context';
+import { useBrowserPreferences } from './preferences';
+
+export const UPDATE_DETAILS_WINDOW_MODE = 'update-details' as const;
 
 type WindowModeDef<WindowMode extends string> = {
   child: (
@@ -24,29 +30,44 @@ type WindowModeDef<WindowMode extends string> = {
 type LayoutProps<WindowMode extends string> = {
   modes: Record<WindowMode, WindowModeDef<WindowMode>> | null;
   children: ReactNode;
+  licenseMode?: WindowMode;
   footer?: boolean;
 };
 
 export const Layout = <WindowMode extends string>({
   modes,
   children,
+  licenseMode,
   footer,
 }: LayoutProps<WindowMode>) => {
   const [windowMode, setWindowMode] = useState<WindowMode | null>(null);
 
   const { connection, reconnect } = useContext(StageContext);
 
+  const { preferences } = useBrowserPreferences();
+
+  const { updates } = useApplicationState();
+
+  useRootHintVariables(preferences.color);
+
+  const viewUpdateDetails = useCallback(() => {
+    if (modes?.[UPDATE_DETAILS_WINDOW_MODE as WindowMode]) {
+      setWindowMode(UPDATE_DETAILS_WINDOW_MODE as WindowMode);
+    }
+  }, [modes]);
+
   return (
-    <div className="flex h-dvh flex-col">
+    <div className="flex h-dvh flex-col bg-sigil-bg-light">
       <ToolbarWrapper>
         <ToolbarRow>
+          <div className="w-[80px]" />
           <div
             className="
               flex h-full min-h-[36px] grow items-center justify-center px-1
               app-title-bar
             "
           >
-            <span className="font-bold text-hint-gradient">
+            <span className="font-aladin text-[1.1rem] text-hint-gradient">
               {TALISMAN_LAB_APP_NAME}
             </span>
           </div>
@@ -77,6 +98,12 @@ export const Layout = <WindowMode extends string>({
           )}
         </ToolbarRow>
       </ToolbarWrapper>
+      <UpdateBanner
+        strings={STRINGS.updates.banner}
+        updates={updates}
+        openDetails={viewUpdateDetails}
+        className="border-b"
+      />
       <div className="relative flex h-0 grow flex-col">
         {connection.state !== 'connected' ? (
           <SizeAwareDiv
@@ -102,7 +129,17 @@ export const Layout = <WindowMode extends string>({
           </>
         )}
       </div>
-      {footer && <Footer />}
+      {footer && (
+        <Footer
+          openLicenseDetails={
+            licenseMode &&
+            (() =>
+              setWindowMode((mode) =>
+                mode === licenseMode ? null : licenseMode,
+              ))
+          }
+        />
+      )}
     </div>
   );
 };

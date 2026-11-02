@@ -9,8 +9,98 @@ import { MidiEndpoints, MIDISupportResponse } from '@arcanewizards/midi';
 import { MidiMessageBufferSlice } from './frontend/shared/midi-message-monitor';
 import { MidiMessageDescription } from '@arcanewizards/talisman/util';
 import { MidiDeviceReadiness } from '@arcanewizards/talisman/profile';
+import z from 'zod';
+import { GET_EULA_RESPONSE, GetEulaResponse } from '@arcanewizards/apis';
+import { UserActionState } from '@arcanewizards/sigil/frontend/user-actions';
+import { UpdateCheckResult } from '@arcanewizards/sigil/frontend/updates';
 
 export const LOGO_URL_PATH = 'logo-animated.svg';
+export const LOGO_STATIC_URL_PATH = 'logo-static.svg';
+
+// Config
+
+export const USER_CONFIG = z.object({
+  selectedInput: z.string().nullable(),
+  selectedOutput: z.string().nullable(),
+  selectedProfile: z.tuple([z.string(), z.string()]).nullable(),
+  fps: z.number(),
+  mode: z.object({
+    mode: z.literal('test-pattern'),
+    pattern: z.union([
+      z.object({ type: z.literal('rainbow') }),
+      z.object({
+        type: z.literal('solid'),
+        hue: z.number(),
+        saturation: z.number(),
+      }),
+    ]),
+    lightness: z.union([
+      z.object({
+        type: z.literal('moving'),
+        direction: z.union([z.literal('horizontal'), z.literal('vertical')]),
+      }),
+      z.object({
+        type: z.literal('solid'),
+        value: z.number(),
+      }),
+    ]),
+    interaction: z.object({
+      type: z.union([z.literal('row-column'), z.literal('cell')]),
+    }),
+  }),
+});
+
+export type UserConfig = z.infer<typeof USER_CONFIG>;
+
+export const DEFAULT_USER_CONFIG: UserConfig = {
+  selectedInput: null,
+  selectedOutput: null,
+  selectedProfile: null,
+  fps: 60,
+  mode: {
+    mode: 'test-pattern',
+    pattern: {
+      type: 'solid',
+      hue: 200,
+      saturation: 100,
+    },
+    lightness: {
+      type: 'solid',
+      value: 50,
+    },
+    interaction: {
+      type: 'row-column',
+    },
+  },
+};
+
+const AGREED_TO_EULA = z.object({
+  content: GET_EULA_RESPONSE,
+  /**
+   * The date the user agreed to the EULA, in milliseconds since the epoch.
+   */
+  dateAgreedOnMillis: z.number(),
+  /**
+   * We only generate an ID to include in update requests after the user
+   * has agreed to the EULA.
+   */
+  updateId: z.string(),
+});
+
+export const LAB_CONFIG = z.object({
+  config: USER_CONFIG,
+  agreedToEula: AGREED_TO_EULA.optional(),
+  checkForUpdates: z.boolean().optional().default(true),
+  animatedLogo: z.boolean().optional().default(true),
+});
+
+export type LabConfig = z.infer<typeof LAB_CONFIG>;
+
+export const DEFAULT_CONFIG: LabConfig = {
+  config: DEFAULT_USER_CONFIG,
+  checkForUpdates: true,
+  animatedLogo: true,
+};
 
 // Data
 
@@ -48,67 +138,32 @@ export type MIDINetworkState = {
   >;
 };
 
-export type UserConfig = {
-  selectedInput: string | null;
-  selectedOutput: string | null;
-  selectedProfile: [string, string] | null;
-  fps: number;
-  pattern:
-    | {
-        type: 'rainbow';
-      }
-    | {
-        type: 'solid';
-        hue: number;
-        saturation: number;
-      };
-  lightness:
-    | {
-        type: 'moving';
-        direction: 'horizontal' | 'vertical';
-      }
-    | {
-        type: 'solid';
-        value: number;
-      };
-  interaction: {
-    type: 'row-column' | 'cell';
-  };
-};
-
-export const DEFAULT_USER_CONFIG: UserConfig = {
-  selectedInput: null,
-  selectedOutput: null,
-  selectedProfile: null,
-  fps: 60,
-  pattern: {
-    type: 'solid',
-    hue: 200,
-    saturation: 100,
-  },
-  lightness: {
-    type: 'solid',
-    value: 50,
-  },
-  interaction: {
-    type: 'row-column',
-  },
+export type ApplicationState = {
+  input: ConnectionStatus;
+  output: ConnectionStatus;
+  midiDeviceReadiness: MidiDeviceReadiness | null;
+  updates: UpdateCheckResult | null;
 };
 
 export type TalismanLabRootComponent = BaseComponentProto<
   Namespace,
   'talisman-lab-root'
 > & {
+  license: GetEulaResponse | null;
   midi: MIDINetworkState;
-  config: UserConfig;
-  status: {
-    input: ConnectionStatus;
-    output: ConnectionStatus;
-    midiDeviceReadiness: MidiDeviceReadiness | null;
-  };
+  config: LabConfig;
+  state: ApplicationState;
 };
 
-export type TalismanLabComponent = TalismanLabRootComponent;
+export type LicenseGateComponent = BaseComponentProto<
+  Namespace,
+  'license-gate'
+> & {
+  eula: UserActionState<GetEulaResponse>;
+};
+
+export type TalismanLabComponent =
+  TalismanLabRootComponent | LicenseGateComponent;
 
 export const isTalismanLabComponent = (
   component: AnyComponentProto,
@@ -117,7 +172,7 @@ export const isTalismanLabComponent = (
 export type TalismanLabUpdateConfig = BaseClientComponentMessage<Namespace> & {
   component: 'talisman-lab-root';
   action: 'update-config';
-  diff: Diff<UserConfig>;
+  diff: Diff<LabConfig>;
 };
 
 export type TalismanLabSwitchMode = BaseClientComponentMessage<Namespace> & {
@@ -125,8 +180,13 @@ export type TalismanLabSwitchMode = BaseClientComponentMessage<Namespace> & {
   action: 'switch-mode';
 };
 
+export type LicenseGateAcceptLicense = BaseClientComponentMessage<Namespace> & {
+  component: 'license-gate';
+  action: 'accept-license';
+};
+
 export type TalismanLabComponentMessage =
-  TalismanLabUpdateConfig | TalismanLabSwitchMode;
+  TalismanLabUpdateConfig | TalismanLabSwitchMode | LicenseGateAcceptLicense;
 
 export const isTalismanLabComponentMessage = <
   C extends TalismanLabComponentMessage['component'],

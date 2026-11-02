@@ -10,28 +10,53 @@ import { ListenerConfig } from '@arcanewizards/sigil/shared/config';
 import { ConnectionsContextProvider } from '@arcanejs/react-toolkit/connections';
 import { useMidiNetworkState } from './workshop/network-state';
 import { useSelectedDevices } from './workshop/selected-devices';
-import { DEFAULT_USER_CONFIG, UserConfig } from './components/proto';
+import { LabConfig, UserConfig } from './components/proto';
 import { Diff } from '@arcanejs/diff/diff';
 import { patchJson } from '@arcanejs/diff';
 import { Events as TalismanLabRootEvents } from './components/backend/talisman-lab-root';
 import { Logger } from '@arcanejs/protocol/logging';
+import { LabConfigData } from './config';
+import path from 'node:path';
+import { useDataFileContext } from '@arcanejs/react-toolkit/data';
+import { UpdateChecker } from '@arcanewizards/sigil/updates';
+import { api, GetEulaResponse } from '@arcanewizards/apis';
+import { UpdateCheckResult } from '@arcanewizards/sigil/frontend/updates';
+import { API_APP_ID } from './constants';
+import { EulaGate } from './eula';
 
 const DEFAULT_PORT: ListenerConfig['port'] = { from: 4100, to: 4200 };
 
 export type AppApi = Record<never, never>;
 
-export type TalismanLabAppProps = Record<never, never>;
+export type TalismanLabAppProps = {
+  dataDirectory: string;
+};
 
 export type AppProps = SigilRuntimeAppProps<AppApi, TalismanLabAppProps>;
 
 type AppRootProps = {
   logger: Logger;
+  license: GetEulaResponse;
+  updates: UpdateCheckResult | null;
 };
 
-const AppRoot: FC<AppRootProps> = ({ logger }) => {
+const AppRoot: FC<AppRootProps> = ({ logger, license, updates }) => {
+  const { data: config, updateData: updateConfig } =
+    useDataFileContext(LabConfigData);
+
   const midi = useMidiNetworkState(logger);
 
-  const [config, setConfig] = useState<UserConfig>(DEFAULT_USER_CONFIG);
+  const updateUserConfig = useCallback(
+    (update: (current: UserConfig) => UserConfig) => {
+      updateConfig((current) => {
+        return {
+          ...current,
+          config: update(current.config),
+        };
+      });
+    },
+    [updateConfig],
+  );
 
   const {
     inputStatus,
@@ -40,10 +65,10 @@ const AppRoot: FC<AppRootProps> = ({ logger }) => {
     outputBuffer,
     midiDeviceReadiness,
     performModeSwitch,
-  } = useSelectedDevices(logger, midi, config, setConfig);
+  } = useSelectedDevices(logger, midi, config.config, updateUserConfig);
 
-  const onUpdateConfig = (diff: Diff<UserConfig>) => {
-    setConfig((prev) => patchJson(prev, diff) ?? prev);
+  const onUpdateConfig = (diff: Diff<LabConfig>) => {
+    updateConfig((prev) => patchJson(prev, diff) ?? prev);
   };
 
   const status = useMemo(() => {
@@ -51,8 +76,9 @@ const AppRoot: FC<AppRootProps> = ({ logger }) => {
       input: inputStatus,
       output: outputStatus,
       midiDeviceReadiness,
+      updates,
     };
-  }, [inputStatus, outputStatus, midiDeviceReadiness]);
+  }, [inputStatus, outputStatus, midiDeviceReadiness, updates]);
 
   const onGetMidiMessages: TalismanLabRootEvents['getMidiMessages'] =
     useCallback(
@@ -65,10 +91,11 @@ const AppRoot: FC<AppRootProps> = ({ logger }) => {
 
   return (
     <C.TalismanLabRoot
+      license={license}
       midi={midi.state}
       config={config}
       onUpdateConfig={onUpdateConfig}
-      status={status}
+      state={status}
       onGetMidiMessages={onGetMidiMessages}
       onSwitchMode={performModeSwitch}
     />
@@ -78,12 +105,15 @@ const AppRoot: FC<AppRootProps> = ({ logger }) => {
 export const App = ({
   title,
   version,
+  edition,
   toolkit,
   logger,
   logEventEmitter,
   setWindowUrl,
   shutdownContext,
 }: AppProps): ReactNode => {
+  const { data: config } = useDataFileContext(LabConfigData);
+
   const env = useMemo(() => getEnv(logger), [logger]);
 
   const appListenerConfig = useMemo(() => {
@@ -97,6 +127,12 @@ export const App = ({
     return baseConfig;
   }, [env.PORT]);
 
+  const a = useMemo(() => api(env.API_BASE_URL), [env.API_BASE_URL]);
+
+  const [updateState, setUpdateState] = useState<UpdateCheckResult | null>(
+    null,
+  );
+
   return (
     <AppShell
       title={title}
@@ -106,7 +142,24 @@ export const App = ({
       logEventEmitter={logEventEmitter}
       shutdownContext={shutdownContext}
     >
-      <AppRoot logger={logger} />
+      {config.agreedToEula ? (
+        <AppRoot
+          logger={logger}
+          license={config.agreedToEula.content}
+          updates={updateState}
+        />
+      ) : (
+        <EulaGate api={a} />
+      )}
+
+      <UpdateChecker
+        app={API_APP_ID}
+        version={version}
+        edition={edition}
+        api={a}
+        setUpdateState={setUpdateState}
+        config={config}
+      />
       <AppListenerManager
         toolkit={toolkit}
         setWindowUrl={setWindowUrl}
@@ -119,7 +172,11 @@ export const App = ({
 export const createApp = (props: AppProps): JSX.Element => {
   return (
     <ConnectionsContextProvider toolkit={props.toolkit}>
-      <App {...props} />
+      <LabConfigData.Provider
+        path={path.join(props.dataDirectory, 'config.json')}
+      >
+        <App {...props} />
+      </LabConfigData.Provider>
     </ConnectionsContextProvider>
   );
 };

@@ -9,7 +9,7 @@ minimumReleaseAge: 10080 # 7 days
 minimumReleaseAgeStrict: true
 minimumReleaseAgeExclude:
   - '@arcanewizards/apis@0.1.0'
-  - '@arcanewizards/sigil@0.5.3'
+  - '@arcanewizards/sigil@0.6.0'
   - '@arcanejs/react-toolkit@0.16.6'
 allowBuilds:
   '@arcanewizards/electron-media-service': true

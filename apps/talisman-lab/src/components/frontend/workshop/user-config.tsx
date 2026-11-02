@@ -18,7 +18,7 @@ import {
 
 type UserConfigProps = {
   midi: MIDINetworkState;
-  status: TalismanLabRootComponent['status'];
+  status: TalismanLabRootComponent['state'];
   config: UserConfig;
   updateConfig: (update: (config: UserConfig) => UserConfig) => void;
   performModeSwitch: () => void;
@@ -251,14 +251,17 @@ export const UserConfigEditor: FC<UserConfigProps> = ({
             onClick={() => {
               updateConfig((current) => ({
                 ...current,
-                pattern:
-                  current.pattern.type === 'solid'
-                    ? current.pattern
-                    : { type: 'solid', hue: 0, saturation: 100 },
+                mode: {
+                  ...current.mode,
+                  pattern:
+                    current.mode.pattern.type === 'solid'
+                      ? current.mode.pattern
+                      : { type: 'solid', hue: 0, saturation: 100 },
+                },
               }));
             }}
             variant="group"
-            active={config.pattern?.type === 'solid'}
+            active={config.mode.pattern?.type === 'solid'}
           >
             Solid Color
           </ControlButton>
@@ -266,31 +269,37 @@ export const UserConfigEditor: FC<UserConfigProps> = ({
             onClick={() => {
               updateConfig((current) => ({
                 ...current,
-                pattern:
-                  current.pattern.type === 'rainbow'
-                    ? current.pattern
-                    : { type: 'rainbow' },
+                mode: {
+                  ...current.mode,
+                  pattern:
+                    current.mode.pattern.type === 'rainbow'
+                      ? current.mode.pattern
+                      : { type: 'rainbow' },
+                },
               }));
             }}
             variant="group"
-            active={config.pattern?.type === 'rainbow'}
+            active={config.mode.pattern?.type === 'rainbow'}
           >
             Rainbow
           </ControlButton>
         </ControlButtonGroup>
-        {config.pattern.type === 'solid' && (
+        {config.mode.pattern.type === 'solid' && (
           <>
             <ControlLabel>Hue</ControlLabel>
             <ControlInput
-              value={`${config.pattern.hue}`}
+              value={`${config.mode.pattern.hue}`}
               placeholder="Enter Hue"
               onChange={(hue) => {
                 const n = parseInt(hue);
                 updateConfig((current) => ({
                   ...current,
-                  pattern: {
-                    ...current.pattern,
-                    hue: Math.max(0, Math.min(360, isNaN(n) ? 0 : n)),
+                  mode: {
+                    ...current.mode,
+                    pattern: {
+                      ...current.mode.pattern,
+                      hue: Math.max(0, Math.min(360, isNaN(n) ? 0 : n)),
+                    },
                   },
                 }));
               }}
@@ -302,15 +311,18 @@ export const UserConfigEditor: FC<UserConfigProps> = ({
             />
             <ControlLabel>Saturation</ControlLabel>
             <ControlInput
-              value={`${config.pattern.saturation}`}
+              value={`${config.mode.pattern.saturation}`}
               placeholder="Enter Saturation"
               onChange={(saturation) => {
                 const n = parseInt(saturation);
                 updateConfig((current) => ({
                   ...current,
-                  pattern: {
-                    ...current.pattern,
-                    saturation: Math.max(0, Math.min(100, isNaN(n) ? 0 : n)),
+                  mode: {
+                    ...current.mode,
+                    pattern: {
+                      ...current.mode.pattern,
+                      saturation: Math.max(0, Math.min(100, isNaN(n) ? 0 : n)),
+                    },
                   },
                 }));
               }}
@@ -328,14 +340,17 @@ export const UserConfigEditor: FC<UserConfigProps> = ({
             onClick={() => {
               updateConfig((current) => ({
                 ...current,
-                lightness:
-                  current.lightness.type === 'solid'
-                    ? current.lightness
-                    : { type: 'solid', value: 50 },
+                mode: {
+                  ...current.mode,
+                  lightness:
+                    current.mode.lightness.type === 'solid'
+                      ? current.mode.lightness
+                      : { type: 'solid', value: 50 },
+                },
               }));
             }}
             variant="group"
-            active={config.lightness?.type === 'solid'}
+            active={config.mode.lightness?.type === 'solid'}
           >
             Solid
           </ControlButton>
@@ -343,31 +358,37 @@ export const UserConfigEditor: FC<UserConfigProps> = ({
             onClick={() => {
               updateConfig((current) => ({
                 ...current,
-                lightness:
-                  current.lightness.type === 'moving'
-                    ? current.lightness
-                    : { type: 'moving', direction: 'horizontal' },
+                mode: {
+                  ...current.mode,
+                  lightness:
+                    current.mode.lightness.type === 'moving'
+                      ? current.mode.lightness
+                      : { type: 'moving', direction: 'horizontal' },
+                },
               }));
             }}
             variant="group"
-            active={config.lightness?.type === 'moving'}
+            active={config.mode.lightness?.type === 'moving'}
           >
             Wave
           </ControlButton>
         </ControlButtonGroup>
-        {config.lightness.type === 'solid' && (
+        {config.mode.lightness.type === 'solid' && (
           <>
             <ControlLabel>Value:</ControlLabel>
             <ControlInput
-              value={`${config.lightness.value}`}
+              value={`${config.mode.lightness.value}`}
               placeholder="Enter Value"
               onChange={(value) => {
                 const n = parseInt(value);
                 updateConfig((current) => ({
                   ...current,
-                  lightness: {
-                    ...current.lightness,
-                    value: Math.max(0, Math.min(100, isNaN(n) ? 0 : n)),
+                  mode: {
+                    ...current.mode,
+                    lightness: {
+                      ...current.mode.lightness,
+                      value: Math.max(0, Math.min(100, isNaN(n) ? 0 : n)),
+                    },
                   },
                 }));
               }}
@@ -379,7 +400,7 @@ export const UserConfigEditor: FC<UserConfigProps> = ({
             />
           </>
         )}
-        {config.lightness.type === 'moving' && (
+        {config.mode.lightness.type === 'moving' && (
           <>
             <ControlLabel>Wave Direction</ControlLabel>
             <ControlButtonGroup position="both" variant="large">
@@ -387,14 +408,17 @@ export const UserConfigEditor: FC<UserConfigProps> = ({
                 onClick={() => {
                   updateConfig((current) => ({
                     ...current,
-                    lightness: {
-                      ...current.lightness,
-                      direction: 'horizontal',
+                    mode: {
+                      ...current.mode,
+                      lightness: {
+                        ...current.mode.lightness,
+                        direction: 'horizontal',
+                      },
                     },
                   }));
                 }}
                 variant="group"
-                active={config.lightness?.direction === 'horizontal'}
+                active={config.mode.lightness?.direction === 'horizontal'}
               >
                 Horizontal
               </ControlButton>
@@ -402,14 +426,17 @@ export const UserConfigEditor: FC<UserConfigProps> = ({
                 onClick={() => {
                   updateConfig((current) => ({
                     ...current,
-                    lightness: {
-                      ...current.lightness,
-                      direction: 'vertical',
+                    mode: {
+                      ...current.mode,
+                      lightness: {
+                        ...current.mode.lightness,
+                        direction: 'vertical',
+                      },
                     },
                   }));
                 }}
                 variant="group"
-                active={config.lightness?.direction === 'vertical'}
+                active={config.mode.lightness?.direction === 'vertical'}
               >
                 Vertical
               </ControlButton>
@@ -422,11 +449,14 @@ export const UserConfigEditor: FC<UserConfigProps> = ({
             onClick={() => {
               updateConfig((current) => ({
                 ...current,
-                interaction: { type: 'row-column' },
+                mode: {
+                  ...current.mode,
+                  interaction: { type: 'row-column' },
+                },
               }));
             }}
             variant="group"
-            active={config.interaction?.type === 'row-column'}
+            active={config.mode.interaction?.type === 'row-column'}
           >
             Highlight Row + Column
           </ControlButton>
@@ -434,11 +464,14 @@ export const UserConfigEditor: FC<UserConfigProps> = ({
             onClick={() => {
               updateConfig((current) => ({
                 ...current,
-                interaction: { type: 'cell' },
+                mode: {
+                  ...current.mode,
+                  interaction: { type: 'cell' },
+                },
               }));
             }}
             variant="group"
-            active={config.interaction?.type === 'cell'}
+            active={config.mode.interaction?.type === 'cell'}
           >
             Highlight Cell
           </ControlButton>

@@ -1,7 +1,17 @@
 import { FC } from 'react';
-import { ExternalLink } from './content';
+import { ExternalLink, TextButton } from './content';
+import {
+  HELP_AND_SUPPORT_URL,
+  SOURCE_CODE_URL,
+  STRINGS,
+} from '../../../constants';
+import { ToolbarDivider } from '@arcanewizards/sigil/frontend/toolbars';
 
-export const Footer: FC = () => {
+type FooterProps = {
+  openLicenseDetails?: () => void;
+};
+
+export const Footer: FC<FooterProps> = ({ openLicenseDetails }) => {
   return (
     <div
       className="
@@ -15,6 +25,20 @@ export const Footer: FC = () => {
           Arcane Wizards
         </ExternalLink>
       </span>
+      <ToolbarDivider />
+      <ExternalLink href={SOURCE_CODE_URL}>{STRINGS.sourceCode}</ExternalLink>
+      {openLicenseDetails && (
+        <>
+          <ToolbarDivider />
+          <TextButton onClick={openLicenseDetails}>
+            {STRINGS.license}
+          </TextButton>
+        </>
+      )}
+      <ToolbarDivider />
+      <ExternalLink href={HELP_AND_SUPPORT_URL}>
+        {STRINGS.helpAndSupport}
+      </ExternalLink>
     </div>
   );
 };

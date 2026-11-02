@@ -13,7 +13,7 @@ import { C } from './components/backend';
 import { version } from '../package.json';
 import { AppEdition } from '@arcanewizards/apis';
 import { readFile } from 'fs/promises';
-import { LOGO_URL_PATH } from './components/proto';
+import { LOGO_STATIC_URL_PATH, LOGO_URL_PATH } from './components/proto';
 
 export type { AppApi };
 
@@ -52,6 +52,12 @@ export const runTalismanLabServer = ({
         [LOGO_URL_PATH]: async () => ({
           content: await readFile(
             require.resolve('@arcanewizards/talisman-lab/assets/logo-animated.svg'),
+          ),
+          contentType: 'image/svg+xml',
+        }),
+        [LOGO_STATIC_URL_PATH]: async () => ({
+          content: await readFile(
+            require.resolve('@arcanewizards/talisman-lab/assets/logo-static.svg'),
           ),
           contentType: 'image/svg+xml',
         }),

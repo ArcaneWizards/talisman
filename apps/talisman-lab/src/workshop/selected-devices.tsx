@@ -231,6 +231,10 @@ export const useSelectedDevices = (
       const item = action?.item ? inputProfile?.getItem(action?.item) : null;
       const extra = getMidiMessageDescription(message, item ?? null, action);
 
+      if (configRef.current.mode.mode !== 'test-pattern') {
+        return;
+      }
+
       if (item && action) {
         if (
           action &&
@@ -241,7 +245,7 @@ export const useSelectedDevices = (
           if (action.nature.nature === 'modifier') {
             interactionState.current.modifier = on;
           }
-          if (configRef.current.interaction.type === 'row-column') {
+          if (configRef.current.mode.interaction.type === 'row-column') {
             for (const p of getRowsAndColumns(item.position)) {
               if ('col' in p) {
                 if (on) {
@@ -562,6 +566,10 @@ export const useSelectedDevices = (
     const rows = maxRow - minRow + 1;
 
     const interval = setInterval(() => {
+      if (configRef.current.mode.mode !== 'test-pattern') {
+        return;
+      }
+
       const { hue, pos, lastTimestamp } = animationState.current;
       const now = Date.now();
       const delta = now - lastTimestamp;
@@ -600,7 +608,7 @@ export const useSelectedDevices = (
           let s: number;
           let l: number;
 
-          if (configRef.current.pattern.type === 'rainbow') {
+          if (configRef.current.mode.pattern.type === 'rainbow') {
             if (patternCol !== null && patternRow != null) {
               const rotate =
                 ((patternCol + patternRow * cols) / (cols * rows)) * 360;
@@ -610,14 +618,14 @@ export const useSelectedDevices = (
             }
             s = interactionState.current.modifier ? 0 : 100;
           } else {
-            h = configRef.current.pattern.hue;
-            s = configRef.current.pattern.saturation;
+            h = configRef.current.mode.pattern.hue;
+            s = configRef.current.mode.pattern.saturation;
           }
-          if (configRef.current.lightness.type === 'solid') {
-            l = configRef.current.lightness.value;
+          if (configRef.current.mode.lightness.type === 'solid') {
+            l = configRef.current.mode.lightness.value;
           } else {
             const thisPos =
-              configRef.current.lightness.direction === 'horizontal'
+              configRef.current.mode.lightness.direction === 'horizontal'
                 ? ((patternCol ?? 0) / cols / 2 - pos + 1) % 1
                 : ((patternRow ?? 0) / rows / 2 - pos + 1) % 1;
             l = Math.abs(thisPos - 0.5) * 200;
@@ -668,6 +676,8 @@ export const useSelectedDevices = (
   }, [log, outputProfile, inputProfile, config.fps]);
 
   const shutdownHandler = useCallback(async () => {
+    // Prevent any further messages being sent
+    outputRef.current = null;
     // If shutting down, make sure that the output profile is properly closed
     await outputProfile?.close?.();
     await input?.input.close();

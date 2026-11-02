@@ -6,6 +6,7 @@ import {
 } from '@arcanewizards/sigil/frontend';
 import { isTalismanLabComponent, NAMESPACE } from '../proto';
 import { TalismanLabRoot } from './workshop/root';
+import { LicenseGate } from './workshop/license';
 
 export type TalismanLabBrowserContext = BaseBrowserContext;
 
@@ -20,6 +21,8 @@ export const manaWorkshopFrontendComponents =
       switch (info.component) {
         case 'talisman-lab-root':
           return <TalismanLabRoot info={info} />;
+        case 'license-gate':
+          return <LicenseGate info={info} />;
       }
     },
   });

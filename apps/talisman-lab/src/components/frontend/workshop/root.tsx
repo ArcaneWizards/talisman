@@ -1,6 +1,6 @@
-import { FC, useCallback, useContext } from 'react';
+import { FC, useCallback, useContext, useMemo } from 'react';
 import {
-  LOGO_URL_PATH,
+  LabConfig,
   TalismanLabComponentCalls,
   TalismanLabRootComponent,
   TalismanLabSwitchMode,
@@ -9,7 +9,7 @@ import {
 } from '../../proto';
 
 import { STRINGS } from '../../../constants';
-import { Layout } from './layout';
+import { Layout, UPDATE_DETAILS_WINDOW_MODE } from './layout';
 import { Debugger } from '@arcanewizards/sigil/frontend';
 import { diffJson } from '@arcanejs/diff';
 import { StageContext } from '@arcanejs/toolkit-frontend';
@@ -17,18 +17,27 @@ import { StageContext } from '@arcanejs/toolkit-frontend';
 import { MidiMessageMonitor } from '../shared/midi-message-monitor';
 import { UserConfigEditor } from './user-config';
 import { MidiMessageDescription } from '@arcanewizards/talisman/util';
+import { License } from './license';
+import { UpdateDetails } from '@arcanewizards/sigil/frontend/updates';
+import {
+  ApplicationStateContext,
+  ConfigContext,
+  ConfigContextData,
+} from './context';
+import { Settings } from './settings';
+import { Logo } from './logo';
 
 type Props = {
   info: TalismanLabRootComponent;
 };
 
 export const TalismanLabRoot: FC<Props> = ({ info }) => {
-  const { config, status, midi } = info;
+  const { config, state, midi } = info;
 
   const { sendMessage, call } = useContext(StageContext);
 
   const updateConfig = useCallback(
-    (change: (current: UserConfig) => UserConfig) => {
+    (change: (current: LabConfig) => LabConfig) => {
       const diff = diffJson(config, change(config));
       sendMessage?.<TalismanLabUpdateConfig>({
         type: 'component-message',
@@ -100,72 +109,115 @@ export const TalismanLabRoot: FC<Props> = ({ info }) => {
     [],
   );
 
+  const configValue: ConfigContextData = useMemo(() => {
+    return {
+      config,
+      updateConfig,
+    };
+  }, [config, updateConfig]);
+
+  const updateUserConfig = useCallback(
+    (change: (current: UserConfig) => UserConfig) =>
+      updateConfig((current) => ({
+        ...current,
+        config: change(current.config),
+      })),
+    [updateConfig],
+  );
+
   return (
-    <Layout<'debug'>
-      footer
-      modes={{
-        debug: {
-          child: () => (
-            <Debugger title={STRINGS.debugger} className="size-full" />
-          ),
-          button: {
-            icon: 'bug_report',
-            title: STRINGS.debugger,
-          },
-        },
-      }}
-    >
-      <div
-        className="
-          flex h-0 grow scrollbar-sigil flex-col overflow-y-auto
-          bg-sigil-bg-light
-        "
-      >
-        <div
-          className="
-            flex grow basis-0 scrollbar-sigil flex-col items-center
-            justify-center gap-2 p-2
-          "
+    <ConfigContext.Provider value={configValue}>
+      <ApplicationStateContext.Provider value={state}>
+        <Layout<
+          'debug' | 'license' | 'settings' | typeof UPDATE_DETAILS_WINDOW_MODE
         >
-          <img
-            src={`/${LOGO_URL_PATH}`}
-            alt="LOGO"
-            height="200"
-            width="100%"
-            className="max-h-[20svh]"
-          />
-          <UserConfigEditor
-            midi={midi}
-            status={status}
-            config={config}
-            updateConfig={updateConfig}
-            performModeSwitch={performModeSwitch}
-          />
-          <div className="flex w-full grow flex-wrap gap-2">
-            <MidiMessageMonitor<MidiMessageDescription | null>
-              label="Messages received"
-              latestIndex={
-                status.input.status === 'connected'
-                  ? status.input.messagesReceived
-                  : 0
-              }
-              getMidiMessages={getInputMessages}
-              defaultMonitoring
-              renderExtra={renderExtra}
-            />
-            <MidiMessageMonitor<MidiMessageDescription | null>
-              label="Messages sent"
-              latestIndex={
-                status.output.status === 'connected'
-                  ? status.output.messagesReceived
-                  : 0
-              }
-              getMidiMessages={getOutputMessages}
-              renderExtra={renderExtra}
-            />
+          footer
+          licenseMode="license"
+          modes={{
+            license: {
+              child: (setWindowMode) =>
+                info.license ? (
+                  <License eula={info.license} setWindowMode={setWindowMode} />
+                ) : null,
+              button: {
+                icon: 'info',
+                title: STRINGS.license,
+              },
+            },
+            debug: {
+              child: () => (
+                <Debugger title={STRINGS.debugger} className="size-full" />
+              ),
+              button: {
+                icon: 'bug_report',
+                title: STRINGS.debugger,
+              },
+            },
+            settings: {
+              child: (setWindowMode) => (
+                <Settings setWindowMode={setWindowMode} />
+              ),
+              button: {
+                icon: 'settings',
+                title: STRINGS.settings.title,
+              },
+            },
+            [UPDATE_DETAILS_WINDOW_MODE]: {
+              child: (setWindowMode) =>
+                info.state.updates ? (
+                  <UpdateDetails
+                    updates={info.state.updates}
+                    strings={STRINGS.updates.details}
+                    closeDetails={() => setWindowMode(null)}
+                    className="grow"
+                  />
+                ) : null,
+              button: null,
+            },
+          }}
+        >
+          <div className="flex h-0 grow scrollbar-sigil flex-col overflow-y-auto">
+            <div
+              className="
+                flex grow basis-0 scrollbar-sigil flex-col items-center
+                justify-center gap-2 p-2
+              "
+            >
+              <Logo animatedLogo={config.animatedLogo} />
+              <UserConfigEditor
+                midi={midi}
+                status={state}
+                config={config.config}
+                updateConfig={updateUserConfig}
+                performModeSwitch={performModeSwitch}
+              />
+              <div className="flex w-full grow flex-wrap gap-2">
+                <MidiMessageMonitor<MidiMessageDescription | null>
+                  label="Messages received"
+                  latestIndex={
+                    state.input.status === 'connected'
+                      ? state.input.messagesReceived
+                      : 0
+                  }
+                  getMidiMessages={getInputMessages}
+                  defaultMonitoring
+                  renderExtra={renderExtra}
+                />
+                <MidiMessageMonitor<MidiMessageDescription | null>
+                  label="Messages sent"
+                  latestIndex={
+                    state.output.status === 'connected'
+                      ? state.output.messagesReceived
+                      : 0
+                  }
+                  getMidiMessages={getOutputMessages}
+                  renderExtra={renderExtra}
+                />
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-    </Layout>
+        </Layout>
+      </ApplicationStateContext.Provider>
+    </ConfigContext.Provider>
   );
 };
