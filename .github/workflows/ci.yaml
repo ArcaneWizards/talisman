@@ -55,7 +55,7 @@ jobs:
   build-and-release-apps:
     strategy:
       matrix:
-        app: [talisman-lab]
+        app: [talisman-lab, talisman-arcade]
     name: build-and-release-${{ matrix.app }}
     uses: ./.github/workflows/build-and-release-app.yaml
     permissions:
