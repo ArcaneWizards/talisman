@@ -1,5 +1,16 @@
 # @arcanewizards/talisman-lab
 
+## 0.0.3
+
+### Patch Changes
+
+- 1272dab: Finish preparing initial release
+
+  - Ensure that user settings are saved between launches
+  - Allow users to disable logo animation
+  - Display a EULA on app launch
+  - Check for updates and display changes when there's an update available.
+
 ## 0.0.2
 
 ### Patch Changes
