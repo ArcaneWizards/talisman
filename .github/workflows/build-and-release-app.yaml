@@ -237,7 +237,7 @@ jobs:
           $ErrorActionPreference = "Stop"
           if ($env:APP_NAME -eq "talisman-lab") {
             echo "x64File=out/$env:APP_NAME.v$env:VERSION.Setup.exe" >> $env:GITHUB_OUTPUT
-          } else if ($env:APP_NAME -eq "talisman-arcade") {
+          } elseif ($env:APP_NAME -eq "talisman-arcade") {
             echo "x64File=out/$env:APP_NAME.v$env:VERSION.Setup.exe" >> $env:GITHUB_OUTPUT
           } else {
             echo "Unrecognized app name: $env:APP_NAME"
