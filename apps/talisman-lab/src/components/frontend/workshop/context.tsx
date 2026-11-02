@@ -10,6 +10,7 @@ import { ActionResponse } from '@arcanewizards/sigil/frontend/user-actions';
 
 export type RootContextData = {
   config: LabConfig;
+  updateConfig: (updater: (current: LabConfig) => LabConfig) => void;
   getSupportedDevices: () => ActionResponse<TalismanLabGetSupportedDevicesReturn>;
   getFullProfileInfo: (
     args: Pick<GetFullProfileInfo, 'profileName' | 'subProfileName'>,

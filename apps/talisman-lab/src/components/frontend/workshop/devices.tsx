@@ -6,10 +6,7 @@ import {
   useMemo,
   useState,
 } from 'react';
-import {
-  TalismanLabGetSupportedDevice,
-  TalismanLabGetSupportedDevicesReturn,
-} from '../../proto';
+import { TalismanLabGetSupportedDevicesReturn } from '../../proto';
 import {
   LoadingWrapper,
   useUserAction,
@@ -20,6 +17,10 @@ import { cn } from '@arcanejs/toolkit-frontend/util';
 import { cnd } from '@arcanewizards/sigil/frontend/styling';
 import { useBrowserContext } from '@arcanewizards/sigil/frontend';
 import { ControlButton } from '@arcanewizards/sigil/frontend/controls';
+import {
+  DeviceProfileDetails,
+  TalismanSupportedDeviceData,
+} from '../shared/device-profile-details';
 
 const DATE_FORMAT = new Intl.DateTimeFormat('en', {
   year: 'numeric',
@@ -40,10 +41,15 @@ const GithubUsername: FC<{ username: string }> = ({ username }) => {
   );
 };
 
-const DeviceEntry: FC<{ device: TalismanLabGetSupportedDevice }> = ({
-  device: { name, testing, subProfiles },
-}) => {
-  const [detailsOpen, setDetailsOpen] = useState(false);
+const DeviceEntry: FC<{
+  profileId: string;
+  device: TalismanSupportedDeviceData;
+}> = ({ profileId, device }) => {
+  const [detailsOpen, setDetailsOpen] = useState(true);
+
+  const { getFullProfileInfo } = useContext(RootContext);
+
+  const { name, testing, subProfiles } = device;
 
   const testers = useMemo(
     () => [
@@ -60,103 +66,120 @@ const DeviceEntry: FC<{ device: TalismanLabGetSupportedDevice }> = ({
   );
 
   return (
-    <div className="flex gap-1 rounded-md bg-sigil-bg-dark p-2">
-      <div className="flex grow flex-col gap-1 text-sigil-foreground">
-        <div className="flex items-center gap-2">
-          <span className="font-bold text-sigil-foreground-highlight">
-            {name}
-          </span>
+    <div className="flex flex-col gap-1 rounded-md bg-sigil-bg-dark p-2">
+      <div className="flex gap-1">
+        <div className="flex grow flex-col gap-1 text-sigil-foreground">
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-sigil-foreground-highlight">
+              {name}
+            </span>
 
-          <span
-            className={cn(
-              'rounded-sigil-control px-0.5 py-0.3 text-sigil-control font-bold',
-              cnd(
-                testing.ready,
-                'bg-sigil-usage-green-background text-sigil-usage-green-text',
-                'bg-sigil-usage-orange-background text-sigil-usage-orange-text',
-              ),
-            )}
-          >
-            <span className="text-sigil-control">
-              {testing.ready ? 'READY' : 'UNTESTED'}
+            <span
+              className={cn(
+                `
+                  rounded-sigil-control px-0.5 py-0.3 text-sigil-control
+                  font-bold
+                `,
+                cnd(
+                  testing.ready,
+                  'bg-sigil-usage-green-background text-sigil-usage-green-text',
+                  `
+                    bg-sigil-usage-orange-background
+                    text-sigil-usage-orange-text
+                  `,
+                ),
+              )}
+            >
+              <span className="text-sigil-control">
+                {testing.ready ? 'READY' : 'UNTESTED'}
+              </span>
             </span>
-          </span>
-        </div>
-        {testers.length > 0 && (
-          <div className="flex items-center gap-1">
-            <span className="font-bold text-sigil-foreground-highlight">
-              Tested By:
-            </span>
-            <div className="flex flex-wrap gap-2">
-              {testers.map(([role, tester], i) => (
-                <span key={i} className="flex items-center gap-1">
-                  {role !== 'community' && (
-                    <span
-                      className={cn(
-                        `
-                          rounded-sigil-control px-0.5 py-0.3 text-sigil-control
-                          font-bold
-                        `,
-                        cnd(
-                          role === 'maintainer',
+          </div>
+          {testers.length > 0 && (
+            <div className="flex items-center gap-1">
+              <span className="font-bold text-sigil-foreground-highlight">
+                Tested By:
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {testers.map(([role, tester], i) => (
+                  <span key={i} className="flex items-center gap-1">
+                    {role !== 'community' && (
+                      <span
+                        className={cn(
                           `
-                            bg-sigil-usage-blue-background
-                            text-sigil-usage-blue-text
+                            rounded-sigil-control px-0.5 py-0.3
+                            text-sigil-control font-bold
                           `,
-                        ),
-                        cnd(
-                          role === 'manufacturer',
-                          `
-                            bg-sigil-usage-purple-background
-                            text-sigil-usage-purple-text
-                          `,
-                        ),
-                      )}
-                    >
-                      <span className="text-sigil-control">
-                        {role.toUpperCase()}
+                          cnd(
+                            role === 'maintainer',
+                            `
+                              bg-sigil-usage-blue-background
+                              text-sigil-usage-blue-text
+                            `,
+                          ),
+                          cnd(
+                            role === 'manufacturer',
+                            `
+                              bg-sigil-usage-purple-background
+                              text-sigil-usage-purple-text
+                            `,
+                          ),
+                        )}
+                      >
+                        <span className="text-sigil-control">
+                          {role.toUpperCase()}
+                        </span>
                       </span>
-                    </span>
-                  )}
-                  {tester.ghUsername && (
-                    <GithubUsername username={tester.ghUsername} />
-                  )}
-                  {`-`}
-                  <span>{`on ${DATE_FORMAT.format(new Date(tester.date))}`}</span>
-                </span>
-              ))}
+                    )}
+                    {tester.ghUsername && (
+                      <GithubUsername username={tester.ghUsername} />
+                    )}
+                    {`-`}
+                    <span>{`on ${DATE_FORMAT.format(new Date(tester.date))}`}</span>
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
-        {Object.keys(subProfiles).length > 1 ? (
-          <div>
-            <span className="font-bold text-sigil-foreground-highlight">
-              Sub Profiles:
-            </span>
-            <ul>
-              {Object.entries(subProfiles).map(([subKey, { name, notice }]) => (
-                <li key={subKey} className="not-last:mb-1">
-                  <div>{name}</div>
-                  {notice && (
-                    <div className="mt-1 text-sigil-foreground-muted">
-                      {notice}
-                    </div>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
+          )}
+          {Object.keys(subProfiles).length > 1 ? (
+            <div>
+              <span className="font-bold text-sigil-foreground-highlight">
+                Sub Profiles:
+              </span>
+              <ul>
+                {Object.entries(subProfiles).map(
+                  ([subKey, { name, notice }]) => (
+                    <li key={subKey} className="not-last:mb-1">
+                      <div>{name}</div>
+                      {notice && (
+                        <div className="mt-1 text-sigil-foreground-muted">
+                          {notice}
+                        </div>
+                      )}
+                    </li>
+                  ),
+                )}
+              </ul>
+            </div>
+          ) : null}
+        </div>
+        <div>
+          <ControlButton
+            variant="large"
+            active={detailsOpen}
+            onClick={() => setDetailsOpen((current) => !current)}
+          >
+            View Details
+          </ControlButton>
+        </div>
       </div>
-      <div>
-        <ControlButton
-          variant="large"
-          active={detailsOpen}
-          onClick={() => setDetailsOpen((current) => !current)}
-        >
-          View Details
-        </ControlButton>
-      </div>
+      {detailsOpen && (
+        <DeviceProfileDetails
+          profileId={profileId}
+          device={device}
+          getProfileInfo={getFullProfileInfo}
+        />
+      )}
     </div>
   );
 };
@@ -203,7 +226,7 @@ export const SupportedDevices: FC = () => {
         </div>
         {devices.success &&
           Object.entries(devices.data).map(([key, device]) => (
-            <DeviceEntry key={key} device={device} />
+            <DeviceEntry key={key} profileId={key} device={device} />
           ))}
       </div>
     </LoadingWrapper>

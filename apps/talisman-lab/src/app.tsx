@@ -13,7 +13,6 @@ import { useSelectedDevices } from './workshop/selected-devices';
 import {
   GetFullProfileInfoReturn,
   LabConfig,
-  TalismanLabGetSupportedDevice,
   TalismanLabGetSupportedDevicesReturn,
   UserConfig,
 } from './components/proto';
@@ -33,6 +32,7 @@ import {
   KNOWN_MIDI_PROFILES,
   KnownMidiProfile,
 } from '@arcanewizards/talisman-profiles';
+import { TalismanSupportedDeviceData } from './components/frontend/shared';
 
 const DEFAULT_PORT: ListenerConfig['port'] = { from: 4110, to: 4200 };
 
@@ -118,7 +118,7 @@ const AppRoot: FC<AppRootProps> = ({ logger, license, updates }) => {
                       ([sk, { name, notice }]) => [sk, { name, notice }],
                     ),
                   ),
-                } satisfies TalismanLabGetSupportedDevice,
+                } satisfies TalismanSupportedDeviceData,
               ],
             ),
           ) satisfies TalismanLabGetSupportedDevicesReturn,

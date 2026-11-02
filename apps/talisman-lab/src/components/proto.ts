@@ -1,24 +1,23 @@
-import {
+import type {
   AnyComponentProto,
   BaseClientComponentCall,
   BaseClientComponentMessage,
   BaseComponentProto,
 } from '@arcanejs/protocol';
-import { Diff } from '@arcanejs/diff';
-import { MidiEndpoints, MIDISupportResponse } from '@arcanewizards/midi';
-import { MidiMessageBufferSlice } from './frontend/shared/midi-message-monitor';
-import { MidiMessageDescription } from '@arcanewizards/talisman/util';
+import type { Diff } from '@arcanejs/diff';
+import type { MidiEndpoints, MIDISupportResponse } from '@arcanewizards/midi';
+import type { MidiMessageBufferSlice } from './frontend/shared/midi-message-monitor';
+import type { MidiMessageDescription } from '@arcanewizards/talisman/util';
+import type { UserActionState } from '@arcanewizards/sigil/frontend/user-actions';
+import type { UpdateCheckResult } from '@arcanewizards/sigil/frontend/updates';
+import type { MidiDeviceReadiness } from '@arcanewizards/talisman';
+import type {
+  TalismanFullProfileInfo,
+  TalismanSupportedDeviceData,
+} from './frontend/shared/device-profile-details';
+
 import z from 'zod';
 import { GET_EULA_RESPONSE, GetEulaResponse } from '@arcanewizards/apis';
-import { UserActionState } from '@arcanewizards/sigil/frontend/user-actions';
-import { UpdateCheckResult } from '@arcanewizards/sigil/frontend/updates';
-import {
-  MidiControllerItem,
-  MidiDeviceReadiness,
-  MidiProfileDefinition,
-  MidiProfileFeedbackCapabilities,
-  ProfilePair,
-} from '@arcanewizards/talisman';
 
 export const LOGO_URL_PATH = 'logo-animated.svg';
 export const LOGO_STATIC_URL_PATH = 'logo-static.svg';
@@ -219,16 +218,9 @@ export type TalismanLabGetSupportedDevices = BaseClientComponentCall<
   'talisman-lab-get-supported-devices'
 >;
 
-export type TalismanLabGetSupportedDevice = Pick<
-  MidiProfileDefinition,
-  'name' | 'testing'
-> & {
-  subProfiles: Record<string, Pick<ProfilePair, 'name' | 'notice'>>;
-};
-
 export type TalismanLabGetSupportedDevicesReturn = Record<
   string,
-  TalismanLabGetSupportedDevice
+  TalismanSupportedDeviceData
 >;
 
 export type GetFullProfileInfo = BaseClientComponentCall<
@@ -239,10 +231,7 @@ export type GetFullProfileInfo = BaseClientComponentCall<
   subProfileName: string;
 };
 
-export type GetFullProfileInfoReturn = {
-  items: MidiControllerItem[];
-  feedbackCapabilities: MidiProfileFeedbackCapabilities;
-};
+export type GetFullProfileInfoReturn = TalismanFullProfileInfo;
 
 export type TalismanLabComponentCalls = {
   'talisman-lab-get-midi-messages': {

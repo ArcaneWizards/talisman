@@ -722,6 +722,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         ],
         position: {
           col: col === 8 ? [6, 7] : [17, 18],
+          row: [0, 3],
         },
         feedback: null,
       },

@@ -9,3 +9,9 @@ export {
   type MessageGroup,
   type ReceivedMessages,
 } from './message-monitor';
+
+export {
+  DeviceProfileDetails,
+  type TalismanSupportedDeviceData,
+  type TalismanFullProfileInfo,
+} from './device-profile-details';
