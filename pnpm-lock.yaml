@@ -50,8 +50,8 @@ importers:
         specifier: ^0.2.0
         version: 0.2.0
       '@arcanewizards/sigil':
-        specifier: ^0.5.3
-        version: 0.5.3(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))
+        specifier: ^0.6.0
+        version: 0.6.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))
       '@arcanewizards/talisman':
         specifier: workspace:^
         version: link:../../packages/talisman
@@ -163,8 +163,8 @@ importers:
         version: 5.7.2
     devDependencies:
       '@arcanewizards/sigil':
-        specifier: ^0.5.3
-        version: 0.5.3(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))
+        specifier: ^0.6.0
+        version: 0.6.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))
       '@arcanewizards/sigil-assets':
         specifier: ^0.1.1
         version: 0.1.1
@@ -387,8 +387,8 @@ packages:
   '@arcanewizards/sigil-assets@0.1.1':
     resolution: {integrity: sha512-LxYPmCpcXapYgpeY2tPzIZZ/NZgow/GCdvPOvwTrQEw7Dj33CdHzu9b5Yjx8hRM2BhiJ+g3xGWiD2fDKEYy3sQ==}
 
-  '@arcanewizards/sigil@0.5.3':
-    resolution: {integrity: sha512-YEyE7bAolLWSmgMXTw//nmqJAeuBeFmI6036dsOET06IXmjC9CeXItnBsUICyvJixwesEJpYS1j7iSRirC1HTw==}
+  '@arcanewizards/sigil@0.6.0':
+    resolution: {integrity: sha512-VxbZlQoqAn/LNI0cImkoNlrVGBLmT5EfjSRwIwynvq1iURAILnaGkwb6Kq9VuqVXa2cfGNCM3GLNYNogQFWYOQ==}
 
   '@babel/code-frame@7.29.7':
     resolution: {integrity: sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw==}
@@ -6284,7 +6284,7 @@ snapshots:
 
   '@arcanewizards/sigil-assets@0.1.1': {}
 
-  '@arcanewizards/sigil@0.5.3(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))':
+  '@arcanewizards/sigil@0.6.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))':
     dependencies:
       '@arcanejs/diff': 0.6.1
       '@arcanejs/protocol': 0.9.2

@@ -36,6 +36,7 @@
 body {
   /* prevent window scrollbars from appearing */
   overflow: hidden;
+  font-size: 0.875rem;
 }
 
 .arcane-theme-root {
