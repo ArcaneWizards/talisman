@@ -15,6 +15,7 @@ import { UserActionState } from '@arcanewizards/sigil/frontend/user-actions';
 import { UpdateCheckResult } from '@arcanewizards/sigil/frontend/updates';
 
 export const LOGO_URL_PATH = 'logo-animated.svg';
+export const LOGO_STATIC_URL_PATH = 'logo-static.svg';
 
 // Config
 
@@ -90,6 +91,7 @@ export const LAB_CONFIG = z.object({
   config: USER_CONFIG,
   agreedToEula: AGREED_TO_EULA.optional(),
   checkForUpdates: z.boolean().optional().default(true),
+  animatedLogo: z.boolean().optional().default(true),
 });
 
 export type LabConfig = z.infer<typeof LAB_CONFIG>;
@@ -97,6 +99,7 @@ export type LabConfig = z.infer<typeof LAB_CONFIG>;
 export const DEFAULT_CONFIG: LabConfig = {
   config: DEFAULT_USER_CONFIG,
   checkForUpdates: true,
+  animatedLogo: true,
 };
 
 // Data

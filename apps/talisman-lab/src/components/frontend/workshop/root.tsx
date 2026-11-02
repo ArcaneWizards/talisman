@@ -1,7 +1,6 @@
 import { FC, useCallback, useContext, useMemo } from 'react';
 import {
   LabConfig,
-  LOGO_URL_PATH,
   TalismanLabComponentCalls,
   TalismanLabRootComponent,
   TalismanLabSwitchMode,
@@ -25,8 +24,8 @@ import {
   ConfigContext,
   ConfigContextData,
 } from './context';
-import { SizeAwareDiv } from './size-aware-div';
 import { Settings } from './settings';
+import { Logo } from './logo';
 
 type Props = {
   info: TalismanLabRootComponent;
@@ -184,14 +183,7 @@ export const TalismanLabRoot: FC<Props> = ({ info }) => {
                 justify-center gap-2 p-2
               "
             >
-              <SizeAwareDiv className="w-full py-2">
-                <img
-                  src={`/${LOGO_URL_PATH}`}
-                  alt="LOGO"
-                  width="100%"
-                  className="h-logo w-full"
-                />
-              </SizeAwareDiv>
+              <Logo />
               <UserConfigEditor
                 midi={midi}
                 status={state}

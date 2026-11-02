@@ -13,6 +13,7 @@ export default defineConfig({
   external: [
     '../LICENSE',
     '@arcanewizards/talisman-lab/assets/logo-animated.svg',
+    '@arcanewizards/talisman-lab/assets/logo-static.svg',
   ],
   sourcemap: false,
 });

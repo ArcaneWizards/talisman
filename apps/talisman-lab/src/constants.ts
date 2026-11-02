@@ -32,6 +32,7 @@ export const STRINGS = {
   },
   settings: {
     title: 'Settings',
+    animatedLogo: 'Animated Logo',
   },
   updates: {
     banner: {

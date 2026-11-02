@@ -56,6 +56,18 @@ export const Settings: FC<SettingsProps> = ({ setWindowMode }) => {
               updateBrowserPrefs((current) => ({ ...current, color }))
             }
           />
+          <ControlLabel>{STRINGS.settings.animatedLogo}</ControlLabel>
+          <ControlEnabledDisabledButtonGroup
+            strings={STRINGS.general}
+            value={config.animatedLogo}
+            onChange={(value) =>
+              updateConfig((current) => ({
+                ...current,
+                animatedLogo: value,
+              }))
+            }
+            variant="standard"
+          />
           <ControlLabel>{STRINGS.updates.settingsLabel}</ControlLabel>
           <ControlEnabledDisabledButtonGroup
             strings={STRINGS.general}

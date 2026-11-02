@@ -27,6 +27,7 @@
     },
     "./components/frontend/shared/shared.css": "./dist/components/frontend/shared/shared.css",
     "./assets/logo-animated.svg": "./assets/logo-animated.svg",
+    "./assets/logo-static.svg": "./assets/logo-static.svg",
     "./package.json": "./package.json"
   },
   "files": [

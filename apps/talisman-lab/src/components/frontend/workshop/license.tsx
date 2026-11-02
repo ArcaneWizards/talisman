@@ -5,11 +5,7 @@ import {
   ControlButtonGroup,
 } from '@arcanewizards/sigil/frontend/controls';
 
-import {
-  LicenseGateAcceptLicense,
-  LicenseGateComponent,
-  LOGO_URL_PATH,
-} from '../../proto';
+import { LicenseGateAcceptLicense, LicenseGateComponent } from '../../proto';
 
 import { StageContext } from '@arcanejs/toolkit-frontend';
 import { Layout } from './layout';
@@ -17,8 +13,8 @@ import { Debugger, useBrowserContext } from '@arcanewizards/sigil/frontend';
 import { GetEulaResponse } from '@arcanewizards/apis';
 import { apiContentToReact } from '@arcanewizards/sigil/frontend/utils';
 import { LoadingWrapper } from '@arcanewizards/sigil/frontend/user-actions';
-import { SizeAwareDiv } from './size-aware-div';
 import { HELP_AND_SUPPORT_URL, STRINGS } from '../../../constants';
+import { Logo } from './logo';
 
 type LicenseProps = {
   eula: GetEulaResponse;
@@ -51,14 +47,7 @@ export const License: FC<LicenseProps> = ({ eula, setWindowMode }) => {
           flex grow basis-0 scrollbar-sigil flex-col overflow-y-auto px-2 pb-2
         "
       >
-        <SizeAwareDiv className="py-2">
-          <img
-            src={`/${LOGO_URL_PATH}`}
-            alt="LOGO"
-            width="100%"
-            className="h-logo w-full"
-          />
-        </SizeAwareDiv>
+        <Logo />
         <LicenseContent eula={eula} />
         <div className="flex justify-center p-2">
           <ControlButtonGroup variant="large">
@@ -123,12 +112,7 @@ export const LicenseGate: FC<LicenseGateProps> = ({ info }) => {
           flex grow basis-0 scrollbar-sigil flex-col overflow-y-auto px-2 pb-2
         "
       >
-        <img
-          src={`/${LOGO_URL_PATH}`}
-          alt="LOGO"
-          width="100%"
-          className="h-[20%] max-h-[420px] min-h-[110px] w-full"
-        />
+        <Logo />
         <LoadingWrapper action={info.eula}>
           {info.eula.success && (
             <>
