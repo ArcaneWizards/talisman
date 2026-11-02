@@ -24,7 +24,7 @@ import { UpdateCheckResult } from '@arcanewizards/sigil/frontend/updates';
 import { API_APP_ID } from './constants';
 import { EulaGate } from './eula';
 
-const DEFAULT_PORT: ListenerConfig['port'] = { from: 4100, to: 4200 };
+const DEFAULT_PORT: ListenerConfig['port'] = { from: 4110, to: 4200 };
 
 export type AppApi = Record<never, never>;
 
