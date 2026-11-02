@@ -10,29 +10,28 @@ import { LicenseGate } from './workshop/license';
 
 export type TalismanLabBrowserContext = BaseBrowserContext;
 
-export const manaWorkshopFrontendComponents =
-  (): FrontendComponentRenderer => ({
-    namespace: NAMESPACE,
-    render: (info) => {
-      if (!isTalismanLabComponent(info)) {
-        throw new Error(`Cannot render component ${info.namespace}`);
-      }
+export const talismanLabFrontendComponents = (): FrontendComponentRenderer => ({
+  namespace: NAMESPACE,
+  render: (info) => {
+    if (!isTalismanLabComponent(info)) {
+      throw new Error(`Cannot render component ${info.namespace}`);
+    }
 
-      switch (info.component) {
-        case 'talisman-lab-root':
-          return <TalismanLabRoot info={info} />;
-        case 'license-gate':
-          return <LicenseGate info={info} />;
-      }
-    },
-  });
+    switch (info.component) {
+      case 'talisman-lab-root':
+        return <TalismanLabRoot info={info} />;
+      case 'license-gate':
+        return <LicenseGate info={info} />;
+    }
+  },
+});
 
 export const startTalismanLabServerFrontend = (
   browser?: TalismanLabBrowserContext | null,
 ) => {
   startSigilFrontend<TalismanLabBrowserContext>({
     browser,
-    appRenderers: [manaWorkshopFrontendComponents()],
+    appRenderers: [talismanLabFrontendComponents()],
     loadingState: () => (
       <div style={{ width: '100%', textAlign: 'center', padding: '2rem' }}>
         Loading...

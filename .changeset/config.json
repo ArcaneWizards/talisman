@@ -8,6 +8,7 @@
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
   "ignore": [
+    "@arcanewizards/talisman-arcade-desktop",
     "@arcanewizards/talisman-lab-desktop",
     "@arcanewizards/talisman-eslint-config",
     "@arcanewizards/talisman-typescript-config"
