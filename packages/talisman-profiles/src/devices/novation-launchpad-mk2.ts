@@ -17,7 +17,12 @@ import {
   NovationButtonInfo,
   NovationButtonOnlyLayout,
 } from './shared/novation.js';
-import { getMidiNote, MidiController } from '@arcanewizards/talisman';
+import {
+  getMidiNote,
+  MidiController,
+  MidiInputConnectionInfo,
+  MidiProfileDefinition,
+} from '@arcanewizards/talisman';
 
 const UNIVERSAL_CONTROLLER_BUTTONS = Object.freeze([
   {
@@ -326,3 +331,21 @@ export const createNovationLaunchpadMk2FeedbackProfileRGB: MidiFeedbackProfileIn
       },
     } satisfies MidiFeedbackProfile;
   };
+
+export const NOVATION_LAUNCHPAD_MK2: MidiProfileDefinition = {
+  name: 'Launchpad (mk2)',
+  autoSelect: (connection: MidiInputConnectionInfo) =>
+    connection.inputDeviceName === 'Launchpad',
+  subProfiles: {
+    default: {
+      name: 'Session Mode - Sysex RGB Feedback',
+      input: createNovationLaunchpadMk2ProfileSessionMode,
+      feedback: createNovationLaunchpadMk2FeedbackProfileRGB,
+    },
+    notes: {
+      name: 'Session Mode - Note Feedback',
+      input: createNovationLaunchpadMk2ProfileSessionMode,
+      feedback: createNovationLaunchpadMk2FeedbackProfile,
+    },
+  },
+};

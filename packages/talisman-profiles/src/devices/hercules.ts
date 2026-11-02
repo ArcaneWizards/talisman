@@ -2,7 +2,9 @@ import {
   getMidiNote,
   MIDI_NOTE_ON,
   MidiControlChangeIdentity,
+  MidiInputConnectionInfo,
   MidiNoteIdentity,
+  MidiProfileDefinition,
 } from '@arcanewizards/talisman';
 import {
   ColorSpace,
@@ -1094,3 +1096,15 @@ export const createHerculesDJControlInpulse300FeedbackProfile: MidiFeedbackProfi
       },
     } satisfies MidiFeedbackProfile;
   };
+
+export const HERCULES_DJCONTROL_INPULSE_300: MidiProfileDefinition = {
+  name: 'Hercules DJControl Inpulse 300',
+  autoSelect: (connection: MidiInputConnectionInfo) =>
+    connection.inputDeviceName.includes('DJControl Inpulse 300'),
+  subProfiles: {
+    default: {
+      input: createHerculesDJControlInpulse300Profile,
+      feedback: createHerculesDJControlInpulse300FeedbackProfile,
+    },
+  },
+};

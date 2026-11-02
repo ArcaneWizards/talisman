@@ -13,7 +13,12 @@ import {
   NovationButtonInfo,
   NovationButtonOnlyLayout,
 } from './shared/novation.js';
-import { getMidiController, getMidiNote } from '@arcanewizards/talisman';
+import {
+  getMidiController,
+  getMidiNote,
+  MidiInputConnectionInfo,
+  MidiProfileDefinition,
+} from '@arcanewizards/talisman';
 
 const novationLaunchpadMk2MiniLayout: NovationButtonOnlyLayout = () => {
   const items: Record<string, MidiControllerItem> = {};
@@ -186,3 +191,16 @@ export const createNovationLaunchpadMk2MiniFeedbackProfile =
       return colorSpace;
     },
   });
+
+export const NOVATION_LAUNCHPAD_MK2_MINI: MidiProfileDefinition = {
+  name: 'Launchpad Mini (mk2)',
+  autoSelect: (connection: MidiInputConnectionInfo) =>
+    connection.inputDeviceName.includes('Launchpad Mini'),
+  subProfiles: {
+    default: {
+      name: 'Default (Red + Green LED Only)',
+      input: createNovationLaunchpadMk2MiniProfile,
+      feedback: createNovationLaunchpadMk2MiniFeedbackProfile,
+    },
+  },
+};

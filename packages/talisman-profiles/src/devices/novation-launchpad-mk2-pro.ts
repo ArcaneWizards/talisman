@@ -17,7 +17,11 @@ import {
   NovationButtonInfo,
   NovationButtonOnlyLayout,
 } from './shared/novation.js';
-import { getMidiNote, MidiController } from '@arcanewizards/talisman';
+import {
+  getMidiNote,
+  MidiController,
+  MidiProfileDefinition,
+} from '@arcanewizards/talisman';
 
 const CONTROLLER_BUTTONS = Object.freeze([
   {
@@ -442,3 +446,22 @@ export const createNovationLaunchpadMk2ProFeedbackProfileRGB: MidiFeedbackProfil
       },
     } satisfies MidiFeedbackProfile;
   };
+
+export const NOVATION_LAUNCHPAD_MK2_PRO: MidiProfileDefinition = {
+  // Note these are the same device, and you often see both names in the wild,
+  // though it was officially released as part of the mk2 series.
+  name: 'Launchpad Pro (mk1 / mk2)',
+  autoSelect: () => false,
+  subProfiles: {
+    default: {
+      name: 'Programmer Mode - Sysex RGB Feedback',
+      input: createNovationLaunchpadMk2ProProfileProgrammerMode,
+      feedback: createNovationLaunchpadMk2ProFeedbackProfileRGB,
+    },
+    notes: {
+      name: 'Programmer Mode - Note Feedback',
+      input: createNovationLaunchpadMk2ProProfileProgrammerMode,
+      feedback: createNovationLaunchpadMk2ProFeedbackProfile,
+    },
+  },
+};

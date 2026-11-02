@@ -2,7 +2,9 @@ import {
   getMidiController,
   getMidiNote,
   MIDI_NOTE_ON,
+  MidiInputConnectionInfo,
   MidiNoteIdentity,
+  MidiProfileDefinition,
 } from '@arcanewizards/talisman';
 import {
   ColorSpace,
@@ -398,4 +400,17 @@ export const createBitchboyFeedback: MidiFeedbackProfileInit = ({
       // no-op: unnecessary
     },
   };
+};
+
+export const BITCHBOY: MidiProfileDefinition = {
+  name: 'BitchBoy',
+  autoSelect: (connection: MidiInputConnectionInfo) =>
+    connection.inputDeviceName.includes('BitchBoy'),
+  subProfiles: {
+    default: {
+      name: 'Default',
+      input: createBitchboyProfile,
+      feedback: createBitchboyFeedback,
+    },
+  },
 };

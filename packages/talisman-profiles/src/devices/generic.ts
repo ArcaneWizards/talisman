@@ -1,3 +1,4 @@
+import { MidiProfileDefinition } from '@arcanewizards/talisman';
 import {
   MidiProfileBasic,
   MidiProfileInit,
@@ -73,4 +74,21 @@ export const createGenericProfile: MidiProfileInit = () => {
 
 export const createGenericProfileZeroNoteOn: MidiProfileInit = () => {
   return createProfile({ interpretZeroNoteOnAsRelease: true });
+};
+
+export const GENERIC: MidiProfileDefinition = {
+  name: 'Generic',
+  autoSelect: () => false,
+  subProfiles: {
+    default: {
+      name: 'Default',
+      input: createGenericProfile,
+      feedback: null,
+    },
+    zeroNoteOn: {
+      name: 'Zero Note On',
+      input: createGenericProfileZeroNoteOn,
+      feedback: null,
+    },
+  },
 };
