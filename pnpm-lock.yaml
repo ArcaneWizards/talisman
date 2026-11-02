@@ -165,6 +165,9 @@ importers:
       '@arcanewizards/sigil':
         specifier: ^0.5.3
         version: 0.5.3(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))
+      '@arcanewizards/sigil-assets':
+        specifier: ^0.1.1
+        version: 0.1.1
       '@arcanewizards/talisman-eslint-config':
         specifier: workspace:^
         version: link:../../packages/eslint-config

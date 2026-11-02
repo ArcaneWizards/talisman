@@ -1,12 +1,8 @@
-import { FC, useContext } from 'react';
+import { FC } from 'react';
 import { SizeAwareDiv } from './size-aware-div';
-import { ConfigContext } from './context';
 import { LOGO_STATIC_URL_PATH, LOGO_URL_PATH } from '../../proto';
 
-export const Logo: FC = () => {
-  const {
-    config: { animatedLogo },
-  } = useContext(ConfigContext);
+export const Logo: FC<{ animatedLogo: boolean }> = ({ animatedLogo }) => {
   return (
     <SizeAwareDiv className="w-full py-2">
       <img

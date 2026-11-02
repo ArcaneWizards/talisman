@@ -15,6 +15,7 @@ import { apiContentToReact } from '@arcanewizards/sigil/frontend/utils';
 import { LoadingWrapper } from '@arcanewizards/sigil/frontend/user-actions';
 import { HELP_AND_SUPPORT_URL, STRINGS } from '../../../constants';
 import { Logo } from './logo';
+import { ConfigContext } from './context';
 
 type LicenseProps = {
   eula: GetEulaResponse;
@@ -40,6 +41,9 @@ export const LicenseContent: FC<{ eula: GetEulaResponse }> = ({ eula }) => {
 
 export const License: FC<LicenseProps> = ({ eula, setWindowMode }) => {
   const { openExternalLink } = useBrowserContext();
+  const {
+    config: { animatedLogo },
+  } = useContext(ConfigContext);
   return (
     <div className="flex grow flex-col">
       <div
@@ -47,7 +51,7 @@ export const License: FC<LicenseProps> = ({ eula, setWindowMode }) => {
           flex grow basis-0 scrollbar-sigil flex-col overflow-y-auto px-2 pb-2
         "
       >
-        <Logo />
+        <Logo animatedLogo={animatedLogo} />
         <LicenseContent eula={eula} />
         <div className="flex justify-center p-2">
           <ControlButtonGroup variant="large">
@@ -112,7 +116,7 @@ export const LicenseGate: FC<LicenseGateProps> = ({ info }) => {
           flex grow basis-0 scrollbar-sigil flex-col overflow-y-auto px-2 pb-2
         "
       >
-        <Logo />
+        <Logo animatedLogo />
         <LoadingWrapper action={info.eula}>
           {info.eula.success && (
             <>

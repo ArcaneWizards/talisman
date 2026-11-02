@@ -183,7 +183,7 @@ export const TalismanLabRoot: FC<Props> = ({ info }) => {
                 justify-center gap-2 p-2
               "
             >
-              <Logo />
+              <Logo animatedLogo={config.animatedLogo} />
               <UserConfigEditor
                 midi={midi}
                 status={state}

@@ -676,6 +676,8 @@ export const useSelectedDevices = (
   }, [log, outputProfile, inputProfile, config.fps]);
 
   const shutdownHandler = useCallback(async () => {
+    // Prevent any further messages being sent
+    outputRef.current = null;
     // If shutting down, make sure that the output profile is properly closed
     await outputProfile?.close?.();
     await input?.input.close();
