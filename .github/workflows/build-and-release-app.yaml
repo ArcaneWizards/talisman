@@ -193,7 +193,7 @@ jobs:
       - name: store the macos builds
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
-          name: macos-builds
+          name: ${{ inputs.app }}-macos-builds
           path: ${{ needs.pre-release-checks.outputs.app_dir }}/out/*.dmg
   skip-macos:
     # Use the same name as the build-macos job to allow branch protection rules to work
@@ -269,7 +269,7 @@ jobs:
       - name: store the windows builds
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
-          name: windows-builds
+          name: ${{ inputs.app }}-windows-builds
           path: ${{ needs.pre-release-checks.outputs.app_dir }}/${{ steps.build_vars.outputs.x64File }}
   skip-windows:
     # Use the same name as the build-macos job to allow branch protection rules to work
@@ -298,12 +298,12 @@ jobs:
       - name: Download macOS builds
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: macos-builds
+          name: ${{ inputs.app }}-macos-builds
           path: ${{ needs.pre-release-checks.outputs.app_dir }}/out/
       - name: Download windows builds
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: windows-builds
+          name: ${{ inputs.app }}-windows-builds
           path: ${{ needs.pre-release-checks.outputs.app_dir }}/out/
       - name: List files
         run: |
