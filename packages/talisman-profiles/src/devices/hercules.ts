@@ -1099,6 +1099,16 @@ export const createHerculesDJControlInpulse300FeedbackProfile: MidiFeedbackProfi
 
 export const HERCULES_DJCONTROL_INPULSE_300: MidiProfileDefinition = {
   name: 'Hercules DJControl Inpulse 300',
+  testing: {
+    ready: true,
+    maintainers: [
+      {
+        ghUsername: 's0',
+        os: ['macos'],
+        date: '2026-10-15',
+      },
+    ],
+  },
   autoSelect: (connection: MidiInputConnectionInfo) =>
     connection.inputDeviceName.includes('DJControl Inpulse 300'),
   subProfiles: {

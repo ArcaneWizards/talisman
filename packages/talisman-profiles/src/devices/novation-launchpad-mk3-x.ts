@@ -540,6 +540,16 @@ export const createNovationLaunchpadMk3XFeedbackProfileRGB: MidiFeedbackProfileI
 
 export const NOVATION_LAUNCHPAD_MK3_X: MidiProfileDefinition = {
   name: 'Launchpad X (mk3)',
+  testing: {
+    ready: true,
+    maintainers: [
+      {
+        ghUsername: 's0',
+        os: ['macos', 'windows'],
+        date: '2026-10-15',
+      },
+    ],
+  },
   autoSelect: (connection: MidiInputConnectionInfo) =>
     connection.inputDeviceName.includes('LPX'),
   autoSelectOutput: ({ inputDeviceName }, outputs) => {

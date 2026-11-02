@@ -350,6 +350,9 @@ export const createNovationLaunchpadMk3MiniFeedbackProfileRGB: MidiFeedbackProfi
 
 export const NOVATION_LAUNCHPAD_MK3_MINI: MidiProfileDefinition = {
   name: 'Launchpad Mini (mk3)',
+  testing: {
+    ready: false,
+  },
   autoSelect: (connection: MidiInputConnectionInfo) =>
     connection.inputDeviceName.includes('LPMiniMK3'),
   subProfiles: {

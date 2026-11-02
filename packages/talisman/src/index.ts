@@ -479,8 +479,54 @@ export type MidiOutputConnectionInfo = {
 
 export type MidiProfileSubprofileDefaultKey = 'default';
 
+export type MidiProfileTester = {
+  /** GitHub username of the tester */
+  ghUsername?: string;
+  /**
+   * The operating system that the tester verified this profile & hardware with.
+   */
+  os: Array<'macos' | 'windows' | 'linux'>;
+  /**
+   * A date string in the format `YYYY-MM-DD` representing when the tester
+   * verified the profile.
+   */
+  date: string;
+};
+
 export type MidiProfileDefinition = {
   name: string;
+  /**
+   * Record of information of how thoroughly this profile has been tested.
+   *
+   * Consumers of this API should use this information to determine whether they
+   * want to allow for a particular profile to be used or not.
+   */
+  testing: {
+    /**
+     * Has this profile been tested thoroughly enough for usage?
+     *
+     * Consumers of this API can use this flag to decide whether to include this
+     * profile in the available profiles of the app by default.
+     *
+     * Of course usage of this flag is optional,
+     * and consumers can choose to select whichever profiles they want to use.
+     */
+    ready: boolean;
+    /**
+     * List of testers who are part of the project maintainers team that have
+     * tested this profile.
+     */
+    maintainers?: MidiProfileTester[];
+    /**
+     * List of testers who are part of the manufacturer team of the device
+     * that have tested this profile.
+     */
+    manufacturer?: MidiProfileTester[];
+    /**
+     * List of community testers that have tested this profile.
+     */
+    community?: MidiProfileTester[];
+  };
   /**
    * Return true if the profile should be automatically selected for the given
    * connection.

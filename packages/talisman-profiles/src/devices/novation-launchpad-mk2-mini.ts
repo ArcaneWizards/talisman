@@ -194,6 +194,16 @@ export const createNovationLaunchpadMk2MiniFeedbackProfile =
 
 export const NOVATION_LAUNCHPAD_MK2_MINI: MidiProfileDefinition = {
   name: 'Launchpad Mini (mk2)',
+  testing: {
+    ready: true,
+    maintainers: [
+      {
+        ghUsername: 's0',
+        os: ['macos', 'windows'],
+        date: '2026-10-15',
+      },
+    ],
+  },
   autoSelect: (connection: MidiInputConnectionInfo) =>
     connection.inputDeviceName.includes('Launchpad Mini'),
   subProfiles: {

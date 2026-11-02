@@ -78,6 +78,16 @@ export const createGenericProfileZeroNoteOn: MidiProfileInit = () => {
 
 export const GENERIC: MidiProfileDefinition = {
   name: 'Generic',
+  testing: {
+    ready: true,
+    maintainers: [
+      {
+        ghUsername: 's0',
+        os: ['macos', 'windows'],
+        date: '2026-10-15',
+      },
+    ],
+  },
   autoSelect: () => false,
   subProfiles: {
     default: {

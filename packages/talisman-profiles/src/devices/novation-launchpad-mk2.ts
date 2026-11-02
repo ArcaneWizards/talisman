@@ -334,6 +334,9 @@ export const createNovationLaunchpadMk2FeedbackProfileRGB: MidiFeedbackProfileIn
 
 export const NOVATION_LAUNCHPAD_MK2: MidiProfileDefinition = {
   name: 'Launchpad (mk2)',
+  testing: {
+    ready: false,
+  },
   autoSelect: (connection: MidiInputConnectionInfo) =>
     connection.inputDeviceName === 'Launchpad',
   subProfiles: {

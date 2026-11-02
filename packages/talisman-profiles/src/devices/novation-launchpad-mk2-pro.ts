@@ -451,6 +451,9 @@ export const NOVATION_LAUNCHPAD_MK2_PRO: MidiProfileDefinition = {
   // Note these are the same device, and you often see both names in the wild,
   // though it was officially released as part of the mk2 series.
   name: 'Launchpad Pro (mk1 / mk2)',
+  testing: {
+    ready: false,
+  },
   autoSelect: () => false,
   subProfiles: {
     default: {

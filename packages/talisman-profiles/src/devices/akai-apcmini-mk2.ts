@@ -1015,6 +1015,16 @@ export const createApcMiniMk2RGBFeedback: MidiFeedbackProfileInit = ({
 
 export const AKAI_APC_MINI_MK_2: MidiProfileDefinition = {
   name: 'Akai APC Mini Mk2',
+  testing: {
+    ready: true,
+    maintainers: [
+      {
+        ghUsername: 's0',
+        os: ['macos', 'windows'],
+        date: '2026-10-15',
+      },
+    ],
+  },
   autoSelect: (connection: MidiInputConnectionInfo) =>
     connection.inputDeviceName.includes('APC mini mk2'),
   subProfiles: {

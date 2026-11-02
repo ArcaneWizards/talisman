@@ -271,6 +271,16 @@ export const createMidiFighter3D9ColorFeedback: MidiFeedbackProfileInit = ({
 
 export const MIDI_FIGHTER_3D: MidiProfileDefinition = {
   name: 'Midi Fighter 3D',
+  testing: {
+    ready: true,
+    maintainers: [
+      {
+        ghUsername: 's0',
+        os: ['macos', 'windows'],
+        date: '2026-10-15',
+      },
+    ],
+  },
   autoSelect: (connection: MidiInputConnectionInfo) =>
     connection.inputDeviceName === 'Midi Fighter 3D',
   subProfiles: {

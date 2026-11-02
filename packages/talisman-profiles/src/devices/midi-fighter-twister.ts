@@ -358,6 +358,16 @@ export const createMidiFighterTwisterExpandedFeedback: MidiFeedbackProfileInit =
 
 export const MIDI_FIGHTER_TWISTER: MidiProfileDefinition = {
   name: 'Midi Fighter Twister',
+  testing: {
+    ready: true,
+    maintainers: [
+      {
+        ghUsername: 's0',
+        os: ['macos', 'windows'],
+        date: '2026-10-15',
+      },
+    ],
+  },
   autoSelect: (connection: MidiInputConnectionInfo) =>
     connection.inputDeviceName === 'Midi Fighter Twister',
   subProfiles: {

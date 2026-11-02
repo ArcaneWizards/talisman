@@ -404,6 +404,16 @@ export const createBitchboyFeedback: MidiFeedbackProfileInit = ({
 
 export const BITCHBOY: MidiProfileDefinition = {
   name: 'BitchBoy',
+  testing: {
+    ready: true,
+    manufacturer: [
+      {
+        ghUsername: 'chrisssstos',
+        os: ['macos'],
+        date: '2026-10-02',
+      },
+    ],
+  },
   autoSelect: (connection: MidiInputConnectionInfo) =>
     connection.inputDeviceName.includes('BitchBoy'),
   subProfiles: {
