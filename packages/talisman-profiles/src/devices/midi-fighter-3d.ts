@@ -3,21 +3,17 @@ import {
   MidiController,
   MidiInputConnectionInfo,
   MidiNote,
-  MidiProfileDefinition,
-} from '@arcanewizards/talisman';
-import { ColorSpace, RGB } from '@arcanewizards/talisman/color';
-import {
-  MidiColorFeedback,
-  MidiFeedbackProfile,
-  MidiFeedbackProfileInit,
-} from '@arcanewizards/talisman/feedback';
-import {
   MidiButtonNature,
   MidiControllerAction,
   MidiControllerItem,
-  MidiProfileBasic,
   MidiProfileInit,
-} from '@arcanewizards/talisman/profile';
+  MidiColorFeedback,
+  MidiFeedbackProfile,
+  MidiFeedbackProfileInit,
+  MidiProfileDefinition,
+} from '@arcanewizards/talisman/core';
+import { ColorSpace, RGB } from '@arcanewizards/talisman/color';
+import { MidiProfileBasic } from '@arcanewizards/talisman/profile';
 import {
   createMidiFighter9ColorSpace,
   MIDI_FIGHTER_9_COLOR_SPACE,
@@ -135,6 +131,7 @@ export const createMidiFighter3DProfile: MidiProfileInit = () => {
   return new MidiProfileBasic({
     getItems: () => Object.values(items),
     getItem: (id) => items[id] ?? null,
+    getFeedbackCapabilities: () => ({}),
     getAction: (msg): MidiControllerAction | null => {
       if (msg.type === 'control-change') {
         if (msg.channel === BUTTON_CONTROL_CHANGE_CHANNEL) {

@@ -1,17 +1,6 @@
 import { colorEqual, ColorSpace, RGB } from '@arcanewizards/talisman/color';
-import {
-  createBasicColorVelocityFeedbackProfile,
-  MidiColorFeedback,
-  MidiFeedbackProfile,
-  MidiFeedbackProfileInit,
-} from '@arcanewizards/talisman/feedback';
-import {
-  MidiButtonNature,
-  MidiControllerItem,
-  MidiProfile,
-  MidiProfileBase,
-  MidiProfileInit,
-} from '@arcanewizards/talisman/profile';
+import { createBasicColorVelocityFeedbackProfile } from '@arcanewizards/talisman/feedback';
+import { MidiProfileBase } from '@arcanewizards/talisman/profile';
 import {
   createNovationLaunchpadRGBColorSpace,
   NovationButtonInfo,
@@ -22,8 +11,15 @@ import {
   MidiInputConnectionInfo,
   MidiController,
   MidiParsedMessage,
+  MidiButtonNature,
+  MidiControllerItem,
+  MidiProfile,
+  MidiProfileInit,
   MidiProfileDefinition,
-} from '@arcanewizards/talisman';
+  MidiColorFeedback,
+  MidiFeedbackProfile,
+  MidiFeedbackProfileInit,
+} from '@arcanewizards/talisman/core';
 import { startsWithSysex } from '@arcanewizards/talisman/util';
 
 const NOVATION_LAUNCHPAD_MK3_X_SYSEX_HEADER = [
@@ -343,6 +339,8 @@ class NovationLaunchpadMk3XProfileProgrammerMode extends MidiProfileBase {
     }
     return false;
   };
+
+  public getFeedbackCapabilities = () => ({});
 }
 
 export const createNovationLaunchpadMk3XProfileProgrammerMode: MidiProfileInit =

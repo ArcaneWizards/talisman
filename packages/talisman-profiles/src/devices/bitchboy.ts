@@ -4,26 +4,52 @@ import {
   MIDI_NOTE_ON,
   MidiInputConnectionInfo,
   MidiNoteIdentity,
+  MidiButtonNature,
+  MidiControllerAction,
+  MidiControllerItem,
+  MidiNumericNature,
+  MidiProfile,
+  MidiProfileInit,
+  MidiFeedbackProfileInit,
   MidiProfileDefinition,
+  MidiProfileFeedbackCapabilities,
 } from '@arcanewizards/talisman';
 import {
   ColorSpace,
   createColorSpace,
   RGB,
 } from '@arcanewizards/talisman/color';
-import { MidiFeedbackProfileInit } from '@arcanewizards/talisman/feedback';
-import {
-  MidiButtonNature,
-  MidiControllerAction,
-  MidiControllerItem,
-  MidiNumericNature,
-  MidiProfile,
-  MidiProfileBasic,
-  MidiProfileInit,
-} from '@arcanewizards/talisman/profile';
+import { MidiProfileBasic } from '@arcanewizards/talisman/profile';
 import { AKAI_VELOCITY_TO_RGB } from './akai-apcmini-mk2.js';
 
 const itemId = (type: 'cc' | 'note', index: number) => `${type}:${index}`;
+
+const FEEDBACK_CAPABILITY_KEY = 'key';
+
+const FEEDBACK_CAPABILITIES = Object.freeze({
+  [FEEDBACK_CAPABILITY_KEY]: {
+    led: {
+      type: 'palette',
+      brightnessValues: 1,
+      getPalette: () => {
+        const rgbValues: RGB[] = [];
+        const velocityToRgb = getBitchboyVelocityToRGB();
+        for (let i = 0; i < velocityToRgb.length; i += 3) {
+          const r = velocityToRgb[i];
+          const g = velocityToRgb[i + 1];
+          const b = velocityToRgb[i + 2];
+          if (r === undefined || g === undefined || b === undefined) {
+            throw new Error(
+              `Invalid RGB values at index ${i}: [${r}, ${g}, ${b}]`,
+            );
+          }
+          rgbValues.push([r, g, b]);
+        }
+        return rgbValues;
+      },
+    },
+  },
+} satisfies MidiProfileFeedbackCapabilities);
 
 export const createBitchboyProfile: MidiProfileInit = () => {
   const items: Record<string, MidiControllerItem> = {};
@@ -49,6 +75,7 @@ export const createBitchboyProfile: MidiProfileInit = () => {
           col,
           row,
         },
+        feedback: FEEDBACK_CAPABILITY_KEY,
       };
       buttonNatures[id] = nature;
     }
@@ -72,6 +99,7 @@ export const createBitchboyProfile: MidiProfileInit = () => {
           col,
           row,
         },
+        feedback: FEEDBACK_CAPABILITY_KEY,
       };
       buttonNatures[id] = nature;
     }
@@ -91,6 +119,7 @@ export const createBitchboyProfile: MidiProfileInit = () => {
           col,
           row,
         },
+        feedback: FEEDBACK_CAPABILITY_KEY,
       };
       buttonNatures[id] = nature;
     }
@@ -114,6 +143,7 @@ export const createBitchboyProfile: MidiProfileInit = () => {
           col,
           row,
         },
+        feedback: FEEDBACK_CAPABILITY_KEY,
       };
       buttonNatures[id] = nature;
     }
@@ -133,6 +163,7 @@ export const createBitchboyProfile: MidiProfileInit = () => {
           col,
           row,
         },
+        feedback: FEEDBACK_CAPABILITY_KEY,
       };
       buttonNatures[id] = nature;
     }
@@ -159,6 +190,7 @@ export const createBitchboyProfile: MidiProfileInit = () => {
           row: [0, 2],
           orientation: 'vertical',
         },
+        feedback: null,
       };
       controllerNatures[id] = nature;
     }
@@ -186,6 +218,7 @@ export const createBitchboyProfile: MidiProfileInit = () => {
           row,
           orientation: 'horizontal',
         },
+        feedback: null,
       };
       controllerNatures[id] = nature;
     }
@@ -226,6 +259,7 @@ export const createBitchboyProfile: MidiProfileInit = () => {
           col,
           row,
         },
+        feedback: null,
       };
       controllerNatures[id] = nature;
     }
@@ -252,12 +286,14 @@ export const createBitchboyProfile: MidiProfileInit = () => {
         nature: controllerNatures[14],
       },
     ],
+    feedback: null,
   };
   items[TRACKPAD_ITEM.id] = TRACKPAD_ITEM;
 
   return new MidiProfileBasic({
     getItems: () => Object.values(items),
     getItem: (id) => items[id] ?? null,
+    getFeedbackCapabilities: () => FEEDBACK_CAPABILITIES,
     getAction: (msg): MidiControllerAction | null => {
       if (msg.type === 'note') {
         const id = itemId(msg.type, msg.note);
@@ -308,7 +344,7 @@ const getNoteIDs = (inputProfile: MidiProfile) => {
   return noteIDs;
 };
 
-export const createBitchboyColorSpace = (): ColorSpace<[number]> => {
+export const getBitchboyVelocityToRGB = () => {
   const bitchboyVelocityToRGB = [...AKAI_VELOCITY_TO_RGB];
 
   // Overwrite AKAI colours with BitchBoy colours
@@ -331,6 +367,11 @@ export const createBitchboyColorSpace = (): ColorSpace<[number]> => {
       bitchboyVelocityToRGB[startAddress + 2] = b;
     }
   }
+  return bitchboyVelocityToRGB;
+};
+
+export const createBitchboyColorSpace = (): ColorSpace<[number]> => {
+  const bitchboyVelocityToRGB = getBitchboyVelocityToRGB();
 
   return createColorSpace({
     sizes: [bitchboyVelocityToRGB.length / 3],

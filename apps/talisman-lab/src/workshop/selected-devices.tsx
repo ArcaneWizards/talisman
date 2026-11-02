@@ -25,8 +25,8 @@ import {
 import {
   MidiCoordinateInfo,
   MidiDeviceReadiness,
-} from '@arcanewizards/talisman/profile';
-import { MidiColorFeedback } from '@arcanewizards/talisman/feedback';
+  MidiColorFeedback,
+} from '@arcanewizards/talisman/core';
 import { useShutdownHandler } from '@arcanewizards/sigil';
 import { ProcessedMidiMessage } from '../components/frontend/shared/midi-message-monitor';
 

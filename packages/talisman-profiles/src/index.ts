@@ -1,4 +1,4 @@
-import type { MidiProfileDefinition } from '@arcanewizards/talisman';
+import type { MidiProfileDefinition } from '@arcanewizards/talisman/core';
 import { AKAI_APC_MINI_MK_2 } from './devices/akai-apcmini-mk2.js';
 import { GENERIC } from './devices/generic.js';
 import { HERCULES_DJCONTROL_INPULSE_300 } from './devices/hercules.js';

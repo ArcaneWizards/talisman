@@ -4,30 +4,25 @@ import {
   MIDI_NOTE_ON,
   MidiInputConnectionInfo,
   MidiNoteIdentity,
-  MidiProfileDefinition,
-} from '@arcanewizards/talisman';
-import {
+  MidiControllerAction,
+  MidiProfile,
+  MidiButtonNature,
+  MidiControllerItem,
+  MidiNumericNature,
+  MidiProfileInit,
   MidiColorFeedback,
   MidiFeedbackProfile,
   MidiFeedbackProfileInit,
-} from '@arcanewizards/talisman/feedback';
-import {
-  MidiControllerAction,
-  MidiProfile,
-  MidiProfileBasic,
-} from '@arcanewizards/talisman/profile';
+  MidiProfileDefinition,
+  MidiProfileFeedbackCapabilities,
+} from '@arcanewizards/talisman/core';
+import { MidiProfileBasic } from '@arcanewizards/talisman/profile';
 import {
   colorEqual,
   ColorSpace,
   createColorSpace,
   RGB,
 } from '@arcanewizards/talisman/color';
-import {
-  MidiButtonNature,
-  MidiControllerItem,
-  MidiNumericNature,
-  MidiProfileInit,
-} from '@arcanewizards/talisman/profile';
 import { midiNumberToValues } from '@arcanewizards/talisman/util';
 
 export const AKAI_BRIGHTNESS_CHANNELS = Object.freeze([
@@ -166,6 +161,79 @@ export const AKAI_VELOCITY_TO_RGB = Object.freeze([
   0x4B, 0x15, 0x02,
 ]);
 
+const FEEDBACK_CAPABILITY_BUTTON_GRID = 'grid';
+const FEEDBACK_CAPABILITY_BUTTON_RED = 'red';
+const FEEDBACK_CAPABILITY_BUTTON_GREEN = 'green';
+
+const FEEDBACK_CAPABILITIES_NOTES = Object.freeze({
+  [FEEDBACK_CAPABILITY_BUTTON_GRID]: {
+    led: {
+      type: 'palette',
+      brightnessValues: 1,
+      getPalette: () => {
+        const rgbValues: RGB[] = [];
+        for (let i = 0; i < AKAI_VELOCITY_TO_RGB.length; i += 3) {
+          const r = AKAI_VELOCITY_TO_RGB[i];
+          const g = AKAI_VELOCITY_TO_RGB[i + 1];
+          const b = AKAI_VELOCITY_TO_RGB[i + 2];
+          if (r === undefined || g === undefined || b === undefined) {
+            throw new Error(
+              `Invalid RGB values at index ${i}: [${r}, ${g}, ${b}]`,
+            );
+          }
+          rgbValues.push([r, g, b]);
+        }
+        return rgbValues;
+      },
+    },
+  },
+  [FEEDBACK_CAPABILITY_BUTTON_RED]: {
+    led: {
+      type: 'single',
+      brightnessValues: 1,
+      color: [255, 0, 0],
+      modes: ['solid', 'blink'],
+    },
+  },
+  [FEEDBACK_CAPABILITY_BUTTON_GREEN]: {
+    led: {
+      type: 'single',
+      brightnessValues: 1,
+      color: [0, 255, 0],
+      modes: ['solid', 'blink'],
+    },
+  },
+} satisfies MidiProfileFeedbackCapabilities);
+
+const FEEDBACK_CAPABILITIES_RGB = Object.freeze({
+  [FEEDBACK_CAPABILITY_BUTTON_GRID]: {
+    led: {
+      type: 'rgb',
+      limits: {
+        rBits: 8,
+        gBits: 8,
+        bBits: 8,
+      },
+    },
+  },
+  [FEEDBACK_CAPABILITY_BUTTON_RED]: {
+    led: {
+      type: 'single',
+      brightnessValues: 1,
+      color: [255, 0, 0],
+      modes: ['solid', 'blink'],
+    },
+  },
+  [FEEDBACK_CAPABILITY_BUTTON_GREEN]: {
+    led: {
+      type: 'single',
+      brightnessValues: 1,
+      color: [0, 255, 0],
+      modes: ['solid', 'blink'],
+    },
+  },
+} satisfies MidiProfileFeedbackCapabilities);
+
 const STATIC_NOTES: Array<
   Omit<MidiControllerItem, 'id' | 'note'> & {
     nature: MidiButtonNature;
@@ -187,6 +255,7 @@ const STATIC_NOTES: Array<
       col: 0,
       row: 1,
     },
+    feedback: FEEDBACK_CAPABILITY_BUTTON_RED,
   },
   {
     label: 'Pan',
@@ -203,6 +272,7 @@ const STATIC_NOTES: Array<
       col: 1,
       row: 1,
     },
+    feedback: FEEDBACK_CAPABILITY_BUTTON_RED,
   },
   {
     label: 'Send',
@@ -219,6 +289,7 @@ const STATIC_NOTES: Array<
       col: 2,
       row: 1,
     },
+    feedback: FEEDBACK_CAPABILITY_BUTTON_RED,
   },
   {
     label: 'Device',
@@ -234,6 +305,7 @@ const STATIC_NOTES: Array<
       col: 3,
       row: 1,
     },
+    feedback: FEEDBACK_CAPABILITY_BUTTON_RED,
   },
   {
     label: 'Up',
@@ -250,6 +322,7 @@ const STATIC_NOTES: Array<
       col: 4,
       row: 1,
     },
+    feedback: FEEDBACK_CAPABILITY_BUTTON_RED,
   },
   {
     label: 'Down',
@@ -266,6 +339,7 @@ const STATIC_NOTES: Array<
       col: 5,
       row: 1,
     },
+    feedback: FEEDBACK_CAPABILITY_BUTTON_RED,
   },
   {
     label: 'Left',
@@ -282,6 +356,7 @@ const STATIC_NOTES: Array<
       col: 6,
       row: 1,
     },
+    feedback: FEEDBACK_CAPABILITY_BUTTON_RED,
   },
   {
     label: 'Right',
@@ -298,6 +373,7 @@ const STATIC_NOTES: Array<
       col: 7,
       row: 1,
     },
+    feedback: FEEDBACK_CAPABILITY_BUTTON_RED,
   },
   {
     label: 'Clip',
@@ -314,6 +390,7 @@ const STATIC_NOTES: Array<
       col: 8,
       row: 9,
     },
+    feedback: FEEDBACK_CAPABILITY_BUTTON_GREEN,
   },
   {
     label: 'Solo',
@@ -330,6 +407,7 @@ const STATIC_NOTES: Array<
       col: 8,
       row: 8,
     },
+    feedback: FEEDBACK_CAPABILITY_BUTTON_GREEN,
   },
   {
     label: 'Mute',
@@ -346,6 +424,7 @@ const STATIC_NOTES: Array<
       col: 8,
       row: 7,
     },
+    feedback: FEEDBACK_CAPABILITY_BUTTON_GREEN,
   },
   {
     label: 'Record',
@@ -362,6 +441,7 @@ const STATIC_NOTES: Array<
       col: 8,
       row: 6,
     },
+    feedback: FEEDBACK_CAPABILITY_BUTTON_GREEN,
   },
   {
     label: 'Select',
@@ -378,6 +458,7 @@ const STATIC_NOTES: Array<
       col: 8,
       row: 5,
     },
+    feedback: FEEDBACK_CAPABILITY_BUTTON_GREEN,
   },
   {
     label: 'Drum',
@@ -394,6 +475,7 @@ const STATIC_NOTES: Array<
       col: 8,
       row: 4,
     },
+    feedback: FEEDBACK_CAPABILITY_BUTTON_GREEN,
   },
   {
     label: 'Note',
@@ -410,6 +492,7 @@ const STATIC_NOTES: Array<
       col: 8,
       row: 3,
     },
+    feedback: FEEDBACK_CAPABILITY_BUTTON_GREEN,
   },
   {
     label: 'Stop All Clips',
@@ -425,6 +508,7 @@ const STATIC_NOTES: Array<
       col: 8,
       row: 2,
     },
+    feedback: FEEDBACK_CAPABILITY_BUTTON_GREEN,
   },
   {
     label: 'Shift',
@@ -441,6 +525,7 @@ const STATIC_NOTES: Array<
       col: 8,
       row: 1,
     },
+    feedback: null,
   },
 ];
 
@@ -475,129 +560,134 @@ export const createAkaiColorSpace = (): ColorSpace<[number, number]> => {
 
 const itemId = (type: 'cc' | 'note', index: number) => `${type}:${index}`;
 
-export const createApcMiniMk2Profile: MidiProfileInit = ({ connection }) => {
-  const items: Record<string, MidiControllerItem> = {};
-  const buttonNatures: Record<string, MidiButtonNature> = {};
-  const controllerNatures: Record<string, MidiNumericNature> = {};
+export const createApcMiniMk2Profile =
+  (feedback: MidiProfileFeedbackCapabilities): MidiProfileInit =>
+  ({ connection }) => {
+    const items: Record<string, MidiControllerItem> = {};
+    const buttonNatures: Record<string, MidiButtonNature> = {};
+    const controllerNatures: Record<string, MidiNumericNature> = {};
 
-  {
-    // Encapsulate to leave out of scope
+    {
+      // Encapsulate to leave out of scope
 
-    for (const { nature, ...item } of STATIC_NOTES) {
-      if (item.note) {
-        const id = itemId(item.note.type, item.note.note);
+      for (const { nature, ...item } of STATIC_NOTES) {
+        if (item.note) {
+          const id = itemId(item.note.type, item.note.note);
+          items[id] = {
+            id,
+            ...item,
+            note: [
+              {
+                id: item.note,
+                nature,
+              },
+            ],
+          };
+          buttonNatures[id] = nature;
+        }
+      }
+
+      for (let col = 0; col < 8; col++) {
+        for (let row = 0; row < 8; row++) {
+          const note = getMidiNote(row * 8 + col);
+          const id = itemId('note', note);
+          const nature: MidiButtonNature = { nature: 'grid' };
+          items[id] = {
+            id,
+            note: [{ id: { type: 'note', channel: 0, note }, nature }],
+            label: `Grid (${col}, ${row})`,
+            position: {
+              col,
+              row: row + 2,
+            },
+            feedback: FEEDBACK_CAPABILITY_BUTTON_GRID,
+          };
+          buttonNatures[id] = nature;
+        }
+      }
+
+      for (let col = 0; col < 9; col++) {
+        const controller = getMidiController(col + 48);
+        const id = itemId('cc', controller);
+        const nature: MidiNumericNature = {
+          nature: 'fader',
+          role: 'misc',
+        };
         items[id] = {
           id,
-          ...item,
-          note: [
+          label: `Fader ${col}`,
+          controlChange: [
             {
-              id: item.note,
+              id: { type: 'control-change', channel: 0, controller },
               nature,
             },
           ],
-        };
-        buttonNatures[id] = nature;
-      }
-    }
-
-    for (let col = 0; col < 8; col++) {
-      for (let row = 0; row < 8; row++) {
-        const note = getMidiNote(row * 8 + col);
-        const id = itemId('note', note);
-        const nature: MidiButtonNature = { nature: 'grid' };
-        items[id] = {
-          id,
-          note: [{ id: { type: 'note', channel: 0, note }, nature }],
-          label: `Grid (${col}, ${row})`,
           position: {
             col,
-            row: row + 2,
+            row: 0,
+            orientation: 'vertical',
           },
+          feedback: null,
         };
-        buttonNatures[id] = nature;
+        controllerNatures[id] = nature;
       }
     }
 
-    for (let col = 0; col < 9; col++) {
-      const controller = getMidiController(col + 48);
-      const id = itemId('cc', controller);
-      const nature: MidiNumericNature = {
-        nature: 'fader',
-        role: 'misc',
-      };
-      items[id] = {
-        id,
-        label: `Fader ${col}`,
-        controlChange: [
-          {
-            id: { type: 'control-change', channel: 0, controller },
+    const profile = new MidiProfileBasic({
+      getItems: () => Object.values(items),
+      getItem: (id) => items[id] ?? null,
+      getFeedbackCapabilities: () => feedback,
+      getAction: (msg): MidiControllerAction | null => {
+        if (msg.type === 'note') {
+          const id = itemId(msg.type, msg.note);
+          const nature = buttonNatures[id];
+          if (!nature) {
+            return null;
+          }
+          return {
+            item: id,
+            action: msg.action === 'on' ? 'button-press' : 'button-release',
             nature,
-          },
-        ],
-        position: {
-          col,
-          row: 0,
-          orientation: 'vertical',
+          };
+        }
+        if (msg.type === 'control-change') {
+          const id = itemId('cc', msg.controller);
+          const nature = controllerNatures[id];
+          if (!nature) {
+            return null;
+          }
+          return {
+            item: id,
+            action: 'absolute-value',
+            nature,
+            value: msg.value / 127,
+            precisionBits: 7,
+          };
+        }
+        return null;
+      },
+    });
+
+    if (connection.inputDeviceName.includes('Notes')) {
+      profile.setReadiness({
+        readiness: {
+          state: 'unusable',
+          message: 'Please use the Control MIDI input instead of Notes',
         },
-      };
-      controllerNatures[id] = nature;
+      });
     }
-  }
 
-  const profile = new MidiProfileBasic({
-    getItems: () => Object.values(items),
-    getItem: (id) => items[id] ?? null,
-    getAction: (msg): MidiControllerAction | null => {
-      if (msg.type === 'note') {
-        const id = itemId(msg.type, msg.note);
-        const nature = buttonNatures[id];
-        if (!nature) {
-          return null;
-        }
-        return {
-          item: id,
-          action: msg.action === 'on' ? 'button-press' : 'button-release',
-          nature,
-        };
-      }
-      if (msg.type === 'control-change') {
-        const id = itemId('cc', msg.controller);
-        const nature = controllerNatures[id];
-        if (!nature) {
-          return null;
-        }
-        return {
-          item: id,
-          action: 'absolute-value',
-          nature,
-          value: msg.value / 127,
-          precisionBits: 7,
-        };
-      }
-      return null;
-    },
-  });
+    if (connection.inputDeviceName.includes('MIDIIN2')) {
+      profile.setReadiness({
+        readiness: {
+          state: 'unusable',
+          message: 'Please use the primary MIDI port for this device',
+        },
+      });
+    }
 
-  if (connection.inputDeviceName.includes('Notes')) {
-    profile.setReadiness({
-      readiness: {
-        state: 'unusable',
-        message: 'Please use the Control MIDI input instead of Notes',
-      },
-    });
-  }
-
-  if (connection.inputDeviceName.includes('MIDIIN2')) {
-    profile.setReadiness({
-      readiness: {
-        state: 'unusable',
-        message: 'Please use the primary MIDI port for this device',
-      },
-    });
-  }
-
-  return profile;
-};
+    return profile;
+  };
 
 let colorSpace: ColorSpace<[number, number]> | null = null;
 
@@ -1030,12 +1120,12 @@ export const AKAI_APC_MINI_MK_2: MidiProfileDefinition = {
   subProfiles: {
     default: {
       name: 'Default (Full RGB SysEx)',
-      input: createApcMiniMk2Profile,
+      input: createApcMiniMk2Profile(FEEDBACK_CAPABILITIES_RGB),
       feedback: createApcMiniMk2RGBFeedback,
     },
     notes: {
       name: 'LED Notes',
-      input: createApcMiniMk2Profile,
+      input: createApcMiniMk2Profile(FEEDBACK_CAPABILITIES_NOTES),
       feedback: createApcMiniMk2Feedback,
     },
   },

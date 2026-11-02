@@ -1,16 +1,5 @@
 import { colorEqual, ColorSpace, RGB } from '@arcanewizards/talisman/color';
-import {
-  createBasicColorVelocityFeedbackProfile,
-  MidiColorFeedback,
-  MidiFeedbackProfile,
-  MidiFeedbackProfileInit,
-} from '@arcanewizards/talisman/feedback';
-import {
-  MidiButtonNature,
-  MidiControllerItem,
-  MidiProfile,
-  MidiProfileInit,
-} from '@arcanewizards/talisman/profile';
+import { createBasicColorVelocityFeedbackProfile } from '@arcanewizards/talisman/feedback';
 import {
   createNovationButtonOnlyProfile,
   createNovationLaunchpadRGBColorSpace,
@@ -20,8 +9,15 @@ import {
 import {
   getMidiNote,
   MidiController,
+  MidiButtonNature,
+  MidiControllerItem,
+  MidiProfile,
+  MidiProfileInit,
+  MidiColorFeedback,
+  MidiFeedbackProfile,
+  MidiFeedbackProfileInit,
   MidiProfileDefinition,
-} from '@arcanewizards/talisman';
+} from '@arcanewizards/talisman/core';
 
 const CONTROLLER_BUTTONS = Object.freeze([
   {

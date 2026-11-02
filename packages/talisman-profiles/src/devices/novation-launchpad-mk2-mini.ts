@@ -5,10 +5,6 @@ import {
 } from '@arcanewizards/talisman/color';
 import { createBasicColorVelocityFeedbackProfile } from '@arcanewizards/talisman/feedback';
 import {
-  MidiButtonNature,
-  MidiControllerItem,
-} from '@arcanewizards/talisman/profile';
-import {
   createNovationButtonOnlyProfile,
   NovationButtonInfo,
   NovationButtonOnlyLayout,
@@ -17,8 +13,10 @@ import {
   getMidiController,
   getMidiNote,
   MidiInputConnectionInfo,
+  MidiButtonNature,
+  MidiControllerItem,
   MidiProfileDefinition,
-} from '@arcanewizards/talisman';
+} from '@arcanewizards/talisman/core';
 
 const novationLaunchpadMk2MiniLayout: NovationButtonOnlyLayout = () => {
   const items: Record<string, MidiControllerItem> = {};

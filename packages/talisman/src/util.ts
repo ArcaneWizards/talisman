@@ -1,16 +1,12 @@
-import {
-  getMidiChannel,
-  getMidiController,
-  getMidiNote,
-  MidiBindableIdentity,
-  MidiParsedMessage,
-} from './index.js';
-import {
+import { getMidiChannel, getMidiController, getMidiNote } from './index.js';
+import type {
   MidiHotkeyMode,
   MidiControllerAction,
   MidiControllerItem,
   MidiCoordinateInfo,
-} from './profile.js';
+  MidiBindableIdentity,
+  MidiParsedMessage,
+} from './core.js';
 
 export const colorArrayToColor = (
   arr: readonly number[],

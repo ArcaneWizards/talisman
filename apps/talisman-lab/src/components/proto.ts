@@ -8,11 +8,11 @@ import { Diff } from '@arcanejs/diff';
 import { MidiEndpoints, MIDISupportResponse } from '@arcanewizards/midi';
 import { MidiMessageBufferSlice } from './frontend/shared/midi-message-monitor';
 import { MidiMessageDescription } from '@arcanewizards/talisman/util';
-import { MidiDeviceReadiness } from '@arcanewizards/talisman/profile';
 import z from 'zod';
 import { GET_EULA_RESPONSE, GetEulaResponse } from '@arcanewizards/apis';
 import { UserActionState } from '@arcanewizards/sigil/frontend/user-actions';
 import { UpdateCheckResult } from '@arcanewizards/sigil/frontend/updates';
+import { MidiDeviceReadiness } from '@arcanewizards/talisman';
 
 export const LOGO_URL_PATH = 'logo-animated.svg';
 export const LOGO_STATIC_URL_PATH = 'logo-static.svg';

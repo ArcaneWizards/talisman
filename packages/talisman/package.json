@@ -16,6 +16,12 @@
       "import": "./dist/color.js",
       "require": "./dist/color.cjs"
     },
+    "./core": {
+      "@arcanewizards/talisman-source": "./src/core.ts",
+      "types": "./dist/core.d.ts",
+      "import": "./dist/core.js",
+      "require": "./dist/core.cjs"
+    },
     "./feedback": {
       "@arcanewizards/talisman-source": "./src/feedback.ts",
       "types": "./dist/feedback.d.ts",
