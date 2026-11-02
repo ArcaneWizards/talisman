@@ -15,7 +15,7 @@ import { apiContentToReact } from '@arcanewizards/sigil/frontend/utils';
 import { LoadingWrapper } from '@arcanewizards/sigil/frontend/user-actions';
 import { HELP_AND_SUPPORT_URL, STRINGS } from '../../../constants';
 import { Logo } from './logo';
-import { ConfigContext } from './context';
+import { RootContext } from './context';
 
 type LicenseProps = {
   eula: GetEulaResponse;
@@ -43,7 +43,7 @@ export const License: FC<LicenseProps> = ({ eula, setWindowMode }) => {
   const { openExternalLink } = useBrowserContext();
   const {
     config: { animatedLogo },
-  } = useContext(ConfigContext);
+  } = useContext(RootContext);
   return (
     <div className="flex grow flex-col">
       <div

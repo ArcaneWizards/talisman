@@ -10,7 +10,13 @@ import { ListenerConfig } from '@arcanewizards/sigil/shared/config';
 import { ConnectionsContextProvider } from '@arcanejs/react-toolkit/connections';
 import { useMidiNetworkState } from './workshop/network-state';
 import { useSelectedDevices } from './workshop/selected-devices';
-import { LabConfig, UserConfig } from './components/proto';
+import {
+  GetFullProfileInfoReturn,
+  LabConfig,
+  TalismanLabGetSupportedDevice,
+  TalismanLabGetSupportedDevicesReturn,
+  UserConfig,
+} from './components/proto';
 import { Diff } from '@arcanejs/diff/diff';
 import { patchJson } from '@arcanejs/diff';
 import { Events as TalismanLabRootEvents } from './components/backend/talisman-lab-root';
@@ -23,6 +29,10 @@ import { api, GetEulaResponse } from '@arcanewizards/apis';
 import { UpdateCheckResult } from '@arcanewizards/sigil/frontend/updates';
 import { API_APP_ID } from './constants';
 import { EulaGate } from './eula';
+import {
+  KNOWN_MIDI_PROFILES,
+  KnownMidiProfile,
+} from '@arcanewizards/talisman-profiles';
 
 const DEFAULT_PORT: ListenerConfig['port'] = { from: 4110, to: 4200 };
 
@@ -33,6 +43,9 @@ export type TalismanLabAppProps = {
 };
 
 export type AppProps = SigilRuntimeAppProps<AppApi, TalismanLabAppProps>;
+
+const isKnownProfile = (profileName: string): profileName is KnownMidiProfile =>
+  profileName in KNOWN_MIDI_PROFILES;
 
 type AppRootProps = {
   logger: Logger;
@@ -89,6 +102,47 @@ const AppRoot: FC<AppRootProps> = ({ logger, license, updates }) => {
       [inputBuffer, outputBuffer],
     );
 
+  const onGetSupportedDevices: TalismanLabRootEvents['getSupportedDevices'] =
+    useCallback(
+      () =>
+        Promise.resolve(
+          Object.fromEntries(
+            Object.entries(KNOWN_MIDI_PROFILES).map(
+              ([k, { name, testing, subProfiles }]) => [
+                k,
+                {
+                  name,
+                  testing,
+                  subProfiles: Object.fromEntries(
+                    Object.entries(subProfiles).map(
+                      ([sk, { name, notice }]) => [sk, { name, notice }],
+                    ),
+                  ),
+                } satisfies TalismanLabGetSupportedDevice,
+              ],
+            ),
+          ) satisfies TalismanLabGetSupportedDevicesReturn,
+        ),
+      [],
+    );
+
+  const getFullProfileInfo: TalismanLabRootEvents['getFullProfileInfo'] =
+    useCallback(async ({ profileName, subProfileName }) => {
+      if (!isKnownProfile(profileName)) {
+        throw new Error(`Profile not found: ${profileName}`);
+      }
+      const subProfile =
+        KNOWN_MIDI_PROFILES[profileName].subProfiles[subProfileName];
+      if (!subProfile) {
+        throw new Error(`Sub-profile not found: ${subProfileName}`);
+      }
+      const p = subProfile.input({ connection: { inputDeviceName: '' } });
+      return {
+        items: [...p.getItems()],
+        feedbackCapabilities: p.getFeedbackCapabilities(),
+      } satisfies GetFullProfileInfoReturn;
+    }, []);
+
   return (
     <C.TalismanLabRoot
       license={license}
@@ -98,6 +152,8 @@ const AppRoot: FC<AppRootProps> = ({ logger, license, updates }) => {
       state={status}
       onGetMidiMessages={onGetMidiMessages}
       onSwitchMode={performModeSwitch}
+      onGetSupportedDevices={onGetSupportedDevices}
+      onGetFullProfileInfo={getFullProfileInfo}
     />
   );
 };

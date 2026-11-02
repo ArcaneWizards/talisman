@@ -15,7 +15,7 @@
 
   --spacing-logo: max(
     6rem,
-    min(calc(var(--size-aware-div-width, 0px) * 0.15), 15rem)
+    min(calc(var(--size-aware-div-width, 0px) * 0.15), 10rem)
   );
 
   /**

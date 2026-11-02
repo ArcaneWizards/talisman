@@ -12,7 +12,13 @@ import z from 'zod';
 import { GET_EULA_RESPONSE, GetEulaResponse } from '@arcanewizards/apis';
 import { UserActionState } from '@arcanewizards/sigil/frontend/user-actions';
 import { UpdateCheckResult } from '@arcanewizards/sigil/frontend/updates';
-import { MidiDeviceReadiness } from '@arcanewizards/talisman';
+import {
+  MidiControllerItem,
+  MidiDeviceReadiness,
+  MidiProfileDefinition,
+  MidiProfileFeedbackCapabilities,
+  ProfilePair,
+} from '@arcanewizards/talisman';
 
 export const LOGO_URL_PATH = 'logo-animated.svg';
 export const LOGO_STATIC_URL_PATH = 'logo-static.svg';
@@ -208,10 +214,48 @@ export type TalismanLabGetMidiMessages = BaseClientComponentCall<
 export type TalismanLabGetMidiMessagesReturn =
   MidiMessageBufferSlice<MidiMessageDescription | null>;
 
+export type TalismanLabGetSupportedDevices = BaseClientComponentCall<
+  Namespace,
+  'talisman-lab-get-supported-devices'
+>;
+
+export type TalismanLabGetSupportedDevice = Pick<
+  MidiProfileDefinition,
+  'name' | 'testing'
+> & {
+  subProfiles: Record<string, Pick<ProfilePair, 'name' | 'notice'>>;
+};
+
+export type TalismanLabGetSupportedDevicesReturn = Record<
+  string,
+  TalismanLabGetSupportedDevice
+>;
+
+export type GetFullProfileInfo = BaseClientComponentCall<
+  Namespace,
+  'talisman-lab-get-full-profile-info'
+> & {
+  profileName: string;
+  subProfileName: string;
+};
+
+export type GetFullProfileInfoReturn = {
+  items: MidiControllerItem[];
+  feedbackCapabilities: MidiProfileFeedbackCapabilities;
+};
+
 export type TalismanLabComponentCalls = {
   'talisman-lab-get-midi-messages': {
     call: TalismanLabGetMidiMessages;
     return: TalismanLabGetMidiMessagesReturn;
+  };
+  'talisman-lab-get-supported-devices': {
+    call: TalismanLabGetSupportedDevices;
+    return: TalismanLabGetSupportedDevicesReturn;
+  };
+  'talisman-lab-get-full-profile-info': {
+    call: GetFullProfileInfo;
+    return: GetFullProfileInfoReturn;
   };
 };
 

@@ -1,15 +1,25 @@
 import { createContext, useContext } from 'react';
-import { ApplicationState, LabConfig } from '../../proto';
+import {
+  ApplicationState,
+  GetFullProfileInfo,
+  GetFullProfileInfoReturn,
+  LabConfig,
+  TalismanLabGetSupportedDevicesReturn,
+} from '../../proto';
+import { ActionResponse } from '@arcanewizards/sigil/frontend/user-actions';
 
-export type ConfigContextData = {
+export type RootContextData = {
   config: LabConfig;
-  updateConfig: (change: (current: LabConfig) => LabConfig) => void;
+  getSupportedDevices: () => ActionResponse<TalismanLabGetSupportedDevicesReturn>;
+  getFullProfileInfo: (
+    args: Pick<GetFullProfileInfo, 'profileName' | 'subProfileName'>,
+  ) => ActionResponse<GetFullProfileInfoReturn>;
 };
 
-export const ConfigContext = createContext<ConfigContextData>(
-  new Proxy({} as ConfigContextData, {
+export const RootContext = createContext<RootContextData>(
+  new Proxy({} as RootContextData, {
     get() {
-      throw new Error('ConfigContext not initialized');
+      throw new Error('RootContext not initialized');
     },
   }),
 );

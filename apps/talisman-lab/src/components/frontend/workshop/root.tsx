@@ -1,4 +1,4 @@
-import { FC, useCallback, useContext, useMemo } from 'react';
+import { FC, ReactNode, useCallback, useContext, useMemo } from 'react';
 import {
   LabConfig,
   TalismanLabComponentCalls,
@@ -21,11 +21,18 @@ import { License } from './license';
 import { UpdateDetails } from '@arcanewizards/sigil/frontend/updates';
 import {
   ApplicationStateContext,
-  ConfigContext,
-  ConfigContextData,
+  RootContext,
+  RootContextData,
 } from './context';
 import { Settings } from './settings';
 import { Logo } from './logo';
+import {
+  WINDOW_MODE_PARAM,
+  WINDOW_MODE_MONITOR,
+  WINDOW_MODE_DEVICES,
+} from './urls';
+import { SupportedDevices } from './devices';
+import { success } from '@arcanewizards/sigil/frontend/user-actions';
 
 type Props = {
   info: TalismanLabRootComponent;
@@ -35,6 +42,11 @@ export const TalismanLabRoot: FC<Props> = ({ info }) => {
   const { config, state, midi } = info;
 
   const { sendMessage, call } = useContext(StageContext);
+
+  const windowMode = useMemo(
+    () => new URLSearchParams(window.location.search).get(WINDOW_MODE_PARAM),
+    [],
+  );
 
   const updateConfig = useCallback(
     (change: (current: LabConfig) => LabConfig) => {
@@ -49,6 +61,43 @@ export const TalismanLabRoot: FC<Props> = ({ info }) => {
       });
     },
     [sendMessage, info.key, config],
+  );
+
+  const getSupportedDevices: RootContextData['getSupportedDevices'] =
+    useCallback(() => {
+      if (!call) {
+        throw new Error('No call function available');
+      }
+      return call<
+        'talisman-lab',
+        TalismanLabComponentCalls,
+        'talisman-lab-get-supported-devices'
+      >({
+        type: 'component-call',
+        namespace: 'talisman-lab',
+        componentKey: info.key,
+        action: 'talisman-lab-get-supported-devices',
+      }).then(success);
+    }, [call, info.key]);
+
+  const getFullProfileInfo: RootContextData['getFullProfileInfo'] = useCallback(
+    (args) => {
+      if (!call) {
+        throw new Error('No call function available');
+      }
+      return call<
+        'talisman-lab',
+        TalismanLabComponentCalls,
+        'talisman-lab-get-full-profile-info'
+      >({
+        type: 'component-call',
+        namespace: 'talisman-lab',
+        componentKey: info.key,
+        action: 'talisman-lab-get-full-profile-info',
+        ...args,
+      }).then(success);
+    },
+    [call, info.key],
   );
 
   const performModeSwitch = useCallback(
@@ -109,12 +158,14 @@ export const TalismanLabRoot: FC<Props> = ({ info }) => {
     [],
   );
 
-  const configValue: ConfigContextData = useMemo(() => {
+  const configValue: RootContextData = useMemo(() => {
     return {
       config,
       updateConfig,
+      getSupportedDevices,
+      getFullProfileInfo,
     };
-  }, [config, updateConfig]);
+  }, [config, updateConfig, getSupportedDevices, getFullProfileInfo]);
 
   const updateUserConfig = useCallback(
     (change: (current: UserConfig) => UserConfig) =>
@@ -125,99 +176,135 @@ export const TalismanLabRoot: FC<Props> = ({ info }) => {
     [updateConfig],
   );
 
-  return (
-    <ConfigContext.Provider value={configValue}>
-      <ApplicationStateContext.Provider value={state}>
-        <Layout<
-          'debug' | 'license' | 'settings' | typeof UPDATE_DETAILS_WINDOW_MODE
-        >
-          footer
-          licenseMode="license"
-          modes={{
-            license: {
-              child: (setWindowMode) =>
-                info.license ? (
-                  <License eula={info.license} setWindowMode={setWindowMode} />
-                ) : null,
-              button: {
-                icon: 'info',
-                title: STRINGS.license,
-              },
-            },
-            debug: {
-              child: () => (
-                <Debugger title={STRINGS.debugger} className="size-full" />
-              ),
-              button: {
-                icon: 'bug_report',
-                title: STRINGS.debugger,
-              },
-            },
-            settings: {
-              child: (setWindowMode) => (
-                <Settings setWindowMode={setWindowMode} />
-              ),
-              button: {
-                icon: 'settings',
-                title: STRINGS.settings.title,
-              },
-            },
-            [UPDATE_DETAILS_WINDOW_MODE]: {
-              child: (setWindowMode) =>
-                info.state.updates ? (
-                  <UpdateDetails
-                    updates={info.state.updates}
-                    strings={STRINGS.updates.details}
-                    closeDetails={() => setWindowMode(null)}
-                    className="grow"
-                  />
-                ) : null,
-              button: null,
-            },
-          }}
-        >
-          <div className="flex h-0 grow scrollbar-sigil flex-col overflow-y-auto">
-            <div
-              className="
-                flex grow basis-0 scrollbar-sigil flex-col items-center
-                justify-center gap-2 p-2
-              "
-            >
-              <Logo animatedLogo={config.animatedLogo} />
-              <UserConfigEditor
-                midi={midi}
-                status={state}
-                config={config.config}
-                updateConfig={updateUserConfig}
-                performModeSwitch={performModeSwitch}
-              />
-              <div className="flex w-full grow flex-wrap gap-2">
-                <MidiMessageMonitor<MidiMessageDescription | null>
-                  label="Messages received"
-                  latestIndex={
-                    state.input.status === 'connected'
-                      ? state.input.messagesReceived
-                      : 0
-                  }
-                  getMidiMessages={getInputMessages}
-                  defaultMonitoring
-                  renderExtra={renderExtra}
-                />
-                <MidiMessageMonitor<MidiMessageDescription | null>
-                  label="Messages sent"
-                  latestIndex={
-                    state.output.status === 'connected'
-                      ? state.output.messagesReceived
-                      : 0
-                  }
-                  getMidiMessages={getOutputMessages}
-                  renderExtra={renderExtra}
-                />
-              </div>
-            </div>
+  let children: ReactNode = null;
+
+  if (windowMode) {
+    let windowChild: ReactNode = null;
+    if (windowMode === WINDOW_MODE_DEVICES) {
+      windowChild = <SupportedDevices />;
+    } else if (windowMode === WINDOW_MODE_MONITOR) {
+      windowChild = (
+        <div className="flex h-0 grow scrollbar-sigil flex-col overflow-y-auto">
+          <div
+            className="
+              flex grow basis-0 scrollbar-sigil flex-col items-stretch
+              justify-center gap-2 p-2
+            "
+          >
+            <MidiMessageMonitor<MidiMessageDescription | null>
+              label="Messages received"
+              latestIndex={
+                state.input.status === 'connected'
+                  ? state.input.messagesReceived
+                  : 0
+              }
+              getMidiMessages={getInputMessages}
+              defaultMonitoring
+              renderExtra={renderExtra}
+              className="grow basis-0"
+            />
+            <MidiMessageMonitor<MidiMessageDescription | null>
+              label="Messages sent"
+              latestIndex={
+                state.output.status === 'connected'
+                  ? state.output.messagesReceived
+                  : 0
+              }
+              getMidiMessages={getOutputMessages}
+              renderExtra={renderExtra}
+              className="grow basis-0"
+            />
           </div>
-        </Layout>
+        </div>
+      );
+    }
+    if (windowChild) {
+      children = (
+        <RootContext.Provider value={configValue}>
+          <ApplicationStateContext.Provider value={state}>
+            <Layout<never> modes={null}>{windowChild}</Layout>
+          </ApplicationStateContext.Provider>
+        </RootContext.Provider>
+      );
+    }
+  }
+
+  if (!children) {
+    children = (
+      <Layout<
+        'debug' | 'license' | 'settings' | typeof UPDATE_DETAILS_WINDOW_MODE
+      >
+        footer
+        licenseMode="license"
+        modes={{
+          license: {
+            child: (setWindowMode) =>
+              info.license ? (
+                <License eula={info.license} setWindowMode={setWindowMode} />
+              ) : null,
+            button: {
+              icon: 'info',
+              title: STRINGS.license,
+            },
+          },
+          debug: {
+            child: () => (
+              <Debugger title={STRINGS.debugger} className="size-full" />
+            ),
+            button: {
+              icon: 'bug_report',
+              title: STRINGS.debugger,
+            },
+          },
+          settings: {
+            child: (setWindowMode) => (
+              <Settings setWindowMode={setWindowMode} />
+            ),
+            button: {
+              icon: 'settings',
+              title: STRINGS.settings.title,
+            },
+          },
+          [UPDATE_DETAILS_WINDOW_MODE]: {
+            child: (setWindowMode) =>
+              info.state.updates ? (
+                <UpdateDetails
+                  updates={info.state.updates}
+                  strings={STRINGS.updates.details}
+                  closeDetails={() => setWindowMode(null)}
+                  className="grow"
+                />
+              ) : null,
+            button: null,
+          },
+        }}
+      >
+        <div className="flex h-0 grow scrollbar-sigil flex-col overflow-y-auto">
+          <div
+            className="
+              flex grow basis-0 scrollbar-sigil flex-col items-center
+              justify-center gap-2 p-2
+            "
+          >
+            <Logo animatedLogo={config.animatedLogo} />
+            <UserConfigEditor
+              midi={midi}
+              status={state}
+              config={config.config}
+              updateConfig={updateUserConfig}
+              performModeSwitch={performModeSwitch}
+            />
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  return (
+    <RootContext.Provider value={configValue}>
+      <ApplicationStateContext.Provider value={state}>
+        {children}
       </ApplicationStateContext.Provider>
-    </ConfigContext.Provider>
+    </RootContext.Provider>
   );
 };
