@@ -18,6 +18,8 @@
     min(calc(var(--size-aware-div-width, 0px) * 0.15), 10rem)
   );
 
+  --spacing-logo-home: min(30vw, 150px);
+
   /**
     * Any (non-theme) tailwind variables that need to be used by component
     * classes should be defined here,

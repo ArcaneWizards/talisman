@@ -8,9 +8,9 @@ import {
   UserConfig,
 } from '../../proto';
 
-import { STRINGS } from '../../../constants';
+import { SOURCE_CODE_URL, STRINGS } from '../../../constants';
 import { Layout, UPDATE_DETAILS_WINDOW_MODE } from './layout';
-import { Debugger } from '@arcanewizards/sigil/frontend';
+import { Debugger, useBrowserContext } from '@arcanewizards/sigil/frontend';
 import { diffJson } from '@arcanejs/diff';
 import { StageContext } from '@arcanejs/toolkit-frontend';
 
@@ -25,7 +25,7 @@ import {
   RootContextData,
 } from './context';
 import { Settings } from './settings';
-import { Logo } from './logo';
+import { RawLogo } from './logo';
 import {
   WINDOW_MODE_PARAM,
   WINDOW_MODE_MONITOR,
@@ -33,6 +33,9 @@ import {
 } from './urls';
 import { SupportedDevices } from './devices';
 import { success } from '@arcanewizards/sigil/frontend/user-actions';
+import { useFullProfileInfo } from '../shared/device-profile-details';
+import { ControlButton } from '@arcanewizards/sigil/frontend/controls';
+import { ExternalLink } from './content';
 
 type Props = {
   info: TalismanLabRootComponent;
@@ -176,6 +179,32 @@ export const TalismanLabRoot: FC<Props> = ({ info }) => {
     [updateConfig],
   );
 
+  const selectedProfile =
+    midi.profiles[config.config.selectedProfile?.[0] ?? ''];
+  const profileId = config.config.selectedProfile?.[0] ?? '';
+
+  const deviceInfo = useFullProfileInfo({
+    getProfileInfo: getFullProfileInfo,
+    profileId,
+    subProfileKeys: selectedProfile
+      ? Object.keys(selectedProfile.subProfiles)
+      : [],
+  });
+
+  const { openNewWidow } = useBrowserContext();
+
+  const openMonitoring = useCallback(() => {
+    const url = new URL(window.location.href);
+    url.searchParams.set(WINDOW_MODE_PARAM, WINDOW_MODE_MONITOR);
+    openNewWidow(url.href);
+  }, [openNewWidow]);
+
+  const openSupportedDevices = useCallback(() => {
+    const url = new URL(window.location.href);
+    url.searchParams.set(WINDOW_MODE_PARAM, WINDOW_MODE_DEVICES);
+    openNewWidow(url.href);
+  }, [openNewWidow]);
+
   let children: ReactNode = null;
 
   if (windowMode) {
@@ -286,13 +315,63 @@ export const TalismanLabRoot: FC<Props> = ({ info }) => {
               justify-center gap-2 p-2
             "
           >
-            <Logo animatedLogo={config.animatedLogo} />
+            <div
+              className="
+                flex w-full max-w-[1015px] flex-wrap gap-2 rounded-md
+                bg-sigil-bg-dark p-2 text-sigil-foreground
+              "
+            >
+              <RawLogo
+                animatedLogo={config.animatedLogo}
+                className="size-logo-home grow"
+              />
+              <div
+                className="
+                  m-0 flex w-arcane-slider-open grow-1000 flex-col
+                  justify-center gap-2
+                "
+              >
+                <p className="m-0">
+                  This app is part of the{' '}
+                  <ExternalLink href={SOURCE_CODE_URL}>
+                    Talisman MIDI Project
+                  </ExternalLink>
+                  , an open-source initiative aiming to create reusable MIDI
+                  device profiles for any application.
+                </p>
+                <p className="m-0">
+                  You can test your MIDI devices with the profiles that have
+                  been built so far by running the built-in test patterns, and
+                  also monitor incoming & outgoing MIDI messages for your
+                  selected device.
+                </p>
+                <p className="m-0">
+                  If you'd like to contribute by building your own profiles or
+                  by helping to test existing profiles, please read our{' '}
+                  <ExternalLink
+                    href={SOURCE_CODE_URL + '/blob/main/CONTRIBUTING.md'}
+                  >
+                    contribution guidelines
+                  </ExternalLink>
+                  .
+                </p>
+              </div>
+              <div className="grid min-w-max grow grid-cols-1 gap-1">
+                <ControlButton variant="large" onClick={openSupportedDevices}>
+                  View supported devices
+                </ControlButton>
+                <ControlButton variant="large" onClick={openMonitoring}>
+                  Open Monitoring
+                </ControlButton>
+              </div>
+            </div>
             <UserConfigEditor
               midi={midi}
               status={state}
               config={config.config}
               updateConfig={updateUserConfig}
               performModeSwitch={performModeSwitch}
+              deviceInfo={deviceInfo}
             />
           </div>
         </div>
