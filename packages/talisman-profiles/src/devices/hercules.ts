@@ -14,7 +14,7 @@ import {
   MidiFeedbackProfile,
   MidiFeedbackProfileInit,
   MidiProfileDefinition,
-  MidiProfileFeedbackCapabilities,
+  FeedbackCapabilityProfile,
 } from '@arcanewizards/talisman/core';
 import {
   ColorSpace,
@@ -30,7 +30,12 @@ const FEEDBACK_CAPABILITY_BUTTON_WHITE = 'white';
 const FEEDBACK_CAPABILITY_BUTTON_AMBER = 'amber';
 const FEEDBACK_CAPABILITY_BUTTON_GREEN = 'green';
 
-type FeedbackCapability = keyof typeof FEEDBACK_CAPABILITIES;
+type FeedbackCapability =
+  | typeof FEEDBACK_CAPABILITY_RING
+  | typeof FEEDBACK_CAPABILITY_BUTTON_RED
+  | typeof FEEDBACK_CAPABILITY_BUTTON_WHITE
+  | typeof FEEDBACK_CAPABILITY_BUTTON_AMBER
+  | typeof FEEDBACK_CAPABILITY_BUTTON_GREEN;
 
 export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
   type DeckID = 'deckA' | 'deckB' | 'deckC' | 'deckD';
@@ -829,7 +834,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
             modes: ['solid'],
           },
         },
-      } satisfies MidiProfileFeedbackCapabilities),
+      } satisfies Record<FeedbackCapability, FeedbackCapabilityProfile>),
     getAction: (msg) => {
       if (msg.type === 'note') {
         const action = msg.velocity === 0 ? 'button-release' : 'button-press';

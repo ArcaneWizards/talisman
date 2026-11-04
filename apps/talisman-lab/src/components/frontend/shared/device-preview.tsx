@@ -188,7 +188,14 @@ export type MidiDevicePreviewProps = Omit<
     cellBackground: string;
     border: string;
     text: string;
+    hover: string;
+    highlight: string;
   };
+  onItemsSelected?: (selectedItems: MidiControllerItem[]) => void;
+  selectedItems?: Array<{
+    item: MidiControllerItem;
+    opacity: number;
+  }>;
 };
 
 const MARGIN = 10;
@@ -297,6 +304,8 @@ export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
   info,
   namespace,
   colors: rawColors,
+  selectedItems,
+  onItemsSelected,
   ...props
 }) => {
   const gridInfo = useMemo(() => createGridInfo(info.items), [info.items]);
@@ -304,6 +313,7 @@ export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
   const rainbowGradient = `${namespace}-rainbow-gradient`;
   const noFeedback = `${namespace}-no-feedback`;
   const mixedFeedback = `${namespace}-mixed-feedback`;
+  const clsClick = `${namespace}-click`;
 
   /**
    * Memoize colors to avoid fresh object references from re-rendering everything
@@ -313,8 +323,16 @@ export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
       cellBackground: rawColors.cellBackground,
       border: rawColors.border,
       text: rawColors.text,
+      hover: rawColors.hover,
+      highlight: rawColors.highlight,
     }),
-    [rawColors.cellBackground, rawColors.border, rawColors.text],
+    [
+      rawColors.cellBackground,
+      rawColors.border,
+      rawColors.text,
+      rawColors.hover,
+      rawColors.highlight,
+    ],
   );
 
   const feedback = useMemo(() => {
@@ -637,10 +655,96 @@ export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
           </text>
         </g>,
       );
+
+      items.push(
+        <g
+          key={`click-${i}`}
+          // eslint-disable-next-line no-restricted-syntax
+          className={clsClick}
+          opacity={0}
+          onClick={() => onItemsSelected?.(cell.items)}
+        >
+          <rect
+            x={x}
+            y={y}
+            width={width}
+            height={height}
+            fill={c.hover}
+            opacity={0.3}
+          />
+          <rect
+            x={x}
+            y={y}
+            width={width}
+            height={height}
+            stroke={c.hover}
+            strokeWidth={2}
+            fill="none"
+          />
+        </g>,
+      );
     }
 
     return { vh, vw, defs, items };
-  }, [namespace, gridInfo, c, noFeedback, mixedFeedback]);
+  }, [
+    namespace,
+    gridInfo,
+    c,
+    noFeedback,
+    mixedFeedback,
+    clsClick,
+    onItemsSelected,
+  ]);
+
+  const highlights: ReactNode[] = useMemo(() => {
+    const highlighedFingerprints: Record<
+      string,
+      {
+        opacity: number;
+        span: CellSpan;
+      }
+    > = {};
+    for (const { item, opacity } of selectedItems || []) {
+      const span = getCellSpan(item);
+      if (!span) continue;
+      const fingerprint = getSpanFingerprint(span);
+      highlighedFingerprints[fingerprint] = {
+        opacity: Math.max(
+          highlighedFingerprints[fingerprint]?.opacity || 0,
+          opacity,
+        ),
+        span,
+      };
+    }
+    const rows = gridInfo?.rows || 0;
+    const vh = MARGIN * 2 + GRID_SIZE * rows + GAP * (rows - 1);
+    return Object.entries(highlighedFingerprints).map(
+      ([fingerprint, { opacity, span }]) => {
+        const width =
+          GRID_SIZE * (span.cols[1] - span.cols[0] + 1) +
+          GAP * (span.cols[1] - span.cols[0]);
+        const height =
+          GRID_SIZE * (span.rows[1] - span.rows[0] + 1) +
+          GAP * (span.rows[1] - span.rows[0]);
+        const x = MARGIN + span.cols[0] * (GRID_SIZE + GAP);
+        const y = vh - (MARGIN + span.rows[0] * (GRID_SIZE + GAP)) - height;
+        return (
+          <g key={fingerprint} opacity={opacity}>
+            <rect
+              x={x}
+              y={y}
+              width={width}
+              height={height}
+              fill="none"
+              stroke={c.highlight}
+              strokeWidth="4"
+              style={{ pointerEvents: 'none' }}
+            />
+          </g>
+        );
+      },
+    );
+  }, [selectedItems, c, gridInfo?.rows]);
 
   if (!elements)
     return (
@@ -669,6 +773,10 @@ export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
 
   return (
     <svg viewBox={`0 0 ${vw} ${vh}`} {...props}>
+      <style>{`.${clsClick}:hover {
+          cursor: pointer;
+          opacity: 1;
+        }`}</style>
       <defs>
         {defs}
         <linearGradient
@@ -759,6 +867,7 @@ export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
         </text>
       </symbol>
       {items}
+      {highlights}
     </svg>
   );
 };

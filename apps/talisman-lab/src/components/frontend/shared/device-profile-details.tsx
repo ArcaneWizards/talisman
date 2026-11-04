@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from 'react';
+import { FC, useEffect, useMemo, useState } from 'react';
 import {
   MidiControllerItem,
   MidiProfileDefinition,
@@ -10,7 +10,7 @@ import {
   LoadingWrapper,
   useUserAction,
 } from '@arcanewizards/sigil/frontend/user-actions';
-import { MidiDevicePreview } from './device-preview';
+import { MidiDevicePreview, MidiDevicePreviewProps } from './device-preview';
 
 export type TalismanSupportedDeviceData = Pick<
   MidiProfileDefinition,
@@ -48,6 +48,8 @@ export const DeviceProfileDetails: FC<DeviceProfileDetailsProps> = ({
   const [deviceInfo, performDeviceInfoLoad] =
     useUserAction<TalismanFullProfileInfo>();
 
+  const [selectedItems, setSelectedItems] = useState<MidiControllerItem[]>([]);
+
   useEffect(() => {
     if (!subProfileName) return;
     performDeviceInfoLoad(() =>
@@ -57,6 +59,12 @@ export const DeviceProfileDetails: FC<DeviceProfileDetailsProps> = ({
       }),
     );
   }, [getProfileInfo, performDeviceInfoLoad, profileId, subProfileName]);
+
+  const selectedItemsWithOpacities: MidiDevicePreviewProps['selectedItems'] =
+    useMemo(
+      () => selectedItems.map((item) => ({ item, opacity: 1 })),
+      [selectedItems],
+    );
 
   return (
     <div className={className}>
@@ -88,7 +96,11 @@ export const DeviceProfileDetails: FC<DeviceProfileDetailsProps> = ({
                     cellBackground: 'var(--sigil-bg-dark)',
                     border: 'var(--sigil-border)',
                     text: 'var(--sigil-foreground)',
+                    hover: 'var(--sigil-usage-hint-foreground)',
+                    highlight: 'var(--sigil-foreground-highlight)',
                   }}
+                  selectedItems={selectedItemsWithOpacities}
+                  onItemsSelected={setSelectedItems}
                 />
               ) : null}
               <div className="max-w-[200px] min-w-[20%] bg-sigil-bg-dark p-2">
