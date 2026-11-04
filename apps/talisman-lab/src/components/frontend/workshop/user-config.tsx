@@ -1,4 +1,4 @@
-import { FC, useCallback } from 'react';
+import { FC, useCallback, useContext } from 'react';
 import {
   ControlButton,
   ControlButtonGroup,
@@ -22,6 +22,11 @@ import {
   WINDOW_MODE_PARAM,
 } from './urls';
 import { Icon } from '@arcanejs/toolkit-frontend/components/core';
+import {
+  SubProfileSelector,
+  useFullProfileInfo,
+} from '../shared/device-profile-details';
+import { RootContext } from './context';
 
 type UserConfigProps = {
   midi: MIDINetworkState;
@@ -53,6 +58,18 @@ export const UserConfigEditor: FC<UserConfigProps> = ({
     url.searchParams.set(WINDOW_MODE_PARAM, WINDOW_MODE_DEVICES);
     openNewWidow(url.href);
   }, [openNewWidow]);
+
+  const { getFullProfileInfo } = useContext(RootContext);
+
+  const profileId = config.selectedProfile?.[0] ?? '';
+
+  const deviceInfo = useFullProfileInfo({
+    getProfileInfo: getFullProfileInfo,
+    profileId,
+    subProfileKeys: selectedProfile
+      ? Object.keys(selectedProfile.subProfiles)
+      : [],
+  });
 
   return (
     <>
@@ -204,14 +221,13 @@ export const UserConfigEditor: FC<UserConfigProps> = ({
           selectedProfile?.subProfiles.default !== 'Default' ? (
             <>
               <ControlLabel>Sub-Profile</ControlLabel>
-              <ControlSelect
-                value={config.selectedProfile?.[1] ?? ''}
-                placeholder="Select a profile"
-                options={Object.entries(selectedProfile?.subProfiles ?? {}).map(
-                  ([value, label]) => ({ value, label }),
-                )}
-                variant="large"
+              <SubProfileSelector
+                profileId={profileId}
+                subProfileNames={selectedProfile?.subProfiles ?? {}}
+                fullProfileInfo={deviceInfo}
+                subProfile={config.selectedProfile?.[1] ?? ''}
                 onChange={(subProfile) =>
+                  subProfile &&
                   updateConfig((current) => ({
                     ...current,
                     selectedProfile: [
@@ -220,7 +236,9 @@ export const UserConfigEditor: FC<UserConfigProps> = ({
                     ],
                   }))
                 }
+                variant="large"
                 position="both"
+                includeNone={false}
               />
             </>
           ) : null}

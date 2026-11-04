@@ -45,7 +45,7 @@ const DeviceEntry: FC<{
   profileId: string;
   device: TalismanSupportedDeviceData;
 }> = ({ profileId, device }) => {
-  const [detailsOpen, setDetailsOpen] = useState(true);
+  const [detailsOpen, setDetailsOpen] = useState(false);
 
   const { getFullProfileInfo } = useContext(RootContext);
 

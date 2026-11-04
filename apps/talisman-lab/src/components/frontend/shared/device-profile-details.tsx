@@ -1,4 +1,4 @@
-import { FC, useEffect, useMemo, useState } from 'react';
+import { ComponentProps, FC, useEffect, useMemo, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import {
   MidiControllerItem,
@@ -21,6 +21,8 @@ import {
   ControlSelect,
   SelectOption,
 } from '@arcanewizards/sigil/frontend/controls';
+import { cnd } from '@arcanewizards/sigil/frontend/styling';
+import { cn } from '@arcanejs/toolkit-frontend/util';
 
 const PREVIEW_COLORS: MidiPreviewColorsProp = {
   cellBackground: 'var(--sigil-bg-dark)',
@@ -79,30 +81,34 @@ export const useFullProfileInfo = ({
   return deviceInfo;
 };
 
-type SubProfileSelectorProps = {
+type SubProfileSelectorProps = Pick<
+  ComponentProps<typeof ControlSelect>,
+  'variant' | 'onChange' | 'position' | 'disabled' | 'tooltip'
+> & {
   profileId: string;
-  device: TalismanSupportedDeviceData;
+  subProfileNames: Record<string, string>;
   fullProfileInfo: ReturnType<typeof useFullProfileInfo>;
   subProfile: string | null;
-  onSubProfileSelect: (subProfileName: string | null) => void;
+  includeNone: boolean;
 };
 
 export const SubProfileSelector: FC<SubProfileSelectorProps> = ({
   profileId,
-  device,
+  subProfileNames,
   fullProfileInfo,
   subProfile,
-  onSubProfileSelect,
+  includeNone,
+  ...props
 }) => {
   const options: SelectOption<string>[] = useMemo(
     () => [
-      { label: '', value: '' },
-      ...Object.entries(device.subProfiles).map(([key, { name }]) => ({
-        label: name ?? key,
+      ...(includeNone ? [{ label: '', value: '' }] : []),
+      ...Object.entries(subProfileNames).map(([key, label]) => ({
+        label,
         value: key,
       })),
     ],
-    [device.subProfiles],
+    [subProfileNames, includeNone],
   );
   if (!fullProfileInfo.success) {
     return null;
@@ -112,16 +118,24 @@ export const SubProfileSelector: FC<SubProfileSelectorProps> = ({
       options={options}
       value={subProfile ?? ''}
       placeholder="Select a sub-profile"
-      onChange={(value) => onSubProfileSelect(value || null)}
       option={(option) => {
         if (option.value === '') {
-          return <span className="flex flex-col items-center gap-2">None</span>;
+          return <span className="flex flex-col items-center">None</span>;
         }
 
         const data = fullProfileInfo.data[option.value];
 
         return (
-          <span className="flex flex-col items-center gap-2">
+          <span
+            className={cn(
+              'flex flex-col items-center gap-2',
+              cnd(
+                subProfile === option.value,
+                'rounded-md bg-sigil-border p-1',
+                '',
+              ),
+            )}
+          >
             {data && (
               <MidiFeedbackSummary
                 colors={SELECT_COLORS}
@@ -134,7 +148,7 @@ export const SubProfileSelector: FC<SubProfileSelectorProps> = ({
           </span>
         );
       }}
-      variant="large"
+      {...props}
     />
   );
 };
@@ -175,6 +189,17 @@ export const DeviceProfileDetails: FC<DeviceProfileDetailsProps> = ({
   const selectedDeviceInfo =
     (deviceInfo.success && deviceInfo.data[subProfileKey ?? '']) || null;
 
+  const subProfileNames: Record<string, string> = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.entries(device.subProfiles).map(([key, { name }]) => [
+          key,
+          name ?? key,
+        ]),
+      ),
+    [device.subProfiles],
+  );
+
   return (
     <div className={className}>
       <LoadingWrapper action={deviceInfo}>
@@ -184,10 +209,12 @@ export const DeviceProfileDetails: FC<DeviceProfileDetailsProps> = ({
               {subProfileKey ? 'Sub-Profile:' : 'Please select a sub-profile:'}
               <SubProfileSelector
                 profileId={profileId}
-                device={device}
+                subProfileNames={subProfileNames}
                 fullProfileInfo={deviceInfo}
                 subProfile={subProfileKey}
-                onSubProfileSelect={setSubProfileName}
+                onChange={setSubProfileName}
+                variant="large"
+                includeNone
               />
             </div>
           )}{' '}
@@ -196,9 +223,9 @@ export const DeviceProfileDetails: FC<DeviceProfileDetailsProps> = ({
               fallback={
                 <div
                   className="
-                  flex grow items-center justify-center
-                  text-sigil-error-foreground
-                "
+                    flex grow items-center justify-center
+                    text-sigil-error-foreground
+                  "
                 >
                   An error occurred while loading the device preview
                 </div>
