@@ -95,7 +95,7 @@ export const TalismanLabRoot: FC<Props> = ({ info }) => {
         componentKey: info.key,
         action: 'talisman-lab-get-full-profile-info',
         ...args,
-      }).then(success);
+      });
     },
     [call, info.key],
   );

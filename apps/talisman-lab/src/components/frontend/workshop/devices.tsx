@@ -141,7 +141,7 @@ const DeviceEntry: FC<{
               </div>
             </div>
           )}
-          {Object.keys(subProfiles).length > 1 ? (
+          {!detailsOpen && Object.keys(subProfiles).length > 1 ? (
             <div>
               <span className="font-bold text-sigil-foreground-highlight">
                 Sub Profiles:

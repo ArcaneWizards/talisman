@@ -14,7 +14,7 @@ export type RootContextData = {
   getSupportedDevices: () => ActionResponse<TalismanLabGetSupportedDevicesReturn>;
   getFullProfileInfo: (
     args: Pick<GetFullProfileInfo, 'profileName' | 'subProfileName'>,
-  ) => ActionResponse<GetFullProfileInfoReturn>;
+  ) => Promise<GetFullProfileInfoReturn>;
 };
 
 export const RootContext = createContext<RootContextData>(

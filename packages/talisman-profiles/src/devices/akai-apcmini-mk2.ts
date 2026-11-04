@@ -165,46 +165,6 @@ const FEEDBACK_CAPABILITY_BUTTON_GRID = 'grid';
 const FEEDBACK_CAPABILITY_BUTTON_RED = 'red';
 const FEEDBACK_CAPABILITY_BUTTON_GREEN = 'green';
 
-const FEEDBACK_CAPABILITIES_NOTES = Object.freeze({
-  [FEEDBACK_CAPABILITY_BUTTON_GRID]: {
-    led: {
-      type: 'palette',
-      brightnessValues: 1,
-      getPalette: () => {
-        const rgbValues: RGB[] = [];
-        for (let i = 0; i < AKAI_VELOCITY_TO_RGB.length; i += 3) {
-          const r = AKAI_VELOCITY_TO_RGB[i];
-          const g = AKAI_VELOCITY_TO_RGB[i + 1];
-          const b = AKAI_VELOCITY_TO_RGB[i + 2];
-          if (r === undefined || g === undefined || b === undefined) {
-            throw new Error(
-              `Invalid RGB values at index ${i}: [${r}, ${g}, ${b}]`,
-            );
-          }
-          rgbValues.push([r, g, b]);
-        }
-        return rgbValues;
-      },
-    },
-  },
-  [FEEDBACK_CAPABILITY_BUTTON_RED]: {
-    led: {
-      type: 'single',
-      brightnessValues: 1,
-      color: [255, 0, 0],
-      modes: ['solid', 'blink'],
-    },
-  },
-  [FEEDBACK_CAPABILITY_BUTTON_GREEN]: {
-    led: {
-      type: 'single',
-      brightnessValues: 1,
-      color: [0, 255, 0],
-      modes: ['solid', 'blink'],
-    },
-  },
-} satisfies MidiProfileFeedbackCapabilities);
-
 const FEEDBACK_CAPABILITIES_RGB = Object.freeze({
   [FEEDBACK_CAPABILITY_BUTTON_GRID]: {
     led: {
@@ -561,7 +521,7 @@ export const createAkaiColorSpace = (): ColorSpace<[number, number]> => {
 const itemId = (type: 'cc' | 'note', index: number) => `${type}:${index}`;
 
 export const createApcMiniMk2Profile =
-  (feedback: MidiProfileFeedbackCapabilities): MidiProfileInit =>
+  (feedback: 'notes' | 'rgb'): MidiProfileInit =>
   ({ connection }) => {
     const items: Record<string, MidiControllerItem> = {};
     const buttonNatures: Record<string, MidiButtonNature> = {};
@@ -636,7 +596,52 @@ export const createApcMiniMk2Profile =
     const profile = new MidiProfileBasic({
       getItems: () => Object.values(items),
       getItem: (id) => items[id] ?? null,
-      getFeedbackCapabilities: () => feedback,
+      getFeedbackCapabilities: () =>
+        feedback === 'notes'
+          ? Object.freeze({
+              [FEEDBACK_CAPABILITY_BUTTON_GRID]: {
+                led: {
+                  type: 'palette',
+                  brightnessValues: 1,
+                  palette: (() => {
+                    const rgbValues: RGB[] = [];
+                    for (let i = 0; i < AKAI_VELOCITY_TO_RGB.length; i += 3) {
+                      const r = AKAI_VELOCITY_TO_RGB[i];
+                      const g = AKAI_VELOCITY_TO_RGB[i + 1];
+                      const b = AKAI_VELOCITY_TO_RGB[i + 2];
+                      if (
+                        r === undefined ||
+                        g === undefined ||
+                        b === undefined
+                      ) {
+                        throw new Error(
+                          `Invalid RGB values at index ${i}: [${r}, ${g}, ${b}]`,
+                        );
+                      }
+                      rgbValues.push([r, g, b]);
+                    }
+                    return rgbValues;
+                  })(),
+                },
+              },
+              [FEEDBACK_CAPABILITY_BUTTON_RED]: {
+                led: {
+                  type: 'single',
+                  brightnessValues: 1,
+                  color: [255, 0, 0],
+                  modes: ['solid', 'blink'],
+                },
+              },
+              [FEEDBACK_CAPABILITY_BUTTON_GREEN]: {
+                led: {
+                  type: 'single',
+                  brightnessValues: 1,
+                  color: [0, 255, 0],
+                  modes: ['solid', 'blink'],
+                },
+              },
+            } satisfies MidiProfileFeedbackCapabilities)
+          : FEEDBACK_CAPABILITIES_RGB,
       getAction: (msg): MidiControllerAction | null => {
         if (msg.type === 'note') {
           const id = itemId(msg.type, msg.note);
@@ -1120,12 +1125,12 @@ export const AKAI_APC_MINI_MK_2: MidiProfileDefinition = {
   subProfiles: {
     default: {
       name: 'Default (Full RGB SysEx)',
-      input: createApcMiniMk2Profile(FEEDBACK_CAPABILITIES_RGB),
+      input: createApcMiniMk2Profile('rgb'),
       feedback: createApcMiniMk2RGBFeedback,
     },
     notes: {
       name: 'LED Notes',
-      input: createApcMiniMk2Profile(FEEDBACK_CAPABILITIES_NOTES),
+      input: createApcMiniMk2Profile('notes'),
       feedback: createApcMiniMk2Feedback,
     },
   },

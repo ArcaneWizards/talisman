@@ -174,6 +174,14 @@ export const createGridInfo = (
   };
 };
 
+export type MidiPreviewColorsProp = {
+  cellBackground: string;
+  border: string;
+  text: string;
+  hover: string;
+  highlight: string;
+};
+
 export type MidiDevicePreviewProps = Omit<
   SVGProps<SVGSVGElement>,
   'viewBox'
@@ -184,13 +192,7 @@ export type MidiDevicePreviewProps = Omit<
    */
   namespace: string;
   info: TalismanFullProfileInfo;
-  colors: {
-    cellBackground: string;
-    border: string;
-    text: string;
-    hover: string;
-    highlight: string;
-  };
+  colors: MidiPreviewColorsProp;
   onItemsSelected?: (selectedItems: MidiControllerItem[]) => void;
   selectedItems?: Array<{
     item: MidiControllerItem;
@@ -300,42 +302,39 @@ const itemDescription = (item: MidiControllerItem) => {
 const feedbackSymbolId = (namespace: string, key: string) =>
   `${namespace}-feedback-${key}`;
 
-export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
-  info,
-  namespace,
-  colors: rawColors,
-  selectedItems,
-  onItemsSelected,
-  ...props
-}) => {
-  const gridInfo = useMemo(() => createGridInfo(info.items), [info.items]);
-
-  const rainbowGradient = `${namespace}-rainbow-gradient`;
-  const noFeedback = `${namespace}-no-feedback`;
-  const mixedFeedback = `${namespace}-mixed-feedback`;
-  const clsClick = `${namespace}-click`;
-
+type UseFeedbackSymbolsArgs = {
   /**
-   * Memoize colors to avoid fresh object references from re-rendering everything
+   * Internal SVG definitions can interfere with other SVG elements on the same
+   * page, so this value must be set to something unique on the page
    */
-  const c = useMemo(
-    () => ({
-      cellBackground: rawColors.cellBackground,
-      border: rawColors.border,
-      text: rawColors.text,
-      hover: rawColors.hover,
-      highlight: rawColors.highlight,
-    }),
-    [
-      rawColors.cellBackground,
-      rawColors.border,
-      rawColors.text,
-      rawColors.hover,
-      rawColors.highlight,
-    ],
+  namespace: string;
+  info: TalismanFullProfileInfo;
+  colors: MidiPreviewColorsProp;
+};
+
+const useFeedbackSymbols = ({
+  namespace,
+  info,
+  colors: c,
+}: UseFeedbackSymbolsArgs) => {
+  const rainbowGradient = `${namespace}-rainbow-gradient`;
+
+  const defs = useMemo(
+    () => (
+      <linearGradient id={rainbowGradient} x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="red" />
+        <stop offset="16.66%" stopColor="orange" />
+        <stop offset="33.33%" stopColor="yellow" />
+        <stop offset="50%" stopColor="green" />
+        <stop offset="66.66%" stopColor="blue" />
+        <stop offset="83.33%" stopColor="indigo" />
+        <stop offset="100%" stopColor="violet" />
+      </linearGradient>
+    ),
+    [rainbowGradient],
   );
 
-  const feedback = useMemo(() => {
+  const symbols = useMemo(() => {
     const symbols: ReactNode[] = [];
     const margin = GRID_SIZE / 16;
 
@@ -503,6 +502,152 @@ export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
     return symbols;
   }, [info.feedbackCapabilities, rainbowGradient, namespace, c]);
 
+  return { defs, symbols };
+};
+
+/**
+ * Memoize colors to avoid fresh object references from re-rendering everything,
+ * in case users don't pre-memoize the color object.
+ */
+const useMemoizedColors = (rawColors: MidiPreviewColorsProp) =>
+  useMemo(
+    () => ({
+      cellBackground: rawColors.cellBackground,
+      border: rawColors.border,
+      text: rawColors.text,
+      hover: rawColors.hover,
+      highlight: rawColors.highlight,
+    }),
+    [
+      rawColors.cellBackground,
+      rawColors.border,
+      rawColors.text,
+      rawColors.hover,
+      rawColors.highlight,
+    ],
+  );
+
+type TextElementsArgs = {
+  namespace: string;
+  c: MidiPreviewColorsProp;
+  textId: string;
+  text: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+const textElements = ({
+  namespace,
+  c,
+  textId,
+  text,
+  x,
+  y,
+  width,
+  height,
+}: TextElementsArgs) => {
+  const defs: ReactNode[] = [];
+  const elements: ReactNode[] = [
+    <rect
+      key={`text-bg-${textId}`}
+      x={x}
+      y={y + height - TEXT_HEIGHT}
+      width={width}
+      height={TEXT_HEIGHT}
+      fill={c.border}
+    />,
+  ];
+
+  const textMaskId = `${namespace}-text-mask-${textId}`;
+
+  defs.push(
+    <mask id={textMaskId} key={textMaskId}>
+      <rect
+        x={x}
+        y={y + height - TEXT_HEIGHT}
+        width={width}
+        height={TEXT_HEIGHT}
+        fill="white"
+        stroke="black"
+      />
+    </mask>,
+  );
+
+  const labelWidth = text ? text.length * FONT_WIDTH : 0;
+  const maxTextWidth = width - GAP;
+  const maxChars = Math.floor(
+    ((maxTextWidth / FONT_WIDTH) * FONT_HEIGHT) / MIN_FONT_HEIGHT,
+  );
+  const adjustedHeight = Math.max(
+    MIN_FONT_HEIGHT,
+    Math.min(FONT_HEIGHT, (maxTextWidth / labelWidth) * FONT_HEIGHT),
+  );
+
+  const lines =
+    adjustedHeight > MIN_FONT_HEIGHT
+      ? [text]
+      : [
+          text.substring(0, maxChars),
+          text.length > maxChars * 2
+            ? `${text.substring(maxChars, maxChars * 2 - 1)}…`
+            : text.substring(maxChars),
+        ];
+
+  elements.push(
+    <g key={`text-${textId}`} mask={`url(#${textMaskId})`}>
+      <text
+        textAnchor="middle"
+        dominantBaseline="central"
+        fill={c.text}
+        fontSize={adjustedHeight}
+        fontFamily="monospace"
+      >
+        {lines.map((line, index) => (
+          <tspan
+            key={index}
+            x={x + width / 2}
+            y={
+              y +
+              height -
+              TEXT_HEIGHT / 2 +
+              (lines.length === 1
+                ? 0
+                : (index - (lines.length - 1) / 2) * adjustedHeight)
+            }
+          >
+            {line}
+          </tspan>
+        ))}
+      </text>
+    </g>,
+  );
+  return { defs, elements };
+};
+
+export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
+  info,
+  namespace,
+  colors: rawColors,
+  selectedItems,
+  onItemsSelected,
+  ...props
+}) => {
+  const gridInfo = useMemo(() => createGridInfo(info.items), [info.items]);
+
+  const noFeedback = `${namespace}-no-feedback`;
+  const mixedFeedback = `${namespace}-mixed-feedback`;
+  const clsClick = `${namespace}-click`;
+
+  const c = useMemoizedColors(rawColors);
+
+  const { symbols: feedbackSymbols, defs: feedbackDefs } = useFeedbackSymbols({
+    namespace,
+    info,
+    colors: c,
+  });
+
   const elements = useMemo(() => {
     if (!gridInfo) return null;
 
@@ -526,21 +671,6 @@ export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
       const x = MARGIN + cell.span.cols[0] * (GRID_SIZE + GAP);
       const y = vh - (MARGIN + cell.span.rows[0] * (GRID_SIZE + GAP)) - height;
 
-      const textMaskId = `${namespace}-text-mask-${i}`;
-
-      defs.push(
-        <mask id={textMaskId} key={textMaskId}>
-          <rect
-            x={x}
-            y={y + height - TEXT_HEIGHT}
-            width={width}
-            height={TEXT_HEIGHT}
-            fill="white"
-            stroke="black"
-          />
-        </mask>,
-      );
-
       items.push(
         <rect
           key={`cell-${i}`}
@@ -548,18 +678,6 @@ export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
           y={y}
           width={width}
           height={height}
-          fill={c.cellBackground}
-          stroke={c.border}
-        />,
-      );
-
-      items.push(
-        <rect
-          key={`text-bg-${i}`}
-          x={x}
-          y={y + height - TEXT_HEIGHT}
-          width={width}
-          height={TEXT_HEIGHT}
           fill={c.cellBackground}
           stroke={c.border}
         />,
@@ -607,54 +725,19 @@ export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
             : 'UNKNOWN'
           : 'OVERLAP');
 
-      const labelWidth = labelText ? labelText.length * FONT_WIDTH : 0;
-      const maxTextWidth = width - GAP;
-      const maxChars = Math.floor(
-        ((maxTextWidth / FONT_WIDTH) * FONT_HEIGHT) / MIN_FONT_HEIGHT,
-      );
-      const adjustedHeight = Math.max(
-        MIN_FONT_HEIGHT,
-        Math.min(FONT_HEIGHT, (maxTextWidth / labelWidth) * FONT_HEIGHT),
-      );
+      const { defs: textDefs, elements: textItems } = textElements({
+        namespace,
+        c,
+        textId: `cell-${i}`,
+        text: labelText,
+        x,
+        y: y + height - TEXT_HEIGHT,
+        width,
+        height: TEXT_HEIGHT,
+      });
 
-      const lines =
-        adjustedHeight > MIN_FONT_HEIGHT
-          ? [labelText]
-          : [
-              labelText.substring(0, maxChars),
-              labelText.length > maxChars * 2
-                ? `${labelText.substring(maxChars, maxChars * 2 - 1)}…`
-                : labelText.substring(maxChars),
-            ];
-
-      items.push(
-        <g key={`text-${i}`} mask={`url(#${textMaskId})`}>
-          <text
-            textAnchor="middle"
-            dominantBaseline="central"
-            fill="currentColor"
-            fontSize={adjustedHeight}
-            fontFamily="monospace"
-          >
-            {lines.map((line, index) => (
-              <tspan
-                key={index}
-                x={x + width / 2}
-                y={
-                  y +
-                  height -
-                  TEXT_HEIGHT / 2 +
-                  (lines.length === 1
-                    ? 0
-                    : (index - (lines.length - 1) / 2) * adjustedHeight)
-                }
-              >
-                {line}
-              </tspan>
-            ))}
-          </text>
-        </g>,
-      );
+      defs.push(...textDefs);
+      items.push(...textItems);
 
       items.push(
         <g
@@ -779,23 +862,9 @@ export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
         }`}</style>
       <defs>
         {defs}
-        <linearGradient
-          id={rainbowGradient}
-          x1="0%"
-          y1="0%"
-          x2="100%"
-          y2="100%"
-        >
-          <stop offset="0%" stopColor="red" />
-          <stop offset="16.66%" stopColor="orange" />
-          <stop offset="33.33%" stopColor="yellow" />
-          <stop offset="50%" stopColor="green" />
-          <stop offset="66.66%" stopColor="blue" />
-          <stop offset="83.33%" stopColor="indigo" />
-          <stop offset="100%" stopColor="violet" />
-        </linearGradient>
+        {feedbackDefs}
       </defs>
-      {feedback}
+      {feedbackSymbols}
       <symbol
         id={noFeedback}
         viewBox={`0 0 ${FEEDBACK_WIDTH} ${FEEDBACK_HEIGHT}`}
@@ -868,6 +937,151 @@ export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
       </symbol>
       {items}
       {highlights}
+    </svg>
+  );
+};
+
+type MidiFeedbackSummaryProps = Omit<SVGProps<SVGSVGElement>, 'viewBox'> & {
+  /**
+   * Internal SVG definitions can interfere with other SVG elements on the same
+   * page, so this value must be set to something unique on the page
+   */
+  namespace: string;
+  info: TalismanFullProfileInfo;
+  colors: MidiPreviewColorsProp;
+};
+
+export const MidiFeedbackSummary: FC<MidiFeedbackSummaryProps> = ({
+  namespace,
+  info,
+  colors: rawColors,
+  ...props
+}) => {
+  const c = useMemoizedColors(rawColors);
+
+  const { symbols: feedbackSymbols, defs: feedbackDefs } = useFeedbackSymbols({
+    namespace,
+    info,
+    colors: c,
+  });
+
+  const feedbackToCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const item of info.items) {
+      if (item.feedback) {
+        counts[item.feedback] = (counts[item.feedback] || 0) + 1;
+      }
+    }
+    return counts;
+  }, [info.items]);
+
+  const { defs, boxes } = useMemo(() => {
+    const defs: ReactNode[] = [];
+    const boxes: ReactNode[] = [];
+
+    let i = 0;
+    for (const key of Object.keys(info.feedbackCapabilities)) {
+      const width = GRID_SIZE;
+      const height = GRID_SIZE;
+      const x = i * (GRID_SIZE + GAP);
+      const y = GRID_SIZE - height;
+
+      const { defs: textDefs, elements: textItems } = textElements({
+        namespace,
+        c,
+        textId: `cell-${i}`,
+        text: `${feedbackToCounts[key] ?? 0} items`,
+        x,
+        y: y + height - TEXT_HEIGHT,
+        width,
+        height: TEXT_HEIGHT,
+      });
+
+      defs.push(...textDefs);
+
+      boxes.push(
+        <g key={key}>
+          <rect
+            x={x}
+            y={y}
+            width={width}
+            height={height}
+            fill={c.cellBackground}
+            stroke={c.border}
+          />
+          <use
+            key={`feedback-${i}`}
+            href={`#${feedbackSymbolId(namespace, key)}`}
+            x={x}
+            y={y}
+            width={width}
+            height={height - TEXT_HEIGHT}
+          />
+          {textItems}
+        </g>,
+      );
+      i++;
+    }
+
+    return { defs, boxes };
+  }, [namespace, c, info.feedbackCapabilities, feedbackToCounts]);
+
+  if (boxes.length === 0) {
+    return (
+      <svg {...props} viewBox={`0 0 ${GRID_SIZE} ${GRID_SIZE}`}>
+        <rect
+          x={0}
+          y={0}
+          width={GRID_SIZE}
+          height={GRID_SIZE}
+          fill={c.cellBackground}
+          stroke={c.border}
+        />
+        <text
+          x={GRID_SIZE / 2}
+          y={GRID_SIZE / 2 - GRID_SIZE / 8}
+          textAnchor="middle"
+          alignmentBaseline="middle"
+          fill={c.text}
+          fontFamily="monospace"
+          fontWeight="bold"
+          fontSize={FEEDBACK_FONT_SIZE}
+          stroke={c.border}
+          strokeWidth={FEEDBACK_FONT_SIZE / 2}
+          paintOrder="stroke"
+        >
+          NO
+        </text>
+        <text
+          x={GRID_SIZE / 2}
+          y={GRID_SIZE / 2 + GRID_SIZE / 8}
+          textAnchor="middle"
+          alignmentBaseline="middle"
+          fill={c.text}
+          fontFamily="monospace"
+          fontWeight="bold"
+          fontSize={FEEDBACK_FONT_SIZE}
+          stroke={c.border}
+          strokeWidth={FEEDBACK_FONT_SIZE / 2}
+          paintOrder="stroke"
+        >
+          FDBK
+        </text>
+      </svg>
+    );
+  }
+
+  return (
+    <svg
+      {...props}
+      viewBox={`0 0 ${boxes.length * (GRID_SIZE + GAP) - GAP} ${GRID_SIZE}`}
+    >
+      <defs>
+        {feedbackDefs}
+        {defs}
+      </defs>
+      {feedbackSymbols}
+      {boxes}
     </svg>
   );
 };
