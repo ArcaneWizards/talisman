@@ -219,24 +219,6 @@ export const SupportedDevices: FC = () => {
     >
       <div className="flex flex-col gap-2">
         <Logo animatedLogo={animatedLogo} />
-        <div
-          className="
-            flex flex-col gap-2 rounded-md bg-sigil-bg-dark p-2
-            text-sigil-foreground
-          "
-        >
-          <p className="m-0">
-            Below is a list of all the devices that are supported by the
-            Talisman Project, or that have a profile developed but that has not
-            yet had enough testing.
-          </p>
-          <p className="m-0">
-            The Talisman project is an open-source and community-driven
-            initiative, and we are continuously looking for help from users like
-            you to contribute by either testing support for untested devices, or
-            contributing to the development of new device profiles.
-          </p>
-        </div>
         {devices.success &&
           Object.entries(devices.data).map(([key, device]) => (
             <DeviceEntry key={key} profileId={key} device={device} />

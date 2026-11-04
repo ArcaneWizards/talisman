@@ -248,13 +248,21 @@ export const DeviceProfileDetails: FC<DeviceProfileDetailsProps> = ({
               <div className="flex h-full gap-1">
                 <MidiDevicePreview
                   namespace={profileId}
-                  className="h-full max-h-[70vh] grow text-sigil-foreground bg-sigil-bg-light border border-sigil-border"
+                  className="
+                    h-full max-h-[70vh] grow border border-sigil-border
+                    bg-sigil-bg-light text-sigil-foreground
+                  "
                   info={selectedDeviceInfo}
                   colors={PREVIEW_COLORS}
                   selectedItems={selectedItemsWithOpacities}
                   onItemsSelected={setSelectedItems}
                 />
-                <div className="max-w-[200px] min-w-[20%] bg-sigil-bg-light p-2 border border-sigil-border">
+                <div
+                  className="
+                    max-w-[200px] min-w-[20%] border border-sigil-border
+                    bg-sigil-bg-light p-2
+                  "
+                >
                   Sidebar
                 </div>
               </div>

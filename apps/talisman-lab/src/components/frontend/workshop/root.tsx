@@ -39,6 +39,7 @@ import {
 } from '../shared/device-profile-details';
 import { ControlButton } from '@arcanewizards/sigil/frontend/controls';
 import { ExternalLink } from './content';
+import { Icon } from '@arcanejs/toolkit-frontend/components/core';
 
 type Props = {
   info: TalismanLabRootComponent;
@@ -199,19 +200,19 @@ export const TalismanLabRoot: FC<Props> = ({ info }) => {
     subProfileKeys,
   });
 
-  const { openNewWidow } = useBrowserContext();
-
-  const openMonitoring = useCallback(() => {
-    const url = new URL(window.location.href);
-    url.searchParams.set(WINDOW_MODE_PARAM, WINDOW_MODE_MONITOR);
-    openNewWidow(url.href);
-  }, [openNewWidow]);
+  const { openNewWidow, openExternalLink } = useBrowserContext();
 
   const openSupportedDevices = useCallback(() => {
     const url = new URL(window.location.href);
     url.searchParams.set(WINDOW_MODE_PARAM, WINDOW_MODE_DEVICES);
     openNewWidow(url.href);
   }, [openNewWidow]);
+
+  const contributeLink = SOURCE_CODE_URL + '/blob/main/CONTRIBUTING.md';
+
+  const openContribute = useCallback(() => {
+    openExternalLink(contributeLink);
+  }, [openExternalLink, contributeLink]);
 
   let children: ReactNode = null;
 
@@ -356,9 +357,7 @@ export const TalismanLabRoot: FC<Props> = ({ info }) => {
                 <p className="m-0">
                   If you'd like to contribute by building your own profiles or
                   by helping to test existing profiles, please read our{' '}
-                  <ExternalLink
-                    href={SOURCE_CODE_URL + '/blob/main/CONTRIBUTING.md'}
-                  >
+                  <ExternalLink href={contributeLink}>
                     contribution guidelines
                   </ExternalLink>
                   .
@@ -368,8 +367,9 @@ export const TalismanLabRoot: FC<Props> = ({ info }) => {
                 <ControlButton variant="large" onClick={openSupportedDevices}>
                   View supported devices
                 </ControlButton>
-                <ControlButton variant="large" onClick={openMonitoring}>
-                  Open Monitoring
+                <ControlButton variant="large" onClick={openContribute}>
+                  Contribute
+                  <Icon icon="open_in_new" />
                 </ControlButton>
               </div>
             </div>
@@ -389,7 +389,10 @@ export const TalismanLabRoot: FC<Props> = ({ info }) => {
                 mode: 'locked',
                 subProfileKey: config.config.selectedProfile?.[1] ?? null,
               }}
-              className="h-0 min-h-[300px] grow bg-sigil-bg-dark p-1 rounded-sigil-control"
+              className="
+                h-0 min-h-[300px] min-w-[min(70vw,1015px)] grow rounded-md
+                bg-sigil-bg-dark p-1
+              "
             />
           </div>
         </div>

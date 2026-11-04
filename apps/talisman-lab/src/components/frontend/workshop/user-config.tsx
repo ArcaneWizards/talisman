@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useCallback } from 'react';
 import {
   ControlButton,
   ControlButtonGroup,
@@ -21,6 +21,8 @@ import {
   TalismanFullProfileInfo,
 } from '../shared/device-profile-details';
 import { UserActionState } from '@arcanewizards/sigil/frontend/user-actions';
+import { useBrowserContext } from '@arcanewizards/sigil/frontend';
+import { WINDOW_MODE_MONITOR, WINDOW_MODE_PARAM } from './urls';
 
 type UserConfigProps = {
   midi: MIDINetworkState;
@@ -42,11 +44,19 @@ export const UserConfigEditor: FC<UserConfigProps> = ({
   const profileId = config.selectedProfile?.[0] ?? '';
   const selectedProfile = midi.profiles[profileId];
 
+  const { openNewWidow } = useBrowserContext();
+
+  const openMonitoring = useCallback(() => {
+    const url = new URL(window.location.href);
+    url.searchParams.set(WINDOW_MODE_PARAM, WINDOW_MODE_MONITOR);
+    openNewWidow(url.href);
+  }, [openNewWidow]);
+
   return (
     <div className="flex max-w-full flex-wrap items-stretch justify-center gap-2">
       <div
         className="
-          control-grid-large w-[500px] max-w-full gap-1 rounded-arcane-btn
+          control-grid-large w-[500px] max-w-full gap-1 rounded-md
           bg-sigil-bg-dark
         "
       >
@@ -232,10 +242,14 @@ export const UserConfigEditor: FC<UserConfigProps> = ({
             {status.midiDeviceReadiness.message}
           </ControlParagraph>
         ) : null}
+
+        <ControlButton variant="large" onClick={openMonitoring} position="both">
+          Monitor MIDI Messages
+        </ControlButton>
       </div>
       <div
         className="
-          control-grid-large w-[500px] max-w-full gap-1 rounded-arcane-btn
+          control-grid-large w-[500px] max-w-full gap-1 rounded-md
           bg-sigil-bg-dark
         "
       >
