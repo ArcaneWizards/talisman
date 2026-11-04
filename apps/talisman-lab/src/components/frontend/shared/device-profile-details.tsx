@@ -86,7 +86,8 @@ export const DeviceProfileDetails: FC<DeviceProfileDetailsProps> = ({
                   info={deviceInfo.data}
                   colors={{
                     cellBackground: 'var(--sigil-bg-dark)',
-                    cellBorder: 'var(--sigil-border)',
+                    border: 'var(--sigil-border)',
+                    text: 'var(--sigil-foreground)',
                   }}
                 />
               ) : null}

@@ -70,18 +70,21 @@ const UNIVERSAL_CONTROLLER_BUTTONS = Object.freeze([
     row: 8,
   },
   {
+    label: 'Capture MIDI',
     controller: 98,
     nature: { nature: 'unknown' },
     col: 7,
     row: 8,
   },
   {
+    label: 'Novation Logo',
     controller: 99,
     nature: { nature: 'unknown' },
     col: 8,
     row: 8,
   },
 ] satisfies Array<{
+  label?: string;
   controller: MidiController;
   nature: MidiButtonNature;
   col: number;
@@ -160,6 +163,7 @@ const addControllerButtons = (
     const id = `controller-${col}-${row}`;
     items[id] = {
       id,
+      label: 'label' in button ? button.label : undefined,
       position: { col, row },
       controlChange: [
         {

@@ -13,48 +13,7 @@ export const createProfile = ({
 }: GenericProfileOptions) => {
   return new MidiProfileBasic({
     getItem: () => null,
-    getItems: () => [
-      {
-        id: 'a',
-        label: 'a',
-        position: { col: 0, row: 0 },
-      },
-      {
-        id: 'b',
-        label: 'b',
-        position: { col: 1, row: 1 },
-      },
-      {
-        id: 'c',
-        label: 'c',
-        position: { col: 2, row: 2 },
-      },
-      {
-        id: 'd',
-        label: 'd',
-        position: { col: 3, row: [3, 4] },
-      },
-      {
-        id: 'E',
-        label: 'E',
-        position: { col: 3, row: [2, 4] },
-      },
-      {
-        id: 'S',
-        label: 'S',
-        position: { col: [1, 3], row: 0 },
-      },
-      {
-        id: 'W',
-        label: 'W',
-        position: { col: 0, row: [1, 4] },
-      },
-      {
-        id: 'N',
-        label: 'N',
-        position: { col: [1, 2], row: 4 },
-      },
-    ],
+    getItems: () => [],
     getFeedbackCapabilities: () => ({}),
     getAction: (msg) => {
       if (msg.type === 'note') {

@@ -1064,7 +1064,7 @@ export type FeedbackCapabilityProfile = {
         /**
          * Returns the list of colors available in the palette.
          */
-        getPalette: () => Array<RGB>;
+        palette: Array<RGB>;
       }
     | {
         type: 'rgb';

@@ -7,6 +7,9 @@ import {
   MidiNumericNature,
 } from '@arcanewizards/talisman';
 
+const isDefined = <T,>(value: T | undefined | null): value is T =>
+  value !== undefined && value !== null;
+
 type CellSpan = {
   cols: [number, number];
   rows: [number, number];
@@ -183,7 +186,8 @@ export type MidiDevicePreviewProps = Omit<
   info: TalismanFullProfileInfo;
   colors: {
     cellBackground: string;
-    cellBorder: string;
+    border: string;
+    text: string;
   };
 };
 
@@ -191,9 +195,13 @@ const MARGIN = 10;
 const GAP = 10;
 const GRID_SIZE = 100;
 const TEXT_HEIGHT = GRID_SIZE / 3;
-const FONT_HEIGHT = TEXT_HEIGHT * 0.9;
+const FONT_HEIGHT = TEXT_HEIGHT * 0.8;
 const MIN_FONT_HEIGHT = FONT_HEIGHT * 0.4;
 const FONT_WIDTH = FONT_HEIGHT * 0.6;
+
+const FEEDBACK_WIDTH = GRID_SIZE;
+const FEEDBACK_HEIGHT = GRID_SIZE - TEXT_HEIGHT;
+const FEEDBACK_FONT_SIZE = GRID_SIZE / 6;
 
 const natureDescription = (nature: MidiButtonNature | MidiNumericNature) => {
   switch (nature.nature) {
@@ -223,9 +231,20 @@ const natureDescription = (nature: MidiButtonNature | MidiNumericNature) => {
         : nature.bank === undefined
           ? nature.navigation
           : `bank ${nature.bank} ${nature.navigation}`;
+    case 'encoder':
+      return nature.role === 'grid' ? 'grid encoder' : 'encoder';
+    case 'fader':
+      return nature.bank === undefined
+        ? nature.role
+        : `bank ${nature.bank} ${nature.role}`;
+    case 'mixer':
+      return `CH ${nature.channel} ${nature.role}`;
+    case 'xy-pad':
+      return `xy-pad ${nature.role}`;
     case 'unknown':
       return null;
   }
+  const _exhaustiveCheck: never = nature;
 };
 
 const itemDescription = (item: MidiControllerItem) => {
@@ -271,6 +290,9 @@ const itemDescription = (item: MidiControllerItem) => {
   return 'UNKNOWN';
 };
 
+const feedbackSymbolId = (namespace: string, key: string) =>
+  `${namespace}-feedback-${key}`;
+
 export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
   info,
   namespace,
@@ -279,16 +301,189 @@ export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
 }) => {
   const gridInfo = useMemo(() => createGridInfo(info.items), [info.items]);
 
+  const rainbowGradient = `${namespace}-rainbow-gradient`;
+  const noFeedback = `${namespace}-no-feedback`;
+  const mixedFeedback = `${namespace}-mixed-feedback`;
+
   /**
    * Memoize colors to avoid fresh object references from re-rendering everything
    */
   const c = useMemo(
     () => ({
       cellBackground: rawColors.cellBackground,
-      cellBorder: rawColors.cellBorder,
+      border: rawColors.border,
+      text: rawColors.text,
     }),
-    [rawColors.cellBackground, rawColors.cellBorder],
+    [rawColors.cellBackground, rawColors.border, rawColors.text],
   );
+
+  const feedback = useMemo(() => {
+    const symbols: ReactNode[] = [];
+    const margin = GRID_SIZE / 16;
+
+    for (const [key, value] of Object.entries(info.feedbackCapabilities)) {
+      const id = feedbackSymbolId(namespace, key);
+
+      if (value.led) {
+        if (value.led.type === 'single') {
+          symbols.push(
+            <symbol
+              id={id}
+              key={id}
+              viewBox={`0 0 ${FEEDBACK_WIDTH} ${FEEDBACK_HEIGHT}`}
+            >
+              <path
+                d={`M${margin} ${margin} H${FEEDBACK_WIDTH - margin} L${margin} ${FEEDBACK_HEIGHT - margin} Z`}
+                fill={`rgb(${value.led.color.join(',')})`}
+              />
+              <text
+                x={FEEDBACK_WIDTH / 2}
+                y={FEEDBACK_HEIGHT / 2}
+                textAnchor="middle"
+                alignmentBaseline="middle"
+                fill={c.text}
+                fontFamily="monospace"
+                fontWeight="bold"
+                fontSize={FEEDBACK_FONT_SIZE}
+                stroke={c.border}
+                strokeWidth={FEEDBACK_FONT_SIZE / 2}
+                paintOrder="stroke"
+              >
+                ON/OFF
+              </text>
+            </symbol>,
+          );
+          continue;
+        }
+
+        if (value.led.type === 'rgb') {
+          const bits =
+            value.led.limits.bBits +
+            value.led.limits.gBits +
+            value.led.limits.rBits;
+          symbols.push(
+            <symbol
+              id={id}
+              key={id}
+              viewBox={`0 0 ${FEEDBACK_WIDTH} ${FEEDBACK_HEIGHT}`}
+            >
+              <rect
+                x={margin}
+                y={margin}
+                width={FEEDBACK_WIDTH - margin * 2}
+                height={FEEDBACK_HEIGHT - margin * 2}
+                fill={`url(#${rainbowGradient})`}
+              />
+              <text
+                x={FEEDBACK_WIDTH / 2}
+                y={FEEDBACK_HEIGHT / 2 - GRID_SIZE / 8}
+                textAnchor="middle"
+                alignmentBaseline="middle"
+                fill={c.text}
+                fontFamily="monospace"
+                fontWeight="bold"
+                fontSize={FEEDBACK_FONT_SIZE}
+                stroke={c.border}
+                strokeWidth={FEEDBACK_FONT_SIZE / 2}
+                paintOrder="stroke"
+              >
+                {bits}bit
+              </text>
+              <text
+                x={FEEDBACK_WIDTH / 2}
+                y={FEEDBACK_HEIGHT / 2 + GRID_SIZE / 8}
+                textAnchor="middle"
+                alignmentBaseline="middle"
+                fill={c.text}
+                fontFamily="monospace"
+                fontWeight="bold"
+                fontSize={FEEDBACK_FONT_SIZE}
+                stroke={c.border}
+                strokeWidth={FEEDBACK_FONT_SIZE / 2}
+                paintOrder="stroke"
+              >
+                RGB
+              </text>
+            </symbol>,
+          );
+          continue;
+        }
+
+        if (value.led.type === 'palette') {
+          const colors = value.led.palette;
+          const showColors = Math.min(8, colors.length);
+          const isEven = showColors % 2 === 0;
+
+          const pGridWidth =
+            (FEEDBACK_WIDTH - margin * 2) /
+            (isEven ? showColors / 2 : showColors);
+          const pGridHeight = (FEEDBACK_HEIGHT - margin * 2) / (isEven ? 2 : 1);
+
+          const grid: ReactNode[] = [];
+          for (let i = 0; i < showColors; i++) {
+            const color = colors[Math.round(i * (colors.length / showColors))];
+            if (!color) continue;
+            const row = isEven ? Math.floor(i / (showColors / 2)) : 0;
+            const col = isEven ? i % (showColors / 2) : i;
+            const x = col * pGridWidth + margin;
+            const y = row * pGridHeight + margin;
+            grid.push(
+              <rect
+                key={i}
+                x={x}
+                y={y}
+                width={pGridWidth}
+                height={pGridHeight}
+                fill={`rgb(${color.join(',')})`}
+              />,
+            );
+          }
+
+          symbols.push(
+            <symbol
+              id={id}
+              key={id}
+              viewBox={`0 0 ${FEEDBACK_WIDTH} ${FEEDBACK_HEIGHT}`}
+            >
+              {grid}
+              <text
+                x={FEEDBACK_WIDTH / 2}
+                y={FEEDBACK_HEIGHT / 2 - GRID_SIZE / 8}
+                textAnchor="middle"
+                alignmentBaseline="middle"
+                fill={c.text}
+                fontFamily="monospace"
+                fontWeight="bold"
+                fontSize={FEEDBACK_FONT_SIZE}
+                stroke={c.border}
+                strokeWidth={FEEDBACK_FONT_SIZE / 2}
+                paintOrder="stroke"
+              >
+                {colors.length}
+              </text>
+              <text
+                x={FEEDBACK_WIDTH / 2}
+                y={FEEDBACK_HEIGHT / 2 + GRID_SIZE / 8}
+                textAnchor="middle"
+                alignmentBaseline="middle"
+                fill={c.text}
+                fontFamily="monospace"
+                fontWeight="bold"
+                fontSize={FEEDBACK_FONT_SIZE}
+                stroke={c.border}
+                strokeWidth={FEEDBACK_FONT_SIZE / 2}
+                paintOrder="stroke"
+              >
+                colors
+              </text>
+            </symbol>,
+          );
+          continue;
+        }
+      }
+    }
+    return symbols;
+  }, [info.feedbackCapabilities, rainbowGradient, namespace, c]);
 
   const elements = useMemo(() => {
     if (!gridInfo) return null;
@@ -336,7 +531,7 @@ export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
           width={width}
           height={height}
           fill={c.cellBackground}
-          stroke={c.cellBorder}
+          stroke={c.border}
         />,
       );
 
@@ -348,9 +543,38 @@ export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
           width={width}
           height={TEXT_HEIGHT}
           fill={c.cellBackground}
-          stroke={c.cellBorder}
+          stroke={c.border}
         />,
       );
+
+      const feedback = Array.from(
+        new Set(cell.items.map((item) => item.feedback).filter(isDefined)),
+      );
+      const uniqueFeedback = feedback.length === 1 && feedback[0];
+
+      if (uniqueFeedback) {
+        items.push(
+          <use
+            key={`feedback-${i}`}
+            href={`#${feedbackSymbolId(namespace, uniqueFeedback)}`}
+            x={x}
+            y={y}
+            width={width}
+            height={height - TEXT_HEIGHT}
+          />,
+        );
+      } else {
+        items.push(
+          <use
+            key={`feedback-${i}`}
+            href={`#${feedback.length > 1 ? mixedFeedback : noFeedback}`}
+            x={x}
+            y={y}
+            width={width}
+            height={height - TEXT_HEIGHT}
+          />,
+        );
+      }
 
       const item =
         (cell.type === 'visible' && cell.items.length === 1 && cell.items[0]) ||
@@ -416,7 +640,7 @@ export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
     }
 
     return { vh, vw, defs, items };
-  }, [namespace, gridInfo, c]);
+  }, [namespace, gridInfo, c, noFeedback, mixedFeedback]);
 
   if (!elements)
     return (
@@ -426,7 +650,10 @@ export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
           y="25"
           textAnchor="middle"
           dominantBaseline="central"
-          fill="currentColor"
+          fill={c.text}
+          stroke={c.border}
+          strokeWidth={3}
+          paintOrder="stroke"
         >
           <tspan x="100" y="18">
             MIDI device has
@@ -442,7 +669,95 @@ export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
 
   return (
     <svg viewBox={`0 0 ${vw} ${vh}`} {...props}>
-      <defs>{defs}</defs>
+      <defs>
+        {defs}
+        <linearGradient
+          id={rainbowGradient}
+          x1="0%"
+          y1="0%"
+          x2="100%"
+          y2="100%"
+        >
+          <stop offset="0%" stopColor="red" />
+          <stop offset="16.66%" stopColor="orange" />
+          <stop offset="33.33%" stopColor="yellow" />
+          <stop offset="50%" stopColor="green" />
+          <stop offset="66.66%" stopColor="blue" />
+          <stop offset="83.33%" stopColor="indigo" />
+          <stop offset="100%" stopColor="violet" />
+        </linearGradient>
+      </defs>
+      {feedback}
+      <symbol
+        id={noFeedback}
+        viewBox={`0 0 ${FEEDBACK_WIDTH} ${FEEDBACK_HEIGHT}`}
+      >
+        <text
+          x={FEEDBACK_WIDTH / 2}
+          y={FEEDBACK_HEIGHT / 2 - GRID_SIZE / 8}
+          textAnchor="middle"
+          alignmentBaseline="middle"
+          fill={c.text}
+          fontFamily="monospace"
+          fontWeight="bold"
+          fontSize={FEEDBACK_FONT_SIZE}
+          stroke={c.border}
+          strokeWidth={FEEDBACK_FONT_SIZE / 2}
+          paintOrder="stroke"
+        >
+          NO
+        </text>
+        <text
+          x={FEEDBACK_WIDTH / 2}
+          y={FEEDBACK_HEIGHT / 2 + GRID_SIZE / 8}
+          textAnchor="middle"
+          alignmentBaseline="middle"
+          fill={c.text}
+          fontFamily="monospace"
+          fontWeight="bold"
+          fontSize={FEEDBACK_FONT_SIZE}
+          stroke={c.border}
+          strokeWidth={FEEDBACK_FONT_SIZE / 2}
+          paintOrder="stroke"
+        >
+          FDBK
+        </text>
+      </symbol>
+      <symbol
+        id={mixedFeedback}
+        viewBox={`0 0 ${FEEDBACK_WIDTH} ${FEEDBACK_HEIGHT}`}
+      >
+        <text
+          x={FEEDBACK_WIDTH / 2}
+          y={FEEDBACK_HEIGHT / 2 - GRID_SIZE / 8}
+          textAnchor="middle"
+          alignmentBaseline="middle"
+          fill={c.text}
+          fontFamily="monospace"
+          fontWeight="bold"
+          fontSize={FEEDBACK_FONT_SIZE}
+          stroke={c.border}
+          strokeWidth={FEEDBACK_FONT_SIZE / 2}
+          paintOrder="stroke"
+        >
+          MIXED
+        </text>
+        <text
+          x={FEEDBACK_WIDTH / 2}
+          y={FEEDBACK_HEIGHT / 2 + GRID_SIZE / 8}
+          textAnchor="middle"
+          alignmentBaseline="middle"
+          fill={c.text}
+          fontFamily="monospace"
+          fontWeight="bold"
+          fontSize={FEEDBACK_FONT_SIZE}
+          stroke={c.border}
+          strokeWidth={FEEDBACK_FONT_SIZE / 2}
+          paintOrder="stroke"
+        >
+          FDBK
+        </text>
+      </symbol>
       {items}
     </svg>
   );

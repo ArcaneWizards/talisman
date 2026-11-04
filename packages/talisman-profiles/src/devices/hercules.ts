@@ -30,48 +30,6 @@ const FEEDBACK_CAPABILITY_BUTTON_WHITE = 'white';
 const FEEDBACK_CAPABILITY_BUTTON_AMBER = 'amber';
 const FEEDBACK_CAPABILITY_BUTTON_GREEN = 'green';
 
-const FEEDBACK_CAPABILITIES = Object.freeze({
-  [FEEDBACK_CAPABILITY_RING]: {
-    led: {
-      type: 'palette',
-      brightnessValues: 1,
-      getPalette: () => HERCULES_NOTE_TO_RGB.map(hexToRGB),
-    },
-  },
-  [FEEDBACK_CAPABILITY_BUTTON_RED]: {
-    led: {
-      type: 'single',
-      brightnessValues: 1,
-      color: [255, 0, 0],
-      modes: ['solid'],
-    },
-  },
-  [FEEDBACK_CAPABILITY_BUTTON_WHITE]: {
-    led: {
-      type: 'single',
-      brightnessValues: 1,
-      color: [255, 255, 255],
-      modes: ['solid'],
-    },
-  },
-  [FEEDBACK_CAPABILITY_BUTTON_AMBER]: {
-    led: {
-      type: 'single',
-      brightnessValues: 1,
-      color: [255, 191, 0],
-      modes: ['solid'],
-    },
-  },
-  [FEEDBACK_CAPABILITY_BUTTON_GREEN]: {
-    led: {
-      type: 'single',
-      brightnessValues: 1,
-      color: [0, 255, 0],
-      modes: ['solid'],
-    },
-  },
-} satisfies MidiProfileFeedbackCapabilities);
-
 type FeedbackCapability = keyof typeof FEEDBACK_CAPABILITIES;
 
 export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
@@ -830,7 +788,48 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
   return new MidiProfileBasic({
     getItem: (id) => allItems[id] ?? null,
     getItems: () => Object.values(allItems),
-    getFeedbackCapabilities: () => FEEDBACK_CAPABILITIES,
+    getFeedbackCapabilities: () =>
+      Object.freeze({
+        [FEEDBACK_CAPABILITY_RING]: {
+          led: {
+            type: 'palette',
+            brightnessValues: 1,
+            palette: HERCULES_NOTE_TO_RGB.map(hexToRGB),
+          },
+        },
+        [FEEDBACK_CAPABILITY_BUTTON_RED]: {
+          led: {
+            type: 'single',
+            brightnessValues: 1,
+            color: [255, 0, 0],
+            modes: ['solid'],
+          },
+        },
+        [FEEDBACK_CAPABILITY_BUTTON_WHITE]: {
+          led: {
+            type: 'single',
+            brightnessValues: 1,
+            color: [255, 255, 255],
+            modes: ['solid'],
+          },
+        },
+        [FEEDBACK_CAPABILITY_BUTTON_AMBER]: {
+          led: {
+            type: 'single',
+            brightnessValues: 1,
+            color: [255, 191, 0],
+            modes: ['solid'],
+          },
+        },
+        [FEEDBACK_CAPABILITY_BUTTON_GREEN]: {
+          led: {
+            type: 'single',
+            brightnessValues: 1,
+            color: [0, 255, 0],
+            modes: ['solid'],
+          },
+        },
+      } satisfies MidiProfileFeedbackCapabilities),
     getAction: (msg) => {
       if (msg.type === 'note') {
         const action = msg.velocity === 0 ? 'button-release' : 'button-press';

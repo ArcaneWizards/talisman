@@ -26,31 +26,6 @@ const itemId = (type: 'cc' | 'note', index: number) => `${type}:${index}`;
 
 const FEEDBACK_CAPABILITY_KEY = 'key';
 
-const FEEDBACK_CAPABILITIES = Object.freeze({
-  [FEEDBACK_CAPABILITY_KEY]: {
-    led: {
-      type: 'palette',
-      brightnessValues: 1,
-      getPalette: () => {
-        const rgbValues: RGB[] = [];
-        const velocityToRgb = getBitchboyVelocityToRGB();
-        for (let i = 0; i < velocityToRgb.length; i += 3) {
-          const r = velocityToRgb[i];
-          const g = velocityToRgb[i + 1];
-          const b = velocityToRgb[i + 2];
-          if (r === undefined || g === undefined || b === undefined) {
-            throw new Error(
-              `Invalid RGB values at index ${i}: [${r}, ${g}, ${b}]`,
-            );
-          }
-          rgbValues.push([r, g, b]);
-        }
-        return rgbValues;
-      },
-    },
-  },
-} satisfies MidiProfileFeedbackCapabilities);
-
 export const createBitchboyProfile: MidiProfileInit = () => {
   const items: Record<string, MidiControllerItem> = {};
   const buttonNatures: Record<string, MidiButtonNature> = {};
@@ -293,7 +268,32 @@ export const createBitchboyProfile: MidiProfileInit = () => {
   return new MidiProfileBasic({
     getItems: () => Object.values(items),
     getItem: (id) => items[id] ?? null,
-    getFeedbackCapabilities: () => FEEDBACK_CAPABILITIES,
+    getFeedbackCapabilities: () =>
+      Object.freeze({
+        [FEEDBACK_CAPABILITY_KEY]: {
+          led: {
+            type: 'palette',
+            brightnessValues: 1,
+            palette: getBitchboyVelocityToRGB().reduce<RGB[]>(
+              (acc, _, i, arr) => {
+                if (i % 3 === 0) {
+                  const r = arr[i];
+                  const g = arr[i + 1];
+                  const b = arr[i + 2];
+                  if (r === undefined || g === undefined || b === undefined) {
+                    throw new Error(
+                      `Invalid RGB values at index ${i}: [${r}, ${g}, ${b}]`,
+                    );
+                  }
+                  acc.push([r, g, b]);
+                }
+                return acc;
+              },
+              [],
+            ),
+          },
+        },
+      } satisfies MidiProfileFeedbackCapabilities),
     getAction: (msg): MidiControllerAction | null => {
       if (msg.type === 'note') {
         const id = itemId(msg.type, msg.note);
