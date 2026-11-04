@@ -2,19 +2,8 @@ import {
   getMidiNote,
   MIDI_NOTE_ON,
   MidiControlChangeIdentity,
+  MidiInputConnectionInfo,
   MidiNoteIdentity,
-} from '@arcanewizards/talisman';
-import {
-  ColorSpace,
-  createColorSpace,
-  hexToRGB,
-  RGB,
-} from '@arcanewizards/talisman/color';
-import {
-  MidiFeedbackProfile,
-  MidiFeedbackProfileInit,
-} from '@arcanewizards/talisman/feedback';
-import {
   MidiHotkeyMode,
   MidiButtonNature,
   MidiControllerAction,
@@ -22,8 +11,31 @@ import {
   MidiCoordinateInfo,
   MidiProfileInit,
   MidiNumericNature,
-  MidiProfileBasic,
-} from '@arcanewizards/talisman/profile';
+  MidiFeedbackProfile,
+  MidiFeedbackProfileInit,
+  MidiProfileDefinition,
+  FeedbackCapabilityProfile,
+} from '@arcanewizards/talisman/core';
+import {
+  ColorSpace,
+  createColorSpace,
+  hexToRGB,
+  RGB,
+} from '@arcanewizards/talisman/color';
+import { MidiProfileBasic } from '@arcanewizards/talisman/profile';
+
+const FEEDBACK_CAPABILITY_RING = 'ring';
+const FEEDBACK_CAPABILITY_BUTTON_RED = 'red';
+const FEEDBACK_CAPABILITY_BUTTON_WHITE = 'white';
+const FEEDBACK_CAPABILITY_BUTTON_AMBER = 'amber';
+const FEEDBACK_CAPABILITY_BUTTON_GREEN = 'green';
+
+type FeedbackCapability =
+  | typeof FEEDBACK_CAPABILITY_RING
+  | typeof FEEDBACK_CAPABILITY_BUTTON_RED
+  | typeof FEEDBACK_CAPABILITY_BUTTON_WHITE
+  | typeof FEEDBACK_CAPABILITY_BUTTON_AMBER
+  | typeof FEEDBACK_CAPABILITY_BUTTON_GREEN;
 
 export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
   type DeckID = 'deckA' | 'deckB' | 'deckC' | 'deckD';
@@ -92,6 +104,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         col: 9,
         row: 9,
       },
+      feedback: FEEDBACK_CAPABILITY_RING,
     },
     [0x01]: {
       id: 'beatmatch-guide',
@@ -112,6 +125,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         col: 9,
         row: 5,
       },
+      feedback: null,
     },
     [0x02]: {
       id: 'master-pfl',
@@ -132,6 +146,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         col: 9,
         row: 6,
       },
+      feedback: null,
     },
     [0x03]: {
       id: 'assistant',
@@ -153,6 +168,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         col: 9,
         row: 8,
       },
+      feedback: FEEDBACK_CAPABILITY_BUTTON_WHITE,
     },
   } satisfies Record<string, FullyDefinedNote>);
 
@@ -177,6 +193,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         row: 0,
         orientation: 'horizontal',
       },
+      feedback: null,
     },
     [0x03]: {
       id: 'master-fader',
@@ -196,6 +213,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
       position: {
         col: 9,
       },
+      feedback: null,
     },
     [0x04]: {
       id: 'headphones-fader',
@@ -215,6 +233,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
       position: {
         col: 9,
       },
+      feedback: null,
     },
   } satisfies Record<string, FullyDefinedFader>);
 
@@ -223,6 +242,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
       action: 'platter-touch',
       label: 'Platter Touch',
       position: null,
+      feedback: null,
     },
     [0x00]: {
       action: 'fx',
@@ -231,6 +251,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         col: 2,
         row: 9,
       },
+      feedback: FEEDBACK_CAPABILITY_BUTTON_RED,
     },
     [0x01]: {
       action: 'slip',
@@ -239,6 +260,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         col: 6,
         row: 5,
       },
+      feedback: FEEDBACK_CAPABILITY_BUTTON_RED,
     },
     [0x02]: {
       action: 'quantize',
@@ -247,6 +269,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         col: 7,
         row: 7,
       },
+      feedback: FEEDBACK_CAPABILITY_BUTTON_RED,
     },
     [0x03]: {
       action: 'vinyl',
@@ -255,6 +278,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         col: [0, 1],
         row: 5,
       },
+      feedback: FEEDBACK_CAPABILITY_BUTTON_WHITE,
     },
     [0x04]: {
       action: 'shift',
@@ -263,6 +287,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         col: [0, 1],
         row: 3,
       },
+      feedback: null,
     },
     [0x05]: {
       action: 'sync',
@@ -271,6 +296,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         col: [0, 1],
         row: 2,
       },
+      feedback: FEEDBACK_CAPABILITY_BUTTON_RED,
     },
     [0x06]: {
       action: 'cue',
@@ -279,6 +305,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         col: [0, 1],
         row: 1,
       },
+      feedback: FEEDBACK_CAPABILITY_BUTTON_AMBER,
     },
     [0x07]: {
       action: 'play-pause',
@@ -287,6 +314,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         col: [0, 1],
         row: 0,
       },
+      feedback: FEEDBACK_CAPABILITY_BUTTON_GREEN,
     },
     [0x09]: {
       action: 'loop-in',
@@ -295,6 +323,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         col: 0,
         row: 4,
       },
+      feedback: FEEDBACK_CAPABILITY_BUTTON_RED,
     },
     [0x0a]: {
       action: 'loop-out',
@@ -303,21 +332,25 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         col: 1,
         row: 4,
       },
+      feedback: FEEDBACK_CAPABILITY_BUTTON_RED,
     },
     [0x0b]: {
       action: 'loop-in-long-press',
       label: null,
       position: null,
+      feedback: null,
     },
     [0x0c]: {
       action: 'pre-fader-listen',
       label: null,
       position: null,
+      feedback: FEEDBACK_CAPABILITY_BUTTON_RED,
     },
     [0x0d]: {
       action: 'load',
       label: null,
       position: null,
+      feedback: null,
     },
     [0x0f]: {
       action: 'hotkey-mode-hot-cue',
@@ -326,6 +359,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         col: 2,
         row: 3,
       },
+      feedback: null,
     },
     [0x10]: {
       action: 'hotkey-mode-roll',
@@ -334,6 +368,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         col: 3,
         row: 3,
       },
+      feedback: null,
     },
     [0x11]: {
       action: 'hotkey-mode-slicer',
@@ -342,6 +377,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         col: 4,
         row: 3,
       },
+      feedback: null,
     },
     [0x12]: {
       action: 'hotkey-mode-sampler',
@@ -350,6 +386,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         col: 5,
         row: 3,
       },
+      feedback: null,
     },
     [0x13]: {
       action: 'hotkey-mode-tones',
@@ -358,6 +395,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         col: 2,
         row: 3,
       },
+      feedback: null,
     },
     [0x14]: {
       action: 'hotkey-mode-fx',
@@ -366,6 +404,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         col: 3,
         row: 3,
       },
+      feedback: null,
     },
     [0x15]: {
       action: 'hotkey-mode-slicer-loop',
@@ -374,6 +413,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         col: 4,
         row: 3,
       },
+      feedback: null,
     },
     [0x16]: {
       action: 'hotkey-mode-beat-jump',
@@ -382,6 +422,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         col: 5,
         row: 3,
       },
+      feedback: null,
     },
   } satisfies Record<
     number,
@@ -389,6 +430,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
       action: DeckAction;
       label: string | null;
       position: MidiCoordinateInfo | null;
+      feedback: FeedbackCapability | null;
     }
   >);
 
@@ -403,7 +445,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
     const colStart = midiChannel === 1 || midiChannel === 4 ? 0 : 11;
     return Object.fromEntries(
       Object.entries(DECK_NOTES).map(
-        ([note, { action, label, position }]) =>
+        ([note, { action, label, position, feedback }]) =>
           [
             note as DeckNoteID,
             {
@@ -442,6 +484,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
                         row: position.row,
                       }
                     : undefined,
+              feedback,
             },
           ] satisfies [DeckNoteID, FullyDefinedNote],
       ),
@@ -472,6 +515,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         position: {
           col,
         },
+        feedback: null,
       },
       [0x1]: {
         id: `${deckId}.hlpf`,
@@ -492,6 +536,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         position: {
           col,
         },
+        feedback: null,
       },
       [0x2]: {
         id: `${deckId}.eq-low`,
@@ -513,6 +558,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         position: {
           col,
         },
+        feedback: null,
       },
       [0x3]: {
         id: `${deckId}.eq-mid`,
@@ -534,6 +580,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         position: {
           col,
         },
+        feedback: null,
       },
       [0x4]: {
         id: `${deckId}.eq-high`,
@@ -555,6 +602,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         position: {
           col,
         },
+        feedback: null,
       },
       [0x5]: {
         id: `${deckId}.gain`,
@@ -575,6 +623,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         position: {
           col,
         },
+        feedback: null,
       },
       [0x6]: {
         id: `${deckId}.fx-level`,
@@ -595,6 +644,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         position: {
           col: col === 8 ? 3 : 14,
         },
+        feedback: null,
       },
       [0x7]: {
         id: `${deckId}.dry-wet`,
@@ -615,6 +665,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         position: {
           col: col === 8 ? 4 : 15,
         },
+        feedback: null,
       },
       [0x8]: {
         id: `${deckId}.tempo`,
@@ -634,7 +685,9 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         ],
         position: {
           col: col === 8 ? [6, 7] : [17, 18],
+          row: [0, 3],
         },
+        feedback: null,
       },
     } satisfies Partial<Record<string, FullyDefinedFader>>);
   };
@@ -686,6 +739,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
             col: (i & 0x03) + colStart,
             row: (((i >> 2) & 1) ^ 1) << 1,
           },
+          feedback: FEEDBACK_CAPABILITY_BUTTON_RED,
         } satisfies FullyDefinedNote,
       ]),
     ) as Record<string, FullyDefinedNote>;
@@ -739,6 +793,48 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
   return new MidiProfileBasic({
     getItem: (id) => allItems[id] ?? null,
     getItems: () => Object.values(allItems),
+    getFeedbackCapabilities: () =>
+      Object.freeze({
+        [FEEDBACK_CAPABILITY_RING]: {
+          led: {
+            type: 'palette',
+            brightnessValues: 1,
+            palette: HERCULES_NOTE_TO_RGB.map(hexToRGB),
+          },
+        },
+        [FEEDBACK_CAPABILITY_BUTTON_RED]: {
+          led: {
+            type: 'single',
+            brightnessValues: 1,
+            color: [255, 0, 0],
+            modes: ['solid'],
+          },
+        },
+        [FEEDBACK_CAPABILITY_BUTTON_WHITE]: {
+          led: {
+            type: 'single',
+            brightnessValues: 1,
+            color: [255, 255, 255],
+            modes: ['solid'],
+          },
+        },
+        [FEEDBACK_CAPABILITY_BUTTON_AMBER]: {
+          led: {
+            type: 'single',
+            brightnessValues: 1,
+            color: [255, 191, 0],
+            modes: ['solid'],
+          },
+        },
+        [FEEDBACK_CAPABILITY_BUTTON_GREEN]: {
+          led: {
+            type: 'single',
+            brightnessValues: 1,
+            color: [0, 255, 0],
+            modes: ['solid'],
+          },
+        },
+      } satisfies Record<FeedbackCapability, FeedbackCapabilityProfile>),
     getAction: (msg) => {
       if (msg.type === 'note') {
         const action = msg.velocity === 0 ? 'button-release' : 'button-press';
@@ -1094,3 +1190,25 @@ export const createHerculesDJControlInpulse300FeedbackProfile: MidiFeedbackProfi
       },
     } satisfies MidiFeedbackProfile;
   };
+
+export const HERCULES_DJCONTROL_INPULSE_300: MidiProfileDefinition = {
+  name: 'Hercules DJControl Inpulse 300',
+  testing: {
+    ready: true,
+    maintainers: [
+      {
+        ghUsername: 's0',
+        os: ['macos'],
+        date: '2026-10-15',
+      },
+    ],
+  },
+  autoSelect: (connection: MidiInputConnectionInfo) =>
+    connection.inputDeviceName.includes('DJControl Inpulse 300'),
+  subProfiles: {
+    default: {
+      input: createHerculesDJControlInpulse300Profile,
+      feedback: createHerculesDJControlInpulse300FeedbackProfile,
+    },
+  },
+};

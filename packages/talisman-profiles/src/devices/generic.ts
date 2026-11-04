@@ -1,7 +1,8 @@
-import {
-  MidiProfileBasic,
+import type {
   MidiProfileInit,
-} from '@arcanewizards/talisman/profile';
+  MidiProfileDefinition,
+} from '@arcanewizards/talisman/core';
+import { MidiProfileBasic } from '@arcanewizards/talisman/profile';
 
 type GenericProfileOptions = {
   interpretZeroNoteOnAsRelease?: boolean;
@@ -13,6 +14,7 @@ export const createProfile = ({
   return new MidiProfileBasic({
     getItem: () => null,
     getItems: () => [],
+    getFeedbackCapabilities: () => ({}),
     getAction: (msg) => {
       if (msg.type === 'note') {
         const action =
@@ -73,4 +75,31 @@ export const createGenericProfile: MidiProfileInit = () => {
 
 export const createGenericProfileZeroNoteOn: MidiProfileInit = () => {
   return createProfile({ interpretZeroNoteOnAsRelease: true });
+};
+
+export const GENERIC: MidiProfileDefinition = {
+  name: 'Generic',
+  testing: {
+    ready: true,
+    maintainers: [
+      {
+        ghUsername: 's0',
+        os: ['macos', 'windows'],
+        date: '2026-10-15',
+      },
+    ],
+  },
+  autoSelect: () => false,
+  subProfiles: {
+    default: {
+      name: 'Default',
+      input: createGenericProfile,
+      feedback: null,
+    },
+    zeroNoteOn: {
+      name: 'Zero Note On',
+      input: createGenericProfileZeroNoteOn,
+      feedback: null,
+    },
+  },
 };

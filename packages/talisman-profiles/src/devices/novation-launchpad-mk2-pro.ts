@@ -1,23 +1,23 @@
 import { colorEqual, ColorSpace, RGB } from '@arcanewizards/talisman/color';
-import {
-  createBasicColorVelocityFeedbackProfile,
-  MidiColorFeedback,
-  MidiFeedbackProfile,
-  MidiFeedbackProfileInit,
-} from '@arcanewizards/talisman/feedback';
-import {
-  MidiButtonNature,
-  MidiControllerItem,
-  MidiProfile,
-  MidiProfileInit,
-} from '@arcanewizards/talisman/profile';
+import { createBasicColorVelocityFeedbackProfile } from '@arcanewizards/talisman/feedback';
 import {
   createNovationButtonOnlyProfile,
   createNovationLaunchpadRGBColorSpace,
   NovationButtonInfo,
   NovationButtonOnlyLayout,
 } from './shared/novation.js';
-import { getMidiNote, MidiController } from '@arcanewizards/talisman';
+import {
+  getMidiNote,
+  MidiController,
+  MidiButtonNature,
+  MidiControllerItem,
+  MidiProfile,
+  MidiProfileInit,
+  MidiColorFeedback,
+  MidiFeedbackProfile,
+  MidiFeedbackProfileInit,
+  MidiProfileDefinition,
+} from '@arcanewizards/talisman/core';
 
 const CONTROLLER_BUTTONS = Object.freeze([
   {
@@ -442,3 +442,25 @@ export const createNovationLaunchpadMk2ProFeedbackProfileRGB: MidiFeedbackProfil
       },
     } satisfies MidiFeedbackProfile;
   };
+
+export const NOVATION_LAUNCHPAD_MK2_PRO: MidiProfileDefinition = {
+  // Note these are the same device, and you often see both names in the wild,
+  // though it was officially released as part of the mk2 series.
+  name: 'Launchpad Pro (mk1 / mk2)',
+  testing: {
+    ready: false,
+  },
+  autoSelect: () => false,
+  subProfiles: {
+    default: {
+      name: 'Programmer Mode - Sysex RGB Feedback',
+      input: createNovationLaunchpadMk2ProProfileProgrammerMode,
+      feedback: createNovationLaunchpadMk2ProFeedbackProfileRGB,
+    },
+    notes: {
+      name: 'Programmer Mode - Note Feedback',
+      input: createNovationLaunchpadMk2ProProfileProgrammerMode,
+      feedback: createNovationLaunchpadMk2ProFeedbackProfile,
+    },
+  },
+};

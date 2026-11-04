@@ -4,14 +4,13 @@ import {
   hexToRGB,
   RGB,
 } from '@arcanewizards/talisman/color';
-
 import {
   MidiButtonNature,
   MidiControllerAction,
   MidiControllerItem,
-  MidiProfileBasic,
   MidiProfileInit,
-} from '@arcanewizards/talisman/profile';
+} from '@arcanewizards/talisman/core';
+import { MidiProfileBasic } from '@arcanewizards/talisman/profile';
 
 /**
  * RGB Color Palette used for the Novation Launchpads, Mk1, Mk2 and Mk3.
@@ -231,6 +230,7 @@ export const createNovationButtonOnlyProfile =
     return new MidiProfileBasic({
       getItems: () => Object.values(items),
       getItem: (id) => items[id] ?? null,
+      getFeedbackCapabilities: () => ({}),
       getAction: (msg): MidiControllerAction | null => {
         if (msg.type === 'note') {
           const info = notes[msg.note];

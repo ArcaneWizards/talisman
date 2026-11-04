@@ -1,18 +1,23 @@
-import {
+import type {
   AnyComponentProto,
   BaseClientComponentCall,
   BaseClientComponentMessage,
   BaseComponentProto,
 } from '@arcanejs/protocol';
-import { Diff } from '@arcanejs/diff';
-import { MidiEndpoints, MIDISupportResponse } from '@arcanewizards/midi';
-import { MidiMessageBufferSlice } from './frontend/shared/midi-message-monitor';
-import { MidiMessageDescription } from '@arcanewizards/talisman/util';
-import { MidiDeviceReadiness } from '@arcanewizards/talisman/profile';
+import type { Diff } from '@arcanejs/diff';
+import type { MidiEndpoints, MIDISupportResponse } from '@arcanewizards/midi';
+import type { MidiMessageBufferSlice } from './frontend/shared/midi-message-monitor';
+import type { MidiMessageDescription } from '@arcanewizards/talisman/util';
+import type { UserActionState } from '@arcanewizards/sigil/frontend/user-actions';
+import type { UpdateCheckResult } from '@arcanewizards/sigil/frontend/updates';
+import type { MidiDeviceReadiness } from '@arcanewizards/talisman';
+import type {
+  TalismanFullProfileInfo,
+  TalismanSupportedDeviceData,
+} from './frontend/shared/device-profile-details';
+
 import z from 'zod';
 import { GET_EULA_RESPONSE, GetEulaResponse } from '@arcanewizards/apis';
-import { UserActionState } from '@arcanewizards/sigil/frontend/user-actions';
-import { UpdateCheckResult } from '@arcanewizards/sigil/frontend/updates';
 
 export const LOGO_URL_PATH = 'logo-animated.svg';
 export const LOGO_STATIC_URL_PATH = 'logo-static.svg';
@@ -208,10 +213,38 @@ export type TalismanLabGetMidiMessages = BaseClientComponentCall<
 export type TalismanLabGetMidiMessagesReturn =
   MidiMessageBufferSlice<MidiMessageDescription | null>;
 
+export type TalismanLabGetSupportedDevices = BaseClientComponentCall<
+  Namespace,
+  'talisman-lab-get-supported-devices'
+>;
+
+export type TalismanLabGetSupportedDevicesReturn = Record<
+  string,
+  TalismanSupportedDeviceData
+>;
+
+export type GetFullProfileInfo = BaseClientComponentCall<
+  Namespace,
+  'talisman-lab-get-full-profile-info'
+> & {
+  profileName: string;
+  subProfileName: string;
+};
+
+export type GetFullProfileInfoReturn = TalismanFullProfileInfo;
+
 export type TalismanLabComponentCalls = {
   'talisman-lab-get-midi-messages': {
     call: TalismanLabGetMidiMessages;
     return: TalismanLabGetMidiMessagesReturn;
+  };
+  'talisman-lab-get-supported-devices': {
+    call: TalismanLabGetSupportedDevices;
+    return: TalismanLabGetSupportedDevicesReturn;
+  };
+  'talisman-lab-get-full-profile-info': {
+    call: GetFullProfileInfo;
+    return: GetFullProfileInfoReturn;
   };
 };
 

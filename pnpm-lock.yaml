@@ -50,8 +50,8 @@ importers:
         specifier: ^0.2.0
         version: 0.2.0
       '@arcanewizards/sigil':
-        specifier: ^0.6.0
-        version: 0.6.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))
+        specifier: ^0.6.1
+        version: 0.6.1(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))
       '@arcanewizards/talisman':
         specifier: workspace:^
         version: link:../../packages/talisman
@@ -163,8 +163,8 @@ importers:
         version: 5.7.2
     devDependencies:
       '@arcanewizards/sigil':
-        specifier: ^0.6.0
-        version: 0.6.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))
+        specifier: ^0.6.1
+        version: 0.6.1(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))
       '@arcanewizards/sigil-assets':
         specifier: ^0.1.1
         version: 0.1.1
@@ -241,8 +241,8 @@ importers:
         specifier: ^0.2.0
         version: 0.2.0
       '@arcanewizards/sigil':
-        specifier: ^0.6.0
-        version: 0.6.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))
+        specifier: ^0.6.1
+        version: 0.6.1(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))
       '@arcanewizards/talisman':
         specifier: workspace:^
         version: link:../../packages/talisman
@@ -277,6 +277,9 @@ importers:
       '@arcanewizards/talisman-typescript-config':
         specifier: workspace:^
         version: link:../../packages/typescript-config
+      '@jest/globals':
+        specifier: ^30.1.2
+        version: 30.5.2
       '@tailwindcss/cli':
         specifier: ^4.2.2
         version: 4.3.3
@@ -304,6 +307,9 @@ importers:
       eslint-plugin-better-tailwindcss:
         specifier: ^4.3.2
         version: 4.10.0(eslint@9.39.5(jiti@2.7.0))(tailwindcss@4.3.3)(typescript@5.9.3)
+      jest:
+        specifier: ^30.4.2
+        version: 30.5.2(@types/node@22.20.5)
       lodash:
         specifier: ^4.18.1
         version: 4.18.1
@@ -313,9 +319,15 @@ importers:
       radix-ui:
         specifier: ^1.4.3
         version: 1.8.1(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      react-error-boundary:
+        specifier: ^6.1.6
+        version: 6.1.6(@types/react@19.3.0)(react@19.3.1)
       tailwindcss:
         specifier: ^4.2.2
         version: 4.3.3
+      ts-jest:
+        specifier: ^29.4.11
+        version: 29.4.15(@babel/core@7.29.7)(@jest/transform@30.5.2)(@jest/types@30.5.1)(babel-jest@30.5.2(@babel/core@7.29.7))(esbuild@0.25.12)(jest-util@30.5.1)(jest@30.5.2(@types/node@22.20.5))(typescript@5.9.3)
       tsup:
         specifier: ^8.5.1
         version: 8.5.1(jiti@2.7.0)(tsx@4.23.15)(typescript@5.9.3)
@@ -354,8 +366,8 @@ importers:
         version: 5.7.2
     devDependencies:
       '@arcanewizards/sigil':
-        specifier: ^0.6.0
-        version: 0.6.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))
+        specifier: ^0.6.1
+        version: 0.6.1(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))
       '@arcanewizards/sigil-assets':
         specifier: ^0.1.1
         version: 0.1.1
@@ -473,10 +485,10 @@ importers:
         version: 9.39.5(jiti@2.7.0)
       jest:
         specifier: ^30.4.2
-        version: 30.5.2(@types/node@22.20.5)
+        version: 30.5.2(@types/node@24.19.2)
       ts-jest:
         specifier: ^29.4.11
-        version: 29.4.15(@babel/core@7.29.7)(@jest/transform@30.5.2)(@jest/types@30.5.1)(babel-jest@30.5.2(@babel/core@7.29.7))(jest-util@30.5.1)(jest@30.5.2(@types/node@22.20.5))(typescript@5.9.3)
+        version: 29.4.15(@babel/core@7.29.7)(@jest/transform@30.5.2)(@jest/types@30.5.1)(babel-jest@30.5.2(@babel/core@7.29.7))(jest-util@30.5.1)(jest@30.5.2(@types/node@24.19.2))(typescript@5.9.3)
       tsup:
         specifier: ^8.1.0
         version: 8.5.1(jiti@2.7.0)(tsx@4.23.15)(typescript@5.9.3)
@@ -578,8 +590,8 @@ packages:
   '@arcanewizards/sigil-assets@0.1.1':
     resolution: {integrity: sha512-LxYPmCpcXapYgpeY2tPzIZZ/NZgow/GCdvPOvwTrQEw7Dj33CdHzu9b5Yjx8hRM2BhiJ+g3xGWiD2fDKEYy3sQ==}
 
-  '@arcanewizards/sigil@0.6.0':
-    resolution: {integrity: sha512-VxbZlQoqAn/LNI0cImkoNlrVGBLmT5EfjSRwIwynvq1iURAILnaGkwb6Kq9VuqVXa2cfGNCM3GLNYNogQFWYOQ==}
+  '@arcanewizards/sigil@0.6.1':
+    resolution: {integrity: sha512-UwHVJhjSfpDeJ3XFiGrRFXC37m9WVVBn40z83VHqvDPEkrzXgdBNDcGUeN1oPVHeuSgw0BEMHazPrIpQAzC3oQ==}
 
   '@babel/code-frame@7.29.7':
     resolution: {integrity: sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw==}
@@ -5572,6 +5584,15 @@ packages:
     peerDependencies:
       react: ^19.3.1
 
+  react-error-boundary@6.1.6:
+    resolution: {integrity: sha512-CDXPnXDGyFIbkwaaJ6u+xgsRmJhSi6YdgUDW1vnyKHfXp1a9pfAlM+ZET2CDu80/A+8iRcmXN0NSY9BCCoWP5A==}
+    peerDependencies:
+      '@types/react': ^18.0.0 || ^19.0.0
+      react: ^18.0.0 || ^19.0.0
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+
   react-is@18.3.1:
     resolution: {integrity: sha512-/LLMVyas0ljjAtoYiPqYiL8VWXzUUdThrmU5+n20DZv+a+ClRoevUzw5JxU+Ieh5/c87ytoTBV9G1FiKfNJdmg==}
 
@@ -6475,7 +6496,7 @@ snapshots:
 
   '@arcanewizards/sigil-assets@0.1.1': {}
 
-  '@arcanewizards/sigil@0.6.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))':
+  '@arcanewizards/sigil@0.6.1(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))':
     dependencies:
       '@arcanejs/diff': 0.6.1
       '@arcanejs/protocol': 0.9.2
@@ -12044,6 +12065,12 @@ snapshots:
       react: 19.3.1
       scheduler: 0.28.0
 
+  react-error-boundary@6.1.6(@types/react@19.3.0)(react@19.3.1):
+    dependencies:
+      react: 19.3.1
+    optionalDependencies:
+      '@types/react': 19.3.0
+
   react-is@18.3.1: {}
 
   react-is@19.3.1: {}
@@ -12565,7 +12592,7 @@ snapshots:
 
   ts-interface-checker@0.1.13: {}
 
-  ts-jest@29.4.15(@babel/core@7.29.7)(@jest/transform@30.5.2)(@jest/types@30.5.1)(babel-jest@30.5.2(@babel/core@7.29.7))(jest-util@30.5.1)(jest@30.5.2(@types/node@22.20.5))(typescript@5.9.3):
+  ts-jest@29.4.15(@babel/core@7.29.7)(@jest/transform@30.5.2)(@jest/types@30.5.1)(babel-jest@30.5.2(@babel/core@7.29.7))(esbuild@0.25.12)(jest-util@30.5.1)(jest@30.5.2(@types/node@22.20.5))(typescript@5.9.3):
     dependencies:
       bs-logger: 0.2.6
       fast-json-stable-stringify: 2.1.0
@@ -12583,6 +12610,7 @@ snapshots:
       '@jest/transform': 30.5.2
       '@jest/types': 30.5.1
       babel-jest: 30.5.2(@babel/core@7.29.7)
+      esbuild: 0.25.12
       jest-util: 30.5.1
 
   ts-jest@29.4.15(@babel/core@7.29.7)(@jest/transform@30.5.2)(@jest/types@30.5.1)(babel-jest@30.5.2(@babel/core@7.29.7))(jest-util@30.5.1)(jest@30.5.2(@types/node@24.19.2))(typescript@5.9.3):

@@ -5,15 +5,18 @@ import {
 } from '@arcanewizards/talisman/color';
 import { createBasicColorVelocityFeedbackProfile } from '@arcanewizards/talisman/feedback';
 import {
-  MidiButtonNature,
-  MidiControllerItem,
-} from '@arcanewizards/talisman/profile';
-import {
   createNovationButtonOnlyProfile,
   NovationButtonInfo,
   NovationButtonOnlyLayout,
 } from './shared/novation.js';
-import { getMidiController, getMidiNote } from '@arcanewizards/talisman';
+import {
+  getMidiController,
+  getMidiNote,
+  MidiInputConnectionInfo,
+  MidiButtonNature,
+  MidiControllerItem,
+  MidiProfileDefinition,
+} from '@arcanewizards/talisman/core';
 
 const novationLaunchpadMk2MiniLayout: NovationButtonOnlyLayout = () => {
   const items: Record<string, MidiControllerItem> = {};
@@ -186,3 +189,26 @@ export const createNovationLaunchpadMk2MiniFeedbackProfile =
       return colorSpace;
     },
   });
+
+export const NOVATION_LAUNCHPAD_MK2_MINI: MidiProfileDefinition = {
+  name: 'Launchpad Mini (mk2)',
+  testing: {
+    ready: true,
+    maintainers: [
+      {
+        ghUsername: 's0',
+        os: ['macos', 'windows'],
+        date: '2026-10-15',
+      },
+    ],
+  },
+  autoSelect: (connection: MidiInputConnectionInfo) =>
+    connection.inputDeviceName.includes('Launchpad Mini'),
+  subProfiles: {
+    default: {
+      name: 'Default (Red + Green LED Only)',
+      input: createNovationLaunchpadMk2MiniProfile,
+      feedback: createNovationLaunchpadMk2MiniFeedbackProfile,
+    },
+  },
+};

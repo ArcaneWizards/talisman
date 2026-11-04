@@ -1,8 +1,12 @@
 import { IDMap } from '@arcanejs/toolkit/util';
 import type {
+  GetFullProfileInfo,
+  GetFullProfileInfoReturn,
   LabConfig,
   TalismanLabGetMidiMessages,
   TalismanLabGetMidiMessagesReturn,
+  TalismanLabGetSupportedDevices,
+  TalismanLabGetSupportedDevicesReturn,
 } from '../proto';
 import {
   Base,
@@ -29,6 +33,12 @@ export type Events = {
   getMidiMessages: (
     args: TalismanLabGetMidiMessages,
   ) => Promise<TalismanLabGetMidiMessagesReturn>;
+  getSupportedDevices: (
+    args: TalismanLabGetSupportedDevices,
+  ) => Promise<TalismanLabGetSupportedDevicesReturn>;
+  getFullProfileInfo: (
+    args: GetFullProfileInfo,
+  ) => Promise<GetFullProfileInfoReturn>;
 };
 
 export type AppRootProps = Pick<
@@ -38,6 +48,8 @@ export type AppRootProps = Pick<
   onUpdateConfig?: Events['updateConfig'];
   onSwitchMode?: Events['switchMode'];
   onGetMidiMessages?: Events['getMidiMessages'];
+  onGetSupportedDevices?: Events['getSupportedDevices'];
+  onGetFullProfileInfo?: Events['getFullProfileInfo'];
 };
 
 const DEFAULT_PROPS: AppRootProps = {
@@ -63,7 +75,10 @@ const DEFAULT_PROPS: AppRootProps = {
   license: null,
 };
 
-type SupportedCalls = 'talisman-lab-get-midi-messages';
+type SupportedCalls =
+  | 'talisman-lab-get-midi-messages'
+  | 'talisman-lab-get-supported-devices'
+  | 'talisman-lab-get-full-profile-info';
 
 export class TalismanLabRoot
   extends Base<
@@ -86,6 +101,8 @@ export class TalismanLabRoot
             onUpdateConfig: 'updateConfig',
             onSwitchMode: 'switchMode',
             onGetMidiMessages: 'getMidiMessages',
+            onGetSupportedDevices: 'getSupportedDevices',
+            onGetFullProfileInfo: 'getFullProfileInfo',
           },
           oldProps,
           this.props,
@@ -112,6 +129,16 @@ export class TalismanLabRoot
   public handleCall = async (call: AnyClientComponentCall) => {
     if (isTalismanLabComponentCall(call, 'talisman-lab-get-midi-messages')) {
       return this.events.call('getMidiMessages', call);
+    }
+    if (
+      isTalismanLabComponentCall(call, 'talisman-lab-get-supported-devices')
+    ) {
+      return this.events.call('getSupportedDevices', call);
+    }
+    if (
+      isTalismanLabComponentCall(call, 'talisman-lab-get-full-profile-info')
+    ) {
+      return this.events.call('getFullProfileInfo', call);
     }
     throw new Error(`Unhandled call action: ${call.action}`);
   };

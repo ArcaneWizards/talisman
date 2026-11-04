@@ -1,23 +1,24 @@
 import { colorEqual, ColorSpace, RGB } from '@arcanewizards/talisman/color';
-import {
-  createBasicColorVelocityFeedbackProfile,
-  MidiColorFeedback,
-  MidiFeedbackProfile,
-  MidiFeedbackProfileInit,
-} from '@arcanewizards/talisman/feedback';
-import {
-  MidiButtonNature,
-  MidiControllerItem,
-  MidiProfile,
-  MidiProfileInit,
-} from '@arcanewizards/talisman/profile';
+import { createBasicColorVelocityFeedbackProfile } from '@arcanewizards/talisman/feedback';
 import {
   createNovationButtonOnlyProfile,
   createNovationLaunchpadRGBColorSpace,
   NovationButtonInfo,
   NovationButtonOnlyLayout,
 } from './shared/novation.js';
-import { getMidiNote, MidiController } from '@arcanewizards/talisman';
+import {
+  getMidiNote,
+  MidiController,
+  MidiInputConnectionInfo,
+  MidiButtonNature,
+  MidiControllerItem,
+  MidiProfile,
+  MidiProfileInit,
+  MidiColorFeedback,
+  MidiFeedbackProfile,
+  MidiFeedbackProfileInit,
+  MidiProfileDefinition,
+} from '@arcanewizards/talisman/core';
 
 const UNIVERSAL_CONTROLLER_BUTTONS = Object.freeze([
   {
@@ -342,3 +343,28 @@ export const createNovationLaunchpadMk3MiniFeedbackProfileRGB: MidiFeedbackProfi
       },
     } satisfies MidiFeedbackProfile;
   };
+
+export const NOVATION_LAUNCHPAD_MK3_MINI: MidiProfileDefinition = {
+  name: 'Launchpad Mini (mk3)',
+  testing: {
+    ready: false,
+  },
+  autoSelect: (connection: MidiInputConnectionInfo) =>
+    connection.inputDeviceName.includes('LPMiniMK3'),
+  subProfiles: {
+    default: {
+      name: 'Sysex RGB Feedback',
+      notice:
+        'To be able to control the lights of the top row of buttons, please ensure your launchpad is in Programmer mode',
+      input: createNovationLaunchpadMk3MiniProfileSessionMode,
+      feedback: createNovationLaunchpadMk3MiniFeedbackProfileRGB,
+    },
+    notes: {
+      name: 'Note Feedback',
+      notice:
+        'To be able to control the lights of the top row of buttons, please ensure your launchpad is in Programmer mode',
+      input: createNovationLaunchpadMk3MiniProfileSessionMode,
+      feedback: createNovationLaunchpadMk3MiniFeedbackProfile,
+    },
+  },
+};

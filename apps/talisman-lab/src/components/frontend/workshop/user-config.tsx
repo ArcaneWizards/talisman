@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useCallback } from 'react';
 import {
   ControlButton,
   ControlButtonGroup,
@@ -16,12 +16,21 @@ import {
   UserConfig,
 } from '../../proto';
 
+import {
+  SubProfileSelector,
+  TalismanFullProfileInfo,
+} from '../shared/device-profile-details';
+import { UserActionState } from '@arcanewizards/sigil/frontend/user-actions';
+import { useBrowserContext } from '@arcanewizards/sigil/frontend';
+import { WINDOW_MODE_MONITOR, WINDOW_MODE_PARAM } from './urls';
+
 type UserConfigProps = {
   midi: MIDINetworkState;
   status: TalismanLabRootComponent['state'];
   config: UserConfig;
   updateConfig: (update: (config: UserConfig) => UserConfig) => void;
   performModeSwitch: () => void;
+  deviceInfo: UserActionState<Record<string, TalismanFullProfileInfo>>;
 };
 
 export const UserConfigEditor: FC<UserConfigProps> = ({
@@ -30,14 +39,24 @@ export const UserConfigEditor: FC<UserConfigProps> = ({
   config,
   updateConfig,
   performModeSwitch,
+  deviceInfo,
 }) => {
-  const selectedProfile = midi.profiles[config.selectedProfile?.[0] ?? ''];
+  const profileId = config.selectedProfile?.[0] ?? '';
+  const selectedProfile = midi.profiles[profileId];
+
+  const { openNewWidow } = useBrowserContext();
+
+  const openMonitoring = useCallback(() => {
+    const url = new URL(window.location.href);
+    url.searchParams.set(WINDOW_MODE_PARAM, WINDOW_MODE_MONITOR);
+    openNewWidow(url.href);
+  }, [openNewWidow]);
 
   return (
-    <div className="flex flex-wrap items-start justify-center gap-2">
+    <div className="flex max-w-full flex-wrap items-stretch justify-center gap-2">
       <div
         className="
-          control-grid-large w-[500px] max-w-full gap-1 rounded-arcane-btn
+          control-grid-large w-[500px] max-w-full gap-1 rounded-md
           bg-sigil-bg-dark
         "
       >
@@ -182,14 +201,13 @@ export const UserConfigEditor: FC<UserConfigProps> = ({
         selectedProfile?.subProfiles.default !== 'Default' ? (
           <>
             <ControlLabel>Sub-Profile</ControlLabel>
-            <ControlSelect
-              value={config.selectedProfile?.[1] ?? ''}
-              placeholder="Select a profile"
-              options={Object.entries(selectedProfile?.subProfiles ?? {}).map(
-                ([value, label]) => ({ value, label }),
-              )}
-              variant="large"
+            <SubProfileSelector
+              profileId={profileId}
+              subProfileNames={selectedProfile?.subProfiles ?? {}}
+              fullProfileInfo={deviceInfo}
+              subProfile={config.selectedProfile?.[1] ?? ''}
               onChange={(subProfile) =>
+                subProfile &&
                 updateConfig((current) => ({
                   ...current,
                   selectedProfile: [
@@ -198,7 +216,9 @@ export const UserConfigEditor: FC<UserConfigProps> = ({
                   ],
                 }))
               }
+              variant="large"
               position="both"
+              includeNone={false}
             />
           </>
         ) : null}
@@ -211,6 +231,7 @@ export const UserConfigEditor: FC<UserConfigProps> = ({
               onClick={performModeSwitch}
               variant="large"
               position="row"
+              primary
             >
               Switch Mode
             </ControlButton>
@@ -221,10 +242,14 @@ export const UserConfigEditor: FC<UserConfigProps> = ({
             {status.midiDeviceReadiness.message}
           </ControlParagraph>
         ) : null}
+
+        <ControlButton variant="large" onClick={openMonitoring} position="both">
+          Monitor MIDI Messages
+        </ControlButton>
       </div>
       <div
         className="
-          control-grid-large w-[500px] max-w-full gap-1 rounded-arcane-btn
+          control-grid-large w-[500px] max-w-full gap-1 rounded-md
           bg-sigil-bg-dark
         "
       >
@@ -458,7 +483,7 @@ export const UserConfigEditor: FC<UserConfigProps> = ({
             variant="group"
             active={config.mode.interaction?.type === 'row-column'}
           >
-            Highlight Row + Column
+            Row + Column
           </ControlButton>
           <ControlButton
             onClick={() => {
@@ -473,7 +498,7 @@ export const UserConfigEditor: FC<UserConfigProps> = ({
             variant="group"
             active={config.mode.interaction?.type === 'cell'}
           >
-            Highlight Cell
+            Cell
           </ControlButton>
         </ControlButtonGroup>
       </div>

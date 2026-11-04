@@ -1,17 +1,6 @@
 import { colorEqual, ColorSpace, RGB } from '@arcanewizards/talisman/color';
-import {
-  createBasicColorVelocityFeedbackProfile,
-  MidiColorFeedback,
-  MidiFeedbackProfile,
-  MidiFeedbackProfileInit,
-} from '@arcanewizards/talisman/feedback';
-import {
-  MidiButtonNature,
-  MidiControllerItem,
-  MidiProfile,
-  MidiProfileBase,
-  MidiProfileInit,
-} from '@arcanewizards/talisman/profile';
+import { createBasicColorVelocityFeedbackProfile } from '@arcanewizards/talisman/feedback';
+import { MidiProfileBase } from '@arcanewizards/talisman/profile';
 import {
   createNovationLaunchpadRGBColorSpace,
   NovationButtonInfo,
@@ -22,8 +11,15 @@ import {
   MidiInputConnectionInfo,
   MidiController,
   MidiParsedMessage,
+  MidiButtonNature,
+  MidiControllerItem,
+  MidiProfile,
+  MidiProfileInit,
   MidiProfileDefinition,
-} from '@arcanewizards/talisman';
+  MidiColorFeedback,
+  MidiFeedbackProfile,
+  MidiFeedbackProfileInit,
+} from '@arcanewizards/talisman/core';
 import { startsWithSysex } from '@arcanewizards/talisman/util';
 
 const NOVATION_LAUNCHPAD_MK3_X_SYSEX_HEADER = [
@@ -74,18 +70,21 @@ const UNIVERSAL_CONTROLLER_BUTTONS = Object.freeze([
     row: 8,
   },
   {
+    label: 'Capture MIDI',
     controller: 98,
     nature: { nature: 'unknown' },
     col: 7,
     row: 8,
   },
   {
+    label: 'Novation Logo',
     controller: 99,
     nature: { nature: 'unknown' },
     col: 8,
     row: 8,
   },
 ] satisfies Array<{
+  label?: string;
   controller: MidiController;
   nature: MidiButtonNature;
   col: number;
@@ -164,6 +163,7 @@ const addControllerButtons = (
     const id = `controller-${col}-${row}`;
     items[id] = {
       id,
+      label: 'label' in button ? button.label : undefined,
       position: { col, row },
       controlChange: [
         {
@@ -343,6 +343,8 @@ class NovationLaunchpadMk3XProfileProgrammerMode extends MidiProfileBase {
     }
     return false;
   };
+
+  public getFeedbackCapabilities = () => ({});
 }
 
 export const createNovationLaunchpadMk3XProfileProgrammerMode: MidiProfileInit =
@@ -540,6 +542,16 @@ export const createNovationLaunchpadMk3XFeedbackProfileRGB: MidiFeedbackProfileI
 
 export const NOVATION_LAUNCHPAD_MK3_X: MidiProfileDefinition = {
   name: 'Launchpad X (mk3)',
+  testing: {
+    ready: true,
+    maintainers: [
+      {
+        ghUsername: 's0',
+        os: ['macos', 'windows'],
+        date: '2026-10-15',
+      },
+    ],
+  },
   autoSelect: (connection: MidiInputConnectionInfo) =>
     connection.inputDeviceName.includes('LPX'),
   autoSelectOutput: ({ inputDeviceName }, outputs) => {
