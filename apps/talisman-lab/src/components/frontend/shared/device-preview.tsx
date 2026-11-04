@@ -1,14 +1,13 @@
 import { FC, ReactNode, SVGProps, useMemo } from 'react';
 import { TalismanFullProfileInfo } from './device-profile-details';
 import {
+  MIDI_CHANNEL_OPTIONS_SHORT,
   MIDI_NOTE_OPTIONS,
   MidiButtonNature,
   MidiControllerItem,
   MidiNumericNature,
 } from '@arcanewizards/talisman';
-
-const isDefined = <T,>(value: T | undefined | null): value is T =>
-  value !== undefined && value !== null;
+import { isDefined } from './util';
 
 type CellSpan = {
   cols: [number, number];
@@ -212,7 +211,9 @@ const FEEDBACK_WIDTH = GRID_SIZE;
 const FEEDBACK_HEIGHT = GRID_SIZE - TEXT_HEIGHT;
 const FEEDBACK_FONT_SIZE = GRID_SIZE / 6;
 
-const natureDescription = (nature: MidiButtonNature | MidiNumericNature) => {
+export const natureDescription = (
+  nature: MidiButtonNature | MidiNumericNature,
+) => {
   switch (nature.nature) {
     case 'grid':
       return 'grid';
@@ -256,7 +257,7 @@ const natureDescription = (nature: MidiButtonNature | MidiNumericNature) => {
   const _exhaustiveCheck: never = nature;
 };
 
-const itemDescription = (item: MidiControllerItem) => {
+export const itemDescription = (item: MidiControllerItem) => {
   if (item.label) {
     return item.label;
   }
@@ -285,11 +286,15 @@ const itemDescription = (item: MidiControllerItem) => {
   }
 
   for (const note of item?.note || []) {
-    descriptions.add(`CH${note.id.channel} ${MIDI_NOTE_OPTIONS[note.id.note]}`);
+    descriptions.add(
+      `${MIDI_CHANNEL_OPTIONS_SHORT[note.id.channel]} ${MIDI_NOTE_OPTIONS[note.id.note]}`,
+    );
   }
 
   for (const cc of item?.controlChange || []) {
-    descriptions.add(`CH${cc.id.channel} CC ${cc.id.controller}`);
+    descriptions.add(
+      `${MIDI_CHANNEL_OPTIONS_SHORT[cc.id.channel]} CC ${cc.id.controller}`,
+    );
   }
 
   if (descriptions.size > 0) {
@@ -318,6 +323,8 @@ const useFeedbackSymbols = ({
   colors: c,
 }: UseFeedbackSymbolsArgs) => {
   const rainbowGradient = `${namespace}-rainbow-gradient`;
+  const noFeedback = `${namespace}-no-feedback`;
+  const mixedFeedback = `${namespace}-mixed-feedback`;
 
   const defs = useMemo(
     () => (
@@ -336,6 +343,7 @@ const useFeedbackSymbols = ({
 
   const symbols = useMemo(() => {
     const symbols: ReactNode[] = [];
+
     const margin = GRID_SIZE / 16;
 
     for (const [key, value] of Object.entries(info.feedbackCapabilities)) {
@@ -499,10 +507,92 @@ const useFeedbackSymbols = ({
         }
       }
     }
-    return symbols;
-  }, [info.feedbackCapabilities, rainbowGradient, namespace, c]);
+    return (
+      <>
+        {symbols}
+        <symbol
+          id={noFeedback}
+          viewBox={`0 0 ${FEEDBACK_WIDTH} ${FEEDBACK_HEIGHT}`}
+        >
+          <text
+            x={FEEDBACK_WIDTH / 2}
+            y={FEEDBACK_HEIGHT / 2 - GRID_SIZE / 8}
+            textAnchor="middle"
+            alignmentBaseline="middle"
+            fill={c.text}
+            fontFamily="monospace"
+            fontWeight="bold"
+            fontSize={FEEDBACK_FONT_SIZE}
+            stroke={c.border}
+            strokeWidth={FEEDBACK_FONT_SIZE / 2}
+            paintOrder="stroke"
+          >
+            NO
+          </text>
+          <text
+            x={FEEDBACK_WIDTH / 2}
+            y={FEEDBACK_HEIGHT / 2 + GRID_SIZE / 8}
+            textAnchor="middle"
+            alignmentBaseline="middle"
+            fill={c.text}
+            fontFamily="monospace"
+            fontWeight="bold"
+            fontSize={FEEDBACK_FONT_SIZE}
+            stroke={c.border}
+            strokeWidth={FEEDBACK_FONT_SIZE / 2}
+            paintOrder="stroke"
+          >
+            FDBK
+          </text>
+        </symbol>
+        ,
+        <symbol
+          id={mixedFeedback}
+          viewBox={`0 0 ${FEEDBACK_WIDTH} ${FEEDBACK_HEIGHT}`}
+        >
+          <text
+            x={FEEDBACK_WIDTH / 2}
+            y={FEEDBACK_HEIGHT / 2 - GRID_SIZE / 8}
+            textAnchor="middle"
+            alignmentBaseline="middle"
+            fill={c.text}
+            fontFamily="monospace"
+            fontWeight="bold"
+            fontSize={FEEDBACK_FONT_SIZE}
+            stroke={c.border}
+            strokeWidth={FEEDBACK_FONT_SIZE / 2}
+            paintOrder="stroke"
+          >
+            MIXED
+          </text>
+          <text
+            x={FEEDBACK_WIDTH / 2}
+            y={FEEDBACK_HEIGHT / 2 + GRID_SIZE / 8}
+            textAnchor="middle"
+            alignmentBaseline="middle"
+            fill={c.text}
+            fontFamily="monospace"
+            fontWeight="bold"
+            fontSize={FEEDBACK_FONT_SIZE}
+            stroke={c.border}
+            strokeWidth={FEEDBACK_FONT_SIZE / 2}
+            paintOrder="stroke"
+          >
+            FDBK
+          </text>
+        </symbol>
+      </>
+    );
+  }, [
+    info.feedbackCapabilities,
+    rainbowGradient,
+    namespace,
+    c,
+    noFeedback,
+    mixedFeedback,
+  ]);
 
-  return { defs, symbols };
+  return { defs, symbols, noFeedback, mixedFeedback };
 };
 
 /**
@@ -626,6 +716,8 @@ const textElements = ({
   return { defs, elements };
 };
 
+const NO_FEEDBACK_SYMBOL = Symbol('no-feedback');
+
 export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
   info,
   namespace,
@@ -636,13 +728,16 @@ export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
 }) => {
   const gridInfo = useMemo(() => createGridInfo(info.items), [info.items]);
 
-  const noFeedback = `${namespace}-no-feedback`;
-  const mixedFeedback = `${namespace}-mixed-feedback`;
   const clsClick = `${namespace}-click`;
 
   const c = useMemoizedColors(rawColors);
 
-  const { symbols: feedbackSymbols, defs: feedbackDefs } = useFeedbackSymbols({
+  const {
+    symbols: feedbackSymbols,
+    defs: feedbackDefs,
+    noFeedback,
+    mixedFeedback,
+  } = useFeedbackSymbols({
     namespace,
     info,
     colors: c,
@@ -865,76 +960,6 @@ export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
         {feedbackDefs}
       </defs>
       {feedbackSymbols}
-      <symbol
-        id={noFeedback}
-        viewBox={`0 0 ${FEEDBACK_WIDTH} ${FEEDBACK_HEIGHT}`}
-      >
-        <text
-          x={FEEDBACK_WIDTH / 2}
-          y={FEEDBACK_HEIGHT / 2 - GRID_SIZE / 8}
-          textAnchor="middle"
-          alignmentBaseline="middle"
-          fill={c.text}
-          fontFamily="monospace"
-          fontWeight="bold"
-          fontSize={FEEDBACK_FONT_SIZE}
-          stroke={c.border}
-          strokeWidth={FEEDBACK_FONT_SIZE / 2}
-          paintOrder="stroke"
-        >
-          NO
-        </text>
-        <text
-          x={FEEDBACK_WIDTH / 2}
-          y={FEEDBACK_HEIGHT / 2 + GRID_SIZE / 8}
-          textAnchor="middle"
-          alignmentBaseline="middle"
-          fill={c.text}
-          fontFamily="monospace"
-          fontWeight="bold"
-          fontSize={FEEDBACK_FONT_SIZE}
-          stroke={c.border}
-          strokeWidth={FEEDBACK_FONT_SIZE / 2}
-          paintOrder="stroke"
-        >
-          FDBK
-        </text>
-      </symbol>
-      <symbol
-        id={mixedFeedback}
-        viewBox={`0 0 ${FEEDBACK_WIDTH} ${FEEDBACK_HEIGHT}`}
-      >
-        <text
-          x={FEEDBACK_WIDTH / 2}
-          y={FEEDBACK_HEIGHT / 2 - GRID_SIZE / 8}
-          textAnchor="middle"
-          alignmentBaseline="middle"
-          fill={c.text}
-          fontFamily="monospace"
-          fontWeight="bold"
-          fontSize={FEEDBACK_FONT_SIZE}
-          stroke={c.border}
-          strokeWidth={FEEDBACK_FONT_SIZE / 2}
-          paintOrder="stroke"
-        >
-          MIXED
-        </text>
-        <text
-          x={FEEDBACK_WIDTH / 2}
-          y={FEEDBACK_HEIGHT / 2 + GRID_SIZE / 8}
-          textAnchor="middle"
-          alignmentBaseline="middle"
-          fill={c.text}
-          fontFamily="monospace"
-          fontWeight="bold"
-          fontSize={FEEDBACK_FONT_SIZE}
-          stroke={c.border}
-          strokeWidth={FEEDBACK_FONT_SIZE / 2}
-          paintOrder="stroke"
-        >
-          FDBK
-        </text>
-      </symbol>
       {items}
       {highlights}
     </svg>
@@ -959,18 +984,21 @@ export const MidiFeedbackSummary: FC<MidiFeedbackSummaryProps> = ({
 }) => {
   const c = useMemoizedColors(rawColors);
 
-  const { symbols: feedbackSymbols, defs: feedbackDefs } = useFeedbackSymbols({
+  const {
+    symbols: feedbackSymbols,
+    defs: feedbackDefs,
+    noFeedback,
+  } = useFeedbackSymbols({
     namespace,
     info,
     colors: c,
   });
 
   const feedbackToCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
+    const counts: Record<string | symbol, number> = {};
     for (const item of info.items) {
-      if (item.feedback) {
-        counts[item.feedback] = (counts[item.feedback] || 0) + 1;
-      }
+      const k = item.feedback ?? NO_FEEDBACK_SYMBOL;
+      counts[k] = (counts[k] || 0) + 1;
     }
     return counts;
   }, [info.items]);
@@ -980,7 +1008,11 @@ export const MidiFeedbackSummary: FC<MidiFeedbackSummaryProps> = ({
     const boxes: ReactNode[] = [];
 
     let i = 0;
-    for (const key of Object.keys(info.feedbackCapabilities)) {
+    for (const key of [...Object.keys(feedbackToCounts), NO_FEEDBACK_SYMBOL]) {
+      const count = feedbackToCounts[key] ?? 0;
+
+      if (count === 0) continue;
+
       const width = GRID_SIZE;
       const height = GRID_SIZE;
       const x = i * (GRID_SIZE + GAP);
@@ -990,17 +1022,20 @@ export const MidiFeedbackSummary: FC<MidiFeedbackSummaryProps> = ({
         namespace,
         c,
         textId: `cell-${i}`,
-        text: `${feedbackToCounts[key] ?? 0} items`,
+        text: `${count} items`,
         x,
         y: y + height - TEXT_HEIGHT,
         width,
         height: TEXT_HEIGHT,
       });
 
+      const symbolId =
+        typeof key === 'string' ? feedbackSymbolId(namespace, key) : noFeedback;
+
       defs.push(...textDefs);
 
       boxes.push(
-        <g key={key}>
+        <g key={symbolId}>
           <rect
             x={x}
             y={y}
@@ -1011,7 +1046,7 @@ export const MidiFeedbackSummary: FC<MidiFeedbackSummaryProps> = ({
           />
           <use
             key={`feedback-${i}`}
-            href={`#${feedbackSymbolId(namespace, key)}`}
+            href={`#${symbolId}`}
             x={x}
             y={y}
             width={width}
@@ -1024,11 +1059,16 @@ export const MidiFeedbackSummary: FC<MidiFeedbackSummaryProps> = ({
     }
 
     return { defs, boxes };
-  }, [namespace, c, info.feedbackCapabilities, feedbackToCounts]);
+  }, [noFeedback, namespace, c, feedbackToCounts]);
 
   if (boxes.length === 0) {
     return (
       <svg {...props} viewBox={`0 0 ${GRID_SIZE} ${GRID_SIZE}`}>
+        <defs>
+          {feedbackDefs}
+          {defs}
+        </defs>
+        {feedbackSymbols}
         <rect
           x={0}
           y={0}
@@ -1037,36 +1077,13 @@ export const MidiFeedbackSummary: FC<MidiFeedbackSummaryProps> = ({
           fill={c.cellBackground}
           stroke={c.border}
         />
-        <text
-          x={GRID_SIZE / 2}
-          y={GRID_SIZE / 2 - GRID_SIZE / 8}
-          textAnchor="middle"
-          alignmentBaseline="middle"
-          fill={c.text}
-          fontFamily="monospace"
-          fontWeight="bold"
-          fontSize={FEEDBACK_FONT_SIZE}
-          stroke={c.border}
-          strokeWidth={FEEDBACK_FONT_SIZE / 2}
-          paintOrder="stroke"
-        >
-          NO
-        </text>
-        <text
-          x={GRID_SIZE / 2}
-          y={GRID_SIZE / 2 + GRID_SIZE / 8}
-          textAnchor="middle"
-          alignmentBaseline="middle"
-          fill={c.text}
-          fontFamily="monospace"
-          fontWeight="bold"
-          fontSize={FEEDBACK_FONT_SIZE}
-          stroke={c.border}
-          strokeWidth={FEEDBACK_FONT_SIZE / 2}
-          paintOrder="stroke"
-        >
-          FDBK
-        </text>
+        <use
+          href={`#${noFeedback}`}
+          x={0}
+          y={0}
+          width={GRID_SIZE}
+          height={GRID_SIZE}
+        />
       </svg>
     );
   }

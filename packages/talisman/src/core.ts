@@ -33,6 +33,25 @@ export const MIDI_CHANNEL_OPTIONS = Object.freeze({
 
 export type MidiChannel = keyof typeof MIDI_CHANNEL_OPTIONS;
 
+export const MIDI_CHANNEL_OPTIONS_SHORT = Object.freeze({
+  0: 'CH 1',
+  1: 'CH 2',
+  2: 'CH 3',
+  3: 'CH 4',
+  4: 'CH 5',
+  5: 'CH 6',
+  6: 'CH 7',
+  7: 'CH 8',
+  8: 'CH 9',
+  9: 'CH 10',
+  10: 'CH 11',
+  11: 'CH 12',
+  12: 'CH 13',
+  13: 'CH 14',
+  14: 'CH 15',
+  15: 'CH 16',
+} satisfies Record<MidiChannel, string>);
+
 export const MIDI_NOTE_OPTIONS = Object.freeze({
   0: '0',
   1: '1',
