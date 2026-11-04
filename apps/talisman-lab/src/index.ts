@@ -51,13 +51,13 @@ export const runTalismanLabServer = ({
         ...getSigilServerAssets(),
         [LOGO_URL_PATH]: async () => ({
           content: await readFile(
-            require.resolve('@arcanewizards/talisman-lab/assets/logo-animated.svg'),
+            require.resolve('@arcanewizards/talisman-assets/logo-animated.svg'),
           ),
           contentType: 'image/svg+xml',
         }),
         [LOGO_STATIC_URL_PATH]: async () => ({
           content: await readFile(
-            require.resolve('@arcanewizards/talisman-lab/assets/logo-static.svg'),
+            require.resolve('@arcanewizards/talisman-assets/logo-static.svg'),
           ),
           contentType: 'image/svg+xml',
         }),

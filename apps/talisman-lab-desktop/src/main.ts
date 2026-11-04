@@ -52,7 +52,7 @@ type WindowModes = 'default';
 const WINDOW_MODES: Record<WindowModes, BrowserWindowConstructorOptions> = {
   default: {
     width: 1200,
-    height: 600,
+    height: 750,
     minHeight: 500,
     minWidth: 400,
   },

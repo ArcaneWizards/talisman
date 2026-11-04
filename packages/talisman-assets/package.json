@@ -1,0 +1,27 @@
+{
+  "name": "@arcanewizards/talisman-assets",
+  "description": "Static assets used by the Talisman framework, packaged separately for easier bundling",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ArcaneWizards/talisman.git",
+    "directory": "packages/talisman-assets"
+  },
+  "exports": {
+    ".": "./package.json",
+    "./package.json": "./package.json",
+    "./logo-animated.svg": "./assets/logo-animated.svg",
+    "./logo-static.svg": "./assets/logo-static.svg"
+  },
+  "files": [
+    "assets"
+  ],
+  "scripts": {
+    "build": "check-export-map"
+  },
+  "devDependencies": {
+    "check-export-map": "^1.3.1"
+  }
+}
