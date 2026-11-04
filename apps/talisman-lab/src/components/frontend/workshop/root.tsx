@@ -33,7 +33,10 @@ import {
 } from './urls';
 import { SupportedDevices } from './devices';
 import { success } from '@arcanewizards/sigil/frontend/user-actions';
-import { useFullProfileInfo } from '../shared/device-profile-details';
+import {
+  DeviceProfileDetails,
+  useFullProfileInfo,
+} from '../shared/device-profile-details';
 import { ControlButton } from '@arcanewizards/sigil/frontend/controls';
 import { ExternalLink } from './content';
 
@@ -377,6 +380,16 @@ export const TalismanLabRoot: FC<Props> = ({ info }) => {
               updateConfig={updateUserConfig}
               performModeSwitch={performModeSwitch}
               deviceInfo={deviceInfo}
+            />
+            <DeviceProfileDetails
+              profileId={profileId}
+              subProfileNames={selectedProfile?.subProfiles ?? {}}
+              getProfileInfo={getFullProfileInfo}
+              subProfile={{
+                mode: 'locked',
+                subProfileKey: config.config.selectedProfile?.[1] ?? null,
+              }}
+              className="h-0 min-h-[300px] grow bg-sigil-bg-dark p-1 rounded-sigil-control"
             />
           </div>
         </div>

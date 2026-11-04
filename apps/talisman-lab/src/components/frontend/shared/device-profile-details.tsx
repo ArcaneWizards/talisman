@@ -157,23 +157,37 @@ export type DeviceProfileDetailsProps = Pick<
   UseFullProfileInfoArgs,
   'profileId' | 'getProfileInfo'
 > & {
-  device: TalismanSupportedDeviceData;
+  subProfile:
+    | {
+        mode: 'locked';
+        subProfileKey: string | null;
+      }
+    | {
+        mode: 'local';
+      };
+  subProfileNames: Record<string, string>;
   className?: string;
 };
 
 export const DeviceProfileDetails: FC<DeviceProfileDetailsProps> = ({
   profileId,
-  device,
+  subProfileNames,
   className,
+  subProfile,
   getProfileInfo,
 }: DeviceProfileDetailsProps) => {
   const subProfileKeys = useMemo(
-    () => Object.keys(device.subProfiles),
-    [device.subProfiles],
+    () => Object.keys(subProfileNames),
+    [subProfileNames],
   );
-  const [subProfileKey, setSubProfileName] = useState<string | null>(
+  const [localSubProfileKey, setSubProfileName] = useState<string | null>(
     (subProfileKeys.length === 1 && subProfileKeys[0]) || null,
   );
+
+  const subProfileKey =
+    subProfile.mode === 'locked'
+      ? (subProfile.subProfileKey ?? null)
+      : localSubProfileKey;
 
   const deviceInfo = useFullProfileInfo({
     getProfileInfo,
@@ -192,35 +206,32 @@ export const DeviceProfileDetails: FC<DeviceProfileDetailsProps> = ({
   const selectedDeviceInfo =
     (deviceInfo.success && deviceInfo.data[subProfileKey ?? '']) || null;
 
-  const subProfileNames: Record<string, string> = useMemo(
-    () =>
-      Object.fromEntries(
-        Object.entries(device.subProfiles).map(([key, { name }]) => [
-          key,
-          name ?? key,
-        ]),
-      ),
-    [device.subProfiles],
-  );
-
   return (
     <div className={className}>
-      <LoadingWrapper action={deviceInfo}>
-        <div className="flex flex-col gap-2 bg-sigil-bg-light p-1">
-          {deviceInfo.success && Object.keys(deviceInfo.data).length > 1 && (
-            <div className="flex items-center justify-center gap-2">
-              {subProfileKey ? 'Sub-Profile:' : 'Please select a sub-profile:'}
-              <SubProfileSelector
-                profileId={profileId}
-                subProfileNames={subProfileNames}
-                fullProfileInfo={deviceInfo}
-                subProfile={subProfileKey}
-                onChange={setSubProfileName}
-                variant="large"
-                includeNone
-              />
-            </div>
-          )}{' '}
+      <LoadingWrapper
+        action={deviceInfo}
+        className="size-full max-h-full"
+        classNameInner="max-h-full"
+      >
+        <div className="flex h-full flex-col gap-2">
+          {subProfile.mode === 'local' &&
+            deviceInfo.success &&
+            Object.keys(deviceInfo.data).length > 1 && (
+              <div className="flex items-center justify-center gap-2">
+                {subProfileKey
+                  ? 'Sub-Profile:'
+                  : 'Please select a sub-profile:'}
+                <SubProfileSelector
+                  profileId={profileId}
+                  subProfileNames={subProfileNames}
+                  fullProfileInfo={deviceInfo}
+                  subProfile={subProfileKey}
+                  onChange={setSubProfileName}
+                  variant="large"
+                  includeNone
+                />
+              </div>
+            )}
           {selectedDeviceInfo && (
             <ErrorBoundary
               fallback={
@@ -234,18 +245,16 @@ export const DeviceProfileDetails: FC<DeviceProfileDetailsProps> = ({
                 </div>
               }
             >
-              <div className="flex gap-2">
+              <div className="flex h-full gap-1">
                 <MidiDevicePreview
                   namespace={profileId}
-                  className="
-                    max-h-[70svh] min-h-[300px] grow text-sigil-foreground
-                  "
+                  className="h-full max-h-[70vh] grow text-sigil-foreground bg-sigil-bg-light border border-sigil-border"
                   info={selectedDeviceInfo}
                   colors={PREVIEW_COLORS}
                   selectedItems={selectedItemsWithOpacities}
                   onItemsSelected={setSelectedItems}
                 />
-                <div className="max-w-[200px] min-w-[20%] bg-sigil-bg-dark p-2">
+                <div className="max-w-[200px] min-w-[20%] bg-sigil-bg-light p-2 border border-sigil-border">
                   Sidebar
                 </div>
               </div>

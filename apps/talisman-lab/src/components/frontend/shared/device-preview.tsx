@@ -843,7 +843,7 @@ export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
           paintOrder="stroke"
         >
           <tspan x="100" y="18">
-            MIDI device has
+            MIDI profile has
           </tspan>
           <tspan x="100" y="32">
             no positional info

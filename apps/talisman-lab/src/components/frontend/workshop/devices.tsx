@@ -65,6 +65,17 @@ const DeviceEntry: FC<{
     [testing],
   );
 
+  const subProfileNames: Record<string, string> = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.entries(device.subProfiles).map(([key, { name }]) => [
+          key,
+          name ?? key,
+        ]),
+      ),
+    [device.subProfiles],
+  );
+
   return (
     <div className="flex flex-col gap-1 rounded-md bg-sigil-bg-dark p-2">
       <div className="flex gap-1">
@@ -176,8 +187,10 @@ const DeviceEntry: FC<{
       {detailsOpen && (
         <DeviceProfileDetails
           profileId={profileId}
-          device={device}
+          subProfileNames={subProfileNames}
           getProfileInfo={getFullProfileInfo}
+          subProfile={{ mode: 'local' }}
+          className="max-h-[70vh] min-h-[200px]"
         />
       )}
     </div>
