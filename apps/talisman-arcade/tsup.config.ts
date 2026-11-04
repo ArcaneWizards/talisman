@@ -10,10 +10,6 @@ export default defineConfig({
   format: ['cjs', 'esm'],
   splitting: false,
   dts: true,
-  external: [
-    '../LICENSE',
-    '@arcanewizards/talisman-arcade/assets/logo-animated.svg',
-    '@arcanewizards/talisman-arcade/assets/logo-static.svg',
-  ],
+  external: ['../LICENSE'],
   sourcemap: false,
 });

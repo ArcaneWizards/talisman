@@ -65,3 +65,19 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+
+@keyframes highlight-ui-horizontal {
+  0% {
+    transform: translateX(-5px);
+  }
+  50% {
+    transform: translateX(5px);
+  }
+  100% {
+    transform: translateX(-5px);
+  }
+}
+
+@utility highlight-ui-horizontal {
+  animation: highlight-ui-horizontal 2s ease-in-out infinite;
+}

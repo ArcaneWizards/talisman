@@ -390,8 +390,8 @@ export const TalismanLabRoot: FC<Props> = ({ info }) => {
                 subProfileKey: config.config.selectedProfile?.[1] ?? null,
               }}
               className="
-                h-0 min-h-[300px] min-w-[min(70vw,1015px)] grow rounded-md
-                bg-sigil-bg-dark p-1
+                h-0 min-h-[300px] max-w-[95vw] min-w-[min(70vw,1015px)] grow
+                rounded-md bg-sigil-bg-dark p-1
               "
             />
           </div>

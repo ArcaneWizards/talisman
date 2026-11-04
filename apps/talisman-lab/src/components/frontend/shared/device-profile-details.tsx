@@ -1,6 +1,8 @@
 import { ComponentProps, FC, useEffect, useMemo, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import {
+  MIDI_CHANNEL_OPTIONS_SHORT,
+  MIDI_NOTE_OPTIONS,
   MidiControllerItem,
   MidiProfileDefinition,
   MidiProfileFeedbackCapabilities,
@@ -12,17 +14,26 @@ import {
   useUserAction,
 } from '@arcanewizards/sigil/frontend/user-actions';
 import {
+  itemDescription,
   MidiDevicePreview,
   MidiDevicePreviewProps,
   MidiFeedbackSummary,
   MidiPreviewColorsProp,
+  natureDescription,
 } from './device-preview';
 import {
+  ControlButton,
   ControlSelect,
   SelectOption,
 } from '@arcanewizards/sigil/frontend/controls';
 import { cnd } from '@arcanewizards/sigil/frontend/styling';
 import { cn } from '@arcanejs/toolkit-frontend/util';
+import {
+  ToolbarRow,
+  ToolbarSpacer,
+  ToolbarWrapper,
+} from '@arcanewizards/sigil/frontend/toolbars';
+import { Icon } from '@arcanejs/toolkit-frontend/components/core';
 
 const PREVIEW_COLORS: MidiPreviewColorsProp = {
   cellBackground: 'var(--sigil-bg-dark)',
@@ -169,6 +180,162 @@ export type DeviceProfileDetailsProps = Pick<
   className?: string;
 };
 
+type ItemDetailsProps = {
+  profileId: string;
+  items: MidiControllerItem[];
+  device: TalismanFullProfileInfo;
+};
+
+const ItemDetails: FC<ItemDetailsProps> = ({ profileId, items, device }) => {
+  const infoForFeedbackSummary: TalismanFullProfileInfo = useMemo(
+    () => ({
+      feedbackCapabilities: device.feedbackCapabilities,
+      items,
+    }),
+    [device, items],
+  );
+
+  if (items.length === 0) {
+    return (
+      <div
+        className="
+          flex size-full flex-col items-center justify-center gap-2 p-2
+          text-sigil-usage-hint-foreground
+        "
+      >
+        <div className="w-0 min-w-full text-center">
+          Click on an element in the MIDI profile layout to inspect its details
+        </div>
+        <span className="highlight-ui-horizontal">
+          <Icon icon="arrow_back" className="text-[2rem]" />
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="
+        flex size-full min-h-max flex-col gap-px bg-sigil-border
+        text-sigil-foreground
+      "
+    >
+      <div className="bg-sigil-bg-light p-2">
+        <MidiFeedbackSummary
+          colors={SELECT_COLORS}
+          info={infoForFeedbackSummary}
+          namespace={`device-profile-details-${profileId}`}
+          className="max-h-[75px] w-full"
+        />
+      </div>
+      {items.map((item) => (
+        <div className="flex flex-col gap-1 bg-sigil-bg-light p-1">
+          <div
+            className="
+              w-full text-center font-bold text-sigil-foreground-highlight
+            "
+          >
+            {itemDescription(item)}
+          </div>
+          <div
+            className="
+              w-full text-center text-sigil-usage-hint-foreground select-text
+            "
+          >
+            <span
+              className="
+                rounded-sigil-control bg-sigil-border px-0.5 py-0.3 font-mono
+                text-sigil-control
+              "
+            >
+              <span
+                className="
+                  pointer-events-none text-sigil-foreground-muted select-none
+                "
+              >
+                {'id: '}
+              </span>
+              <span>{item.id}</span>
+            </span>
+          </div>
+          {item.note?.length && (
+            <div className="text-sigil-control">
+              <div className="font-bold">Notes: </div>
+              <ul className="px-3">
+                {item.note.map((note) => (
+                  <li key={`note-${note.id.channel}-${note.id.note}`}>
+                    {`${MIDI_CHANNEL_OPTIONS_SHORT[note.id.channel]} - ${MIDI_NOTE_OPTIONS[note.id.note]}${note.nature ? ` (${natureDescription(note.nature)})` : ''}`}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {item.polyphonicAftertouch?.length && (
+            <div className="text-sigil-control">
+              <div className="font-bold">Polyphonic Aftertouch: </div>
+              <ul className="px-3">
+                {item.polyphonicAftertouch.map((note) => (
+                  <li key={`note-${note.id.channel}-${note.id.note}`}>
+                    {`${MIDI_CHANNEL_OPTIONS_SHORT[note.id.channel]} - ${MIDI_NOTE_OPTIONS[note.id.note]}`}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {item.controlChange?.length && (
+            <div className="text-sigil-control">
+              <div className="font-bold">Control Changes: </div>
+              <ul className="px-3">
+                {item.controlChange.map((cc) => (
+                  <li key={`cc-${cc.id.channel}-${cc.id.controller}`}>
+                    {`${MIDI_CHANNEL_OPTIONS_SHORT[cc.id.channel]} - CC ${cc.id.controller}${cc.nature ? ` (${natureDescription(cc.nature)})` : ''}`}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {item.programChange?.length && (
+            <div className="text-sigil-control">
+              <div className="font-bold">Program Change: </div>
+              <ul className="px-3">
+                {item.programChange.map((pc) => (
+                  <li key={`pc-${pc.id.channel}`}>
+                    {`${MIDI_CHANNEL_OPTIONS_SHORT[pc.id.channel]} - ${pc.id.program}`}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {item.channelAftertouch?.length && (
+            <div className="text-sigil-control">
+              <div className="font-bold">Channel Aftertouch: </div>
+              <ul className="px-3">
+                {item.channelAftertouch.map((cat) => (
+                  <li key={`cat-${cat.id.channel}`}>
+                    {`${MIDI_CHANNEL_OPTIONS_SHORT[cat.id.channel]}`}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {item.pitchWheel?.length && (
+            <div className="text-sigil-control">
+              <div className="font-bold">Pitch Wheel: </div>
+              <ul className="px-3">
+                {item.pitchWheel.map((pw) => (
+                  <li key={`pw-${pw.id.channel}`}>
+                    {`${MIDI_CHANNEL_OPTIONS_SHORT[pw.id.channel]}${pw.nature ? ` (${natureDescription(pw.nature)})` : ''}`}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};
+
 export const DeviceProfileDetails: FC<DeviceProfileDetailsProps> = ({
   profileId,
   subProfileNames,
@@ -259,11 +426,37 @@ export const DeviceProfileDetails: FC<DeviceProfileDetailsProps> = ({
                 />
                 <div
                   className="
-                    max-w-[200px] min-w-[20%] border border-sigil-border
-                    bg-sigil-bg-light p-2
+                    flex max-w-[30vw] min-w-[200px] grow flex-col border
+                    border-sigil-border bg-sigil-bg-light
                   "
                 >
-                  Sidebar
+                  <ToolbarWrapper>
+                    <ToolbarRow>
+                      <span className="p-1">MIDI Profile Details</span>
+                      <div className="grow" />
+                      {selectedItems.length > 0 && (
+                        <>
+                          <ToolbarSpacer />
+                          <ControlButton
+                            onClick={() => setSelectedItems([])}
+                            variant="toolbar"
+                            icon="close"
+                          />
+                        </>
+                      )}
+                    </ToolbarRow>
+                  </ToolbarWrapper>
+                  <div
+                    className="
+                      grow scrollbar-sigil overflow-x-hidden overflow-y-scroll
+                    "
+                  >
+                    <ItemDetails
+                      items={selectedItems}
+                      profileId={profileId}
+                      device={selectedDeviceInfo}
+                    />
+                  </div>
                 </div>
               </div>
             </ErrorBoundary>
