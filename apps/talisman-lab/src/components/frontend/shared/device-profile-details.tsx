@@ -167,7 +167,10 @@ export const DeviceProfileDetails: FC<DeviceProfileDetailsProps> = ({
   className,
   getProfileInfo,
 }: DeviceProfileDetailsProps) => {
-  const subProfileKeys = Object.keys(device.subProfiles);
+  const subProfileKeys = useMemo(
+    () => Object.keys(device.subProfiles),
+    [device.subProfiles],
+  );
   const [subProfileKey, setSubProfileName] = useState<string | null>(
     (subProfileKeys.length === 1 && subProfileKeys[0]) || null,
   );

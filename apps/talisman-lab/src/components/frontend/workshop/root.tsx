@@ -183,12 +183,17 @@ export const TalismanLabRoot: FC<Props> = ({ info }) => {
     midi.profiles[config.config.selectedProfile?.[0] ?? ''];
   const profileId = config.config.selectedProfile?.[0] ?? '';
 
+  // Must be memoized: useFullProfileInfo re-runs its load (an async transition)
+  // whenever this array identity changes.
+  const subProfileKeys = useMemo(
+    () => (selectedProfile ? Object.keys(selectedProfile.subProfiles) : []),
+    [selectedProfile],
+  );
+
   const deviceInfo = useFullProfileInfo({
     getProfileInfo: getFullProfileInfo,
     profileId,
-    subProfileKeys: selectedProfile
-      ? Object.keys(selectedProfile.subProfiles)
-      : [],
+    subProfileKeys,
   });
 
   const { openNewWidow } = useBrowserContext();
