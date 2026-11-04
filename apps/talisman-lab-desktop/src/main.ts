@@ -152,7 +152,7 @@ if (shouldStartApp) {
     });
     ipcMain.on(
       'open-window',
-      (event, url: string, options: NewWindowOptions) => {
+      (event, url: string, options?: NewWindowOptions) => {
         if (options?.canUseExisting) {
           for (const win of BrowserWindow.getAllWindows()) {
             if (win.webContents.getURL() === url) {
@@ -163,7 +163,7 @@ if (shouldStartApp) {
         }
         createWindow(
           url,
-          isWindowMode(options.mode) ? WINDOW_MODES[options.mode] : undefined,
+          isWindowMode(options?.mode) ? WINDOW_MODES[options?.mode] : undefined,
         );
       },
     );
