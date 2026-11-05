@@ -7,6 +7,7 @@ import {
   NovationButtonInfo,
   NovationButtonOnlyLayout,
   NovationButtonOnlyProfile,
+  NovationModeSwitchingOptions,
 } from './shared/novation.js';
 import {
   getMidiNote,
@@ -24,6 +25,14 @@ import {
 const NOVATION_LAUNCHPAD_MK3_X_SYSEX_HEADER = [
   0xf0, 0x00, 0x20, 0x29, 0x02, 0x0c,
 ];
+
+const NOVATION_LAUNCHPAD_MK3_X_MODE_SWITCHING: NovationModeSwitchingOptions = {
+  sysexHeader: NOVATION_LAUNCHPAD_MK3_X_SYSEX_HEADER,
+  modeName: 'Programmer Mode',
+  command: 0x0e,
+  requiredMode: 1,
+  defaultMode: 0,
+};
 
 const FEEDBACK_KEY = 'feedback-rgb';
 
@@ -228,10 +237,7 @@ class NovationLaunchpadMk3XProfileProgrammerMode extends NovationButtonOnlyProfi
     super({
       getLayout: novationLaunchpadMk3XProgrammerLayout,
       noteOffMode: '0-velocity',
-      modeSwitching: {
-        sysexHeader: NOVATION_LAUNCHPAD_MK3_X_SYSEX_HEADER,
-        modeName: 'Programmer Mode',
-      },
+      modeSwitching: NOVATION_LAUNCHPAD_MK3_X_MODE_SWITCHING,
       validatePort: () => {
         const isIncorrectPort =
           // MacOS
@@ -276,10 +282,7 @@ let colorSpace: ColorSpace<[number]> | null = null;
 export const createNovationLaunchpadMk3XFeedbackProfile: MidiFeedbackProfileInit =
   ({ connection, inputProfile, sendMessage }) => {
     const modeSwitcher = createNovationModeSwitcher({
-      sysexHeader: NOVATION_LAUNCHPAD_MK3_X_SYSEX_HEADER,
-      command: 0x0e,
-      requiredProfile: 1,
-      defaultProfile: 0,
+      ...NOVATION_LAUNCHPAD_MK3_X_MODE_SWITCHING,
       sendMessage,
     });
 
@@ -370,10 +373,7 @@ export const createNovationLaunchpadMk3XFeedbackProfileRGB: MidiFeedbackProfileI
     };
 
     const modeSwitcher = createNovationModeSwitcher({
-      sysexHeader: NOVATION_LAUNCHPAD_MK3_X_SYSEX_HEADER,
-      command: 0x0e,
-      requiredProfile: 1,
-      defaultProfile: 0,
+      ...NOVATION_LAUNCHPAD_MK3_X_MODE_SWITCHING,
       sendMessage,
     });
 

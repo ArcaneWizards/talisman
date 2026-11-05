@@ -215,6 +215,14 @@ export type NovationButtonInfo = {
   nature: MidiButtonNature;
 };
 
+export type NovationModeSwitchingOptions = {
+  sysexHeader: number[];
+  command: number;
+  requiredMode: number;
+  defaultMode?: number;
+  modeName: string;
+};
+
 export type CreateNovationButtonOnlyProfileArgs = {
   getLayout: () => {
     items: Record<string, MidiControllerItem>;
@@ -231,10 +239,7 @@ export type CreateNovationButtonOnlyProfileArgs = {
         isIncorrectPort: true;
         reason: string;
       };
-  modeSwitching?: {
-    sysexHeader: number[];
-    modeName: 'Programmer Mode';
-  };
+  modeSwitching?: NovationModeSwitchingOptions;
 };
 
 export type NovationButtonOnlyLayout =
@@ -347,14 +352,16 @@ export class NovationButtonOnlyProfile extends MidiProfileBase {
         const cmd = message.message[pfx];
 
         switch (cmd) {
-          case 0x0e: {
+          case this.opts.modeSwitching.command: {
             if (this._modeCheckTimeout) {
               clearTimeout(this._modeCheckTimeout);
               this._modeCheckTimeout = null;
             }
             if (!this.isIncorrectPort) {
               // Only send additional readiness events if the port is correct
-              const programmerMode = message.message[pfx + 1] === 1;
+              const programmerMode =
+                message.message[pfx + 1] ===
+                this.opts.modeSwitching.requiredMode;
               this.emit('readiness', {
                 message,
                 readiness: programmerMode
@@ -426,19 +433,15 @@ export const createNovationButtonOnlyProfile =
     });
   };
 
-type CreateNovationModeSwitcherArgs = {
-  sysexHeader: number[];
-  command: number;
-  requiredProfile: number;
-  defaultProfile?: number;
+type CreateNovationModeSwitcherArgs = NovationModeSwitchingOptions & {
   sendMessage: (message: number[]) => void;
 };
 
 export const createNovationModeSwitcher = ({
   sysexHeader,
   command,
-  requiredProfile,
-  defaultProfile = 0,
+  requiredMode: requiredProfile,
+  defaultMode: defaultProfile = 0,
   sendMessage,
 }: CreateNovationModeSwitcherArgs): Pick<
   MidiFeedbackProfile,

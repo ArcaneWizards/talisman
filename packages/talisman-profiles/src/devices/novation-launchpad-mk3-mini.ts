@@ -1,11 +1,13 @@
 import { colorEqual, ColorSpace, RGB } from '@arcanewizards/talisman/color';
 import { createBasicColorVelocityFeedbackProfile } from '@arcanewizards/talisman/feedback';
 import {
-  createNovationButtonOnlyProfile,
   createNovationLaunchpadRGBColorSpace,
   createNovationLaunchpadRGBPallette,
+  createNovationModeSwitcher,
   NovationButtonInfo,
   NovationButtonOnlyLayout,
+  NovationButtonOnlyProfile,
+  NovationModeSwitchingOptions,
 } from './shared/novation.js';
 import {
   getMidiNote,
@@ -23,6 +25,15 @@ import {
 const NOVATION_LAUNCHPAD_MK3_MINI_SYSEX_HEADER = [
   0xf0, 0x00, 0x20, 0x29, 0x02, 0x0d,
 ];
+
+const NOVATION_LAUNCHPAD_MK3_MINI_MODE_SWITCHING: NovationModeSwitchingOptions =
+  {
+    sysexHeader: NOVATION_LAUNCHPAD_MK3_MINI_SYSEX_HEADER,
+    modeName: 'Programmer Mode',
+    command: 0x0e,
+    requiredMode: 1,
+    defaultMode: 0,
+  };
 
 const FEEDBACK_KEY = 'feedback-rgb';
 
@@ -215,22 +226,69 @@ export const novationLaunchpadMk3MiniSessionLayout: NovationButtonOnlyLayout =
     return { items, notes, controllers };
   };
 
+class NovationLaunchpadMk3MiniProfileProgrammerMode extends NovationButtonOnlyProfile {
+  public constructor(
+    connection: MidiInputConnectionInfo,
+    private readonly ledMode: 'rgb' | 'notes',
+  ) {
+    super({
+      getLayout: novationLaunchpadMk3MiniSessionLayout,
+      noteOffMode: '0-velocity',
+      modeSwitching: NOVATION_LAUNCHPAD_MK3_MINI_MODE_SWITCHING,
+      getFeedbackCapabilities: () => ({
+        [FEEDBACK_KEY]: {
+          led:
+            this.ledMode === 'notes'
+              ? {
+                  type: 'palette',
+                  brightnessValues: 1,
+                  palette: createNovationLaunchpadRGBPallette(),
+                }
+              : {
+                  type: 'rgb',
+                  limits: {
+                    rBits: 7,
+                    gBits: 7,
+                    bBits: 7,
+                  },
+                },
+        },
+      }),
+    });
+  }
+}
+
 let colorSpace: ColorSpace<[number]> | null = null;
 
-export const createNovationLaunchpadMk3MiniFeedbackProfile =
-  createBasicColorVelocityFeedbackProfile({
-    defaultVelocities: {
-      empty: 0,
-      active: 15,
-      ready: 3,
-    },
-    getColorSpace: () => {
-      if (!colorSpace) {
-        colorSpace = createNovationLaunchpadRGBColorSpace();
-      }
-      return colorSpace;
-    },
-  });
+export const createNovationLaunchpadMk3MiniFeedbackProfile: MidiFeedbackProfileInit =
+  ({ connection, inputProfile, sendMessage }) => {
+    const modeSwitcher = createNovationModeSwitcher({
+      ...NOVATION_LAUNCHPAD_MK3_MINI_MODE_SWITCHING,
+      sendMessage,
+    });
+    const profile = createBasicColorVelocityFeedbackProfile({
+      defaultVelocities: {
+        empty: 0,
+        active: 15,
+        ready: 3,
+      },
+      getColorSpace: () => {
+        if (!colorSpace) {
+          colorSpace = createNovationLaunchpadRGBColorSpace();
+        }
+        return colorSpace;
+      },
+    })({ connection, inputProfile, sendMessage });
+
+    return {
+      ...profile,
+      performModeSwitch: () => {
+        modeSwitcher.performModeSwitch?.();
+        profile.clear();
+      },
+      close: modeSwitcher.close,
+    };
+  };
 
 const getMaxId = (inputProfile: MidiProfile) => {
   let maxId = -Infinity;
@@ -290,15 +348,27 @@ export const createNovationLaunchpadMk3MiniFeedbackProfileRGB: MidiFeedbackProfi
       }
     };
 
+    const modeSwitcher = createNovationModeSwitcher({
+      ...NOVATION_LAUNCHPAD_MK3_MINI_MODE_SWITCHING,
+      sendMessage,
+    });
+
+    const clear = () => {
+      lastColours.fill([-1, -1, -1]);
+      colorUpdated.fill(false);
+      for (const item of inputProfile.getItems()) {
+        setItemColor(item.id, { mode: 'empty' });
+      }
+      // Colors will actually be sent on next call to frameFinished()
+    };
+
     return {
-      clear: () => {
-        lastColours.fill([-1, -1, -1]);
-        colorUpdated.fill(false);
-        for (const item of inputProfile.getItems()) {
-          setItemColor(item.id, { mode: 'empty' });
-        }
-        // Colors will actually be sent on next call to frameFinished()
+      performModeSwitch: () => {
+        modeSwitcher.performModeSwitch?.();
+        clear();
       },
+      close: modeSwitcher.close,
+      clear,
       setItemColor,
       setItemValue: () => {
         // no-op: unsupported
@@ -353,41 +423,16 @@ export const NOVATION_LAUNCHPAD_MK3_MINI: MidiProfileDefinition = {
       name: 'Sysex RGB Feedback',
       notice:
         'To be able to control the lights of the top row of buttons, please ensure your launchpad is in Programmer mode',
-      input: createNovationButtonOnlyProfile({
-        getLayout: novationLaunchpadMk3MiniSessionLayout,
-        noteOffMode: 'note-off',
-        getFeedbackCapabilities: () => ({
-          [FEEDBACK_KEY]: {
-            led: {
-              type: 'rgb',
-              limits: {
-                rBits: 7,
-                gBits: 7,
-                bBits: 7,
-              },
-            },
-          },
-        }),
-      }),
+      input: ({ connection }) =>
+        new NovationLaunchpadMk3MiniProfileProgrammerMode(connection, 'rgb'),
       feedback: createNovationLaunchpadMk3MiniFeedbackProfileRGB,
     },
     notes: {
       name: 'Note Feedback',
       notice:
         'To be able to control the lights of the top row of buttons, please ensure your launchpad is in Programmer mode',
-      input: createNovationButtonOnlyProfile({
-        getLayout: novationLaunchpadMk3MiniSessionLayout,
-        noteOffMode: 'note-off',
-        getFeedbackCapabilities: () => ({
-          [FEEDBACK_KEY]: {
-            led: {
-              type: 'palette',
-              brightnessValues: 1,
-              palette: createNovationLaunchpadRGBPallette(),
-            },
-          },
-        }),
-      }),
+      input: ({ connection }) =>
+        new NovationLaunchpadMk3MiniProfileProgrammerMode(connection, 'notes'),
       feedback: createNovationLaunchpadMk3MiniFeedbackProfile,
     },
   },
