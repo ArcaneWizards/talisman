@@ -1,11 +1,13 @@
 import { colorEqual, ColorSpace, RGB } from '@arcanewizards/talisman/color';
 import { createBasicColorVelocityFeedbackProfile } from '@arcanewizards/talisman/feedback';
 import {
-  createNovationButtonOnlyProfile,
   createNovationLaunchpadRGBColorSpace,
   createNovationLaunchpadRGBPallette,
+  createNovationModeSwitcher,
   NovationButtonInfo,
   NovationButtonOnlyLayout,
+  NovationButtonOnlyProfile,
+  NovationModeSwitchingOptions,
 } from './shared/novation.js';
 import {
   getMidiNote,
@@ -23,6 +25,13 @@ import {
 const NOVATION_LAUNCHPAD_MK2_SYSEX_HEADER = [
   0xf0, 0x00, 0x20, 0x29, 0x02, 0x18,
 ];
+
+const NOVATION_LAUNCHPAD_MK2_MODE_SWITCHING: NovationModeSwitchingOptions = {
+  sysexHeader: NOVATION_LAUNCHPAD_MK2_SYSEX_HEADER,
+  modeName: 'Session Mode',
+  command: 0x22,
+  requiredMode: 0,
+};
 
 const FEEDBACK_KEY = 'feedback-rgb';
 
@@ -209,22 +218,69 @@ export const novationLaunchpadMk2SessionLayout: NovationButtonOnlyLayout =
     return { items, notes, controllers };
   };
 
+class NovationLaunchpadMk2ProfileProgrammerMode extends NovationButtonOnlyProfile {
+  public constructor(
+    connection: MidiInputConnectionInfo,
+    private readonly ledMode: 'rgb' | 'notes',
+  ) {
+    super({
+      getLayout: novationLaunchpadMk2SessionLayout,
+      noteOffMode: 'note-off',
+      modeSwitching: NOVATION_LAUNCHPAD_MK2_MODE_SWITCHING,
+      getFeedbackCapabilities: () => ({
+        [FEEDBACK_KEY]: {
+          led:
+            this.ledMode === 'notes'
+              ? {
+                  type: 'palette',
+                  brightnessValues: 1,
+                  palette: createNovationLaunchpadRGBPallette(),
+                }
+              : {
+                  type: 'rgb',
+                  limits: {
+                    rBits: 6,
+                    gBits: 6,
+                    bBits: 6,
+                  },
+                },
+        },
+      }),
+    });
+  }
+}
+
 let colorSpace: ColorSpace<[number]> | null = null;
 
-export const createNovationLaunchpadMk2FeedbackProfile =
-  createBasicColorVelocityFeedbackProfile({
-    defaultVelocities: {
-      empty: 0,
-      active: 15,
-      ready: 3,
-    },
-    getColorSpace: () => {
-      if (!colorSpace) {
-        colorSpace = createNovationLaunchpadRGBColorSpace();
-      }
-      return colorSpace;
-    },
-  });
+export const createNovationLaunchpadMk2FeedbackProfile: MidiFeedbackProfileInit =
+  ({ connection, inputProfile, sendMessage }) => {
+    const modeSwitcher = createNovationModeSwitcher({
+      ...NOVATION_LAUNCHPAD_MK2_MODE_SWITCHING,
+      sendMessage,
+    });
+    const profile = createBasicColorVelocityFeedbackProfile({
+      defaultVelocities: {
+        empty: 0,
+        active: 15,
+        ready: 3,
+      },
+      getColorSpace: () => {
+        if (!colorSpace) {
+          colorSpace = createNovationLaunchpadRGBColorSpace();
+        }
+        return colorSpace;
+      },
+    })({ connection, inputProfile, sendMessage });
+
+    return {
+      ...profile,
+      performModeSwitch: () => {
+        modeSwitcher.performModeSwitch?.();
+        profile.clear();
+      },
+      close: modeSwitcher.close,
+    };
+  };
 
 const getMaxId = (inputProfile: MidiProfile) => {
   let maxId = -Infinity;
@@ -275,15 +331,27 @@ export const createNovationLaunchpadMk2FeedbackProfileRGB: MidiFeedbackProfileIn
       }
     };
 
+    const modeSwitcher = createNovationModeSwitcher({
+      ...NOVATION_LAUNCHPAD_MK2_MODE_SWITCHING,
+      sendMessage,
+    });
+
+    const clear = () => {
+      lastColours.fill([-1, -1, -1]);
+      colorUpdated.fill(false);
+      for (const item of inputProfile.getItems()) {
+        setItemColor(item.id, { mode: 'empty' });
+      }
+      // Colors will actually be sent on next call to frameFinished()
+    };
+
     return {
-      clear: () => {
-        lastColours.fill([-1, -1, -1]);
-        colorUpdated.fill(false);
-        for (const item of inputProfile.getItems()) {
-          setItemColor(item.id, { mode: 'empty' });
-        }
-        // Colors will actually be sent on next call to frameFinished()
+      performModeSwitch: () => {
+        modeSwitcher.performModeSwitch?.();
+        clear();
       },
+      close: modeSwitcher.close,
+      clear,
       setItemColor,
       setItemValue: () => {
         // no-op: unsupported
@@ -335,39 +403,14 @@ export const NOVATION_LAUNCHPAD_MK2: MidiProfileDefinition = {
   subProfiles: {
     default: {
       name: 'Session Mode - Sysex RGB Feedback',
-      input: createNovationButtonOnlyProfile({
-        getLayout: novationLaunchpadMk2SessionLayout,
-        noteOffMode: 'note-off',
-        getFeedbackCapabilities: () => ({
-          [FEEDBACK_KEY]: {
-            led: {
-              type: 'rgb',
-              limits: {
-                rBits: 6,
-                gBits: 6,
-                bBits: 6,
-              },
-            },
-          },
-        }),
-      }),
+      input: ({ connection }) =>
+        new NovationLaunchpadMk2ProfileProgrammerMode(connection, 'rgb'),
       feedback: createNovationLaunchpadMk2FeedbackProfileRGB,
     },
     notes: {
       name: 'Session Mode - Note Feedback',
-      input: createNovationButtonOnlyProfile({
-        getLayout: novationLaunchpadMk2SessionLayout,
-        noteOffMode: 'note-off',
-        getFeedbackCapabilities: () => ({
-          [FEEDBACK_KEY]: {
-            led: {
-              type: 'palette',
-              brightnessValues: 1,
-              palette: createNovationLaunchpadRGBPallette(),
-            },
-          },
-        }),
-      }),
+      input: ({ connection }) =>
+        new NovationLaunchpadMk2ProfileProgrammerMode(connection, 'notes'),
       feedback: createNovationLaunchpadMk2FeedbackProfile,
     },
   },

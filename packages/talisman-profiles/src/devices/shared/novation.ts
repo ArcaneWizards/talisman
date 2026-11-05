@@ -8,9 +8,15 @@ import {
   MidiButtonNature,
   MidiControllerAction,
   MidiControllerItem,
+  MidiFeedbackProfile,
+  MidiParsedMessage,
   MidiProfileInit,
 } from '@arcanewizards/talisman/core';
-import { MidiProfileBasic } from '@arcanewizards/talisman/profile';
+import {
+  MidiProfileBase,
+  MidiProfileBasic,
+} from '@arcanewizards/talisman/profile';
+import { startsWithSysex } from '@arcanewizards/talisman/util';
 
 /**
  * RGB Color Palette used for the Novation Launchpads, Mk1, Mk2 and Mk3.
@@ -209,6 +215,14 @@ export type NovationButtonInfo = {
   nature: MidiButtonNature;
 };
 
+export type NovationModeSwitchingOptions = {
+  sysexHeader: number[];
+  command: number;
+  requiredMode: number;
+  defaultMode?: number;
+  modeName: string;
+};
+
 export type CreateNovationButtonOnlyProfileArgs = {
   getLayout: () => {
     items: Record<string, MidiControllerItem>;
@@ -216,12 +230,164 @@ export type CreateNovationButtonOnlyProfileArgs = {
     controllers: Record<number, NovationButtonInfo>;
   };
   noteOffMode: '0-velocity' | 'note-off';
-  handleSysex?: (msg: number[]) => MidiControllerAction | null;
   getFeedbackCapabilities?: () => Record<string, FeedbackCapabilityProfile>;
+  validatePort?: () =>
+    | {
+        isIncorrectPort: false;
+      }
+    | {
+        isIncorrectPort: true;
+        reason: string;
+      };
+  modeSwitching?: NovationModeSwitchingOptions;
 };
 
 export type NovationButtonOnlyLayout =
   CreateNovationButtonOnlyProfileArgs['getLayout'];
+
+export class NovationButtonOnlyProfile extends MidiProfileBase {
+  private readonly layout: ReturnType<NovationButtonOnlyLayout>;
+  private readonly isIncorrectPort: boolean;
+  private readonly opts: Pick<
+    CreateNovationButtonOnlyProfileArgs,
+    'noteOffMode' | 'getFeedbackCapabilities' | 'modeSwitching'
+  >;
+
+  private _modeCheckTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  public constructor({
+    getLayout,
+    validatePort,
+    ...opts
+  }: CreateNovationButtonOnlyProfileArgs) {
+    super();
+    this.layout = getLayout();
+    this.opts = opts;
+
+    if (validatePort) {
+      const result = validatePort();
+      this.isIncorrectPort = result.isIncorrectPort;
+      if (result.isIncorrectPort) {
+        this.setReadiness({
+          readiness: {
+            state: 'unusable',
+            message: result.reason,
+          },
+        });
+      }
+    } else {
+      this.isIncorrectPort = false;
+    }
+
+    if (opts.modeSwitching) {
+      this._modeCheckTimeout = setTimeout(() => {
+        // Assume that if the profile does not receive a response for the mode
+        // check within 1 second, that it's in the incorrect mode.
+        if (!this.isIncorrectPort) {
+          this.emit('readiness', {
+            readiness: {
+              state: 'pending-mode-switch',
+              message:
+                'Did not receive a response for mode check, device likely needs to be switched to programmer mode, or is an incompatible port.',
+            },
+          });
+        }
+      }, 1000);
+    }
+  }
+
+  public getItems = (): Iterable<MidiControllerItem> => {
+    return Object.values(this.layout.items);
+  };
+
+  public getItem = (id: string): MidiControllerItem | null => {
+    return this.layout.items[id] ?? null;
+  };
+
+  public receiveMessage = (message: MidiParsedMessage): boolean => {
+    if (message.type === 'note') {
+      const info = this.layout.notes[message.note];
+      if (!info) {
+        return false;
+      }
+      const noteOn =
+        this.opts.noteOffMode === 'note-off'
+          ? message.action === 'on'
+          : message.velocity > 0;
+      this.emit('action', {
+        action: {
+          item: info.item,
+          action: noteOn ? 'button-press' : 'button-release',
+          nature: info.nature,
+          velocity: message.velocity,
+        },
+        message,
+      });
+      return true;
+    } else if (message.type === 'control-change') {
+      const info = this.layout.controllers[message.controller];
+      if (!info) {
+        return false;
+      }
+      this.emit('action', {
+        action: {
+          item: info.item,
+          action: message.value > 0 ? 'button-press' : 'button-release',
+          nature: info.nature,
+          velocity: message.value,
+        },
+        message,
+      });
+      return true;
+    } else if (message.type === 'sysex') {
+      if (this.opts.modeSwitching) {
+        if (
+          !startsWithSysex(message.message, this.opts.modeSwitching.sysexHeader)
+        ) {
+          return false;
+        }
+
+        const pfx = this.opts.modeSwitching.sysexHeader.length;
+
+        const cmd = message.message[pfx];
+
+        switch (cmd) {
+          case this.opts.modeSwitching.command: {
+            if (this._modeCheckTimeout) {
+              clearTimeout(this._modeCheckTimeout);
+              this._modeCheckTimeout = null;
+            }
+            if (!this.isIncorrectPort) {
+              // Only send additional readiness events if the port is correct
+              const programmerMode =
+                message.message[pfx + 1] ===
+                this.opts.modeSwitching.requiredMode;
+              this.emit('readiness', {
+                message,
+                readiness: programmerMode
+                  ? {
+                      state: 'ready',
+                    }
+                  : {
+                      state: 'pending-mode-switch',
+                      message: `Device must be switched to ${this.opts.modeSwitching.modeName} before it can be used with this profile.`,
+                    },
+              });
+            }
+            return true;
+          }
+        }
+      }
+
+      return false;
+    }
+    return false;
+  };
+
+  public getFeedbackCapabilities = () => {
+    return this.opts.getFeedbackCapabilities?.() ?? {};
+  };
+}
 
 export const createNovationButtonOnlyProfile =
   ({
@@ -266,3 +432,48 @@ export const createNovationButtonOnlyProfile =
       },
     });
   };
+
+type CreateNovationModeSwitcherArgs = NovationModeSwitchingOptions & {
+  sendMessage: (message: number[]) => void;
+};
+
+export const createNovationModeSwitcher = ({
+  sysexHeader,
+  command,
+  requiredMode: requiredProfile,
+  defaultMode: defaultProfile = 0,
+  sendMessage,
+}: CreateNovationModeSwitcherArgs): Pick<
+  MidiFeedbackProfile,
+  'performModeSwitch' | 'close'
+> => {
+  let hasSwitched = false;
+
+  const checkMode = () => {
+    // Send a request to check the current mode of the device
+    sendMessage([...sysexHeader, command, 0xf7]);
+  };
+
+  // Immediately check the device mode
+  setTimeout(checkMode, 0);
+
+  /**
+   * Start an interval to periodically check the current mode of the device,
+   * this will allow users to be notified if the device reaches an unexpected
+   * state.
+   */
+  const interval = setInterval(checkMode, 1000);
+
+  return {
+    performModeSwitch: () => {
+      hasSwitched = true;
+      sendMessage([...sysexHeader, command, requiredProfile, 0xf7]);
+    },
+    close: async () => {
+      clearInterval(interval);
+      if (hasSwitched && defaultProfile !== undefined) {
+        sendMessage([...sysexHeader, command, defaultProfile, 0xf7]);
+      }
+    },
+  };
+};

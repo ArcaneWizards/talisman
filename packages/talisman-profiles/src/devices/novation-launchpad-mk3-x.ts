@@ -1,17 +1,18 @@
 import { colorEqual, ColorSpace, RGB } from '@arcanewizards/talisman/color';
 import { createBasicColorVelocityFeedbackProfile } from '@arcanewizards/talisman/feedback';
-import { MidiProfileBase } from '@arcanewizards/talisman/profile';
 import {
   createNovationLaunchpadRGBColorSpace,
   createNovationLaunchpadRGBPallette,
+  createNovationModeSwitcher,
   NovationButtonInfo,
   NovationButtonOnlyLayout,
+  NovationButtonOnlyProfile,
+  NovationModeSwitchingOptions,
 } from './shared/novation.js';
 import {
   getMidiNote,
   MidiInputConnectionInfo,
   MidiController,
-  MidiParsedMessage,
   MidiButtonNature,
   MidiControllerItem,
   MidiProfile,
@@ -20,11 +21,18 @@ import {
   MidiFeedbackProfile,
   MidiFeedbackProfileInit,
 } from '@arcanewizards/talisman/core';
-import { startsWithSysex } from '@arcanewizards/talisman/util';
 
 const NOVATION_LAUNCHPAD_MK3_X_SYSEX_HEADER = [
   0xf0, 0x00, 0x20, 0x29, 0x02, 0x0c,
 ];
+
+const NOVATION_LAUNCHPAD_MK3_X_MODE_SWITCHING: NovationModeSwitchingOptions = {
+  sysexHeader: NOVATION_LAUNCHPAD_MK3_X_SYSEX_HEADER,
+  modeName: 'Programmer Mode',
+  command: 0x0e,
+  requiredMode: 1,
+  defaultMode: 0,
+};
 
 const FEEDBACK_KEY = 'feedback-rgb';
 
@@ -221,195 +229,62 @@ export const novationLaunchpadMk3XProgrammerLayout: NovationButtonOnlyLayout =
     return { items, notes, controllers };
   };
 
-class NovationLaunchpadMk3XProfileProgrammerMode extends MidiProfileBase {
-  private readonly layout: ReturnType<NovationButtonOnlyLayout>;
-  private readonly isIncorrectPort: boolean;
-
-  private _modeCheckTimeout: ReturnType<typeof setTimeout> | null = null;
-
+class NovationLaunchpadMk3XProfileProgrammerMode extends NovationButtonOnlyProfile {
   public constructor(
-    private readonly connection: MidiInputConnectionInfo,
+    connection: MidiInputConnectionInfo,
     private readonly ledMode: 'rgb' | 'notes',
-    _layout: NovationButtonOnlyLayout,
   ) {
-    super();
-    this.layout = _layout();
-    this.isIncorrectPort =
-      // MacOS
-      connection.inputDeviceName.includes('LPX DAW') ||
-      // Windows
-      connection.inputDeviceName === 'LPX MIDI';
-
-    if (this.isIncorrectPort) {
-      this.setReadiness({
-        readiness: {
-          state: 'unusable',
-          message:
-            connection.inputDeviceName === 'LPX MIDI'
-              ? 'This profile cannot be used with port 1 of this device, please use the MIDIIN2 port instead.'
-              : 'This profile cannot be used with the LPX DAW port, please use the MIDI port instead.',
-        },
-      });
-    }
-
-    this._modeCheckTimeout = setTimeout(() => {
-      // Assume that if the profile does not receive a response for the mode
-      // check within 1 second, that it's in the incorrect mode.
-      if (!this.isIncorrectPort) {
-        this.emit('readiness', {
-          readiness: {
-            state: 'pending-mode-switch',
-            message:
-              'Did not receive a response for mode check, device likely needs to be switched to programmer mode.',
-          },
-        });
-      }
-    }, 1000);
-  }
-
-  public getItems = (): Iterable<MidiControllerItem> => {
-    return Object.values(this.layout.items);
-  };
-
-  public getItem = (id: string): MidiControllerItem | null => {
-    return this.layout.items[id] ?? null;
-  };
-
-  public receiveMessage = (message: MidiParsedMessage): boolean => {
-    if (message.type === 'note') {
-      const info = this.layout.notes[message.note];
-      if (!info) {
-        return false;
-      }
-      const noteOn = message.velocity > 0;
-      this.emit('action', {
-        action: {
-          item: info.item,
-          action: noteOn ? 'button-press' : 'button-release',
-          nature: info.nature,
-          velocity: message.velocity,
-        },
-        message,
-      });
-      return true;
-    } else if (message.type === 'control-change') {
-      const info = this.layout.controllers[message.controller];
-      if (!info) {
-        return false;
-      }
-      this.emit('action', {
-        action: {
-          item: info.item,
-          action: message.value > 0 ? 'button-press' : 'button-release',
-          nature: info.nature,
-          velocity: message.value,
-        },
-        message,
-      });
-      return true;
-    } else if (message.type === 'sysex') {
-      if (
-        !startsWithSysex(message.message, NOVATION_LAUNCHPAD_MK3_X_SYSEX_HEADER)
-      ) {
-        return false;
-      }
-
-      const pfx = NOVATION_LAUNCHPAD_MK3_X_SYSEX_HEADER.length;
-
-      const cmd = message.message[pfx];
-
-      switch (cmd) {
-        case 0x0e: {
-          if (this._modeCheckTimeout) {
-            clearTimeout(this._modeCheckTimeout);
-            this._modeCheckTimeout = null;
-          }
-          if (!this.isIncorrectPort) {
-            // Only send additional readiness events if the port is correct
-            const programmerMode = message.message[pfx + 1] === 1;
-            this.emit('readiness', {
-              message,
-              readiness: programmerMode
-                ? {
-                    state: 'ready',
-                  }
-                : {
-                    state: 'pending-mode-switch',
-                    message:
-                      'Device must be switched to programmer mode before it can be used with this profile.',
-                  },
-            });
-          }
-          return true;
-        }
-      }
-
-      return false;
-    }
-    return false;
-  };
-
-  public getFeedbackCapabilities: MidiProfile['getFeedbackCapabilities'] =
-    () => ({
-      [FEEDBACK_KEY]: {
-        led:
-          this.ledMode === 'notes'
-            ? {
-                type: 'palette',
-                brightnessValues: 1,
-                palette: createNovationLaunchpadRGBPallette(),
-              }
-            : {
-                type: 'rgb',
-                limits: {
-                  rBits: 7,
-                  gBits: 7,
-                  bBits: 7,
-                },
-              },
+    super({
+      getLayout: novationLaunchpadMk3XProgrammerLayout,
+      noteOffMode: '0-velocity',
+      modeSwitching: NOVATION_LAUNCHPAD_MK3_X_MODE_SWITCHING,
+      validatePort: () => {
+        const isIncorrectPort =
+          // MacOS
+          connection.inputDeviceName.includes('LPX DAW') ||
+          // Windows
+          connection.inputDeviceName === 'LPX MIDI';
+        return isIncorrectPort
+          ? {
+              isIncorrectPort: true,
+              reason:
+                connection.inputDeviceName === 'LPX MIDI'
+                  ? 'This profile cannot be used with port 1 of this device, please use the MIDIIN2 port instead.'
+                  : 'This profile cannot be used with the LPX DAW port, please use the MIDI port instead.',
+            }
+          : { isIncorrectPort: false };
       },
+      getFeedbackCapabilities: () => ({
+        [FEEDBACK_KEY]: {
+          led:
+            this.ledMode === 'notes'
+              ? {
+                  type: 'palette',
+                  brightnessValues: 1,
+                  palette: createNovationLaunchpadRGBPallette(),
+                }
+              : {
+                  type: 'rgb',
+                  limits: {
+                    rBits: 7,
+                    gBits: 7,
+                    bBits: 7,
+                  },
+                },
+        },
+      }),
     });
+  }
 }
 
 let colorSpace: ColorSpace<[number]> | null = null;
 
-const createModeSwitcher = (
-  sendMessage: (message: number[]) => void,
-): Pick<MidiFeedbackProfile, 'performModeSwitch' | 'close'> => {
-  let hasSwitched = false;
-
-  const checkMode = () => {
-    // Send a request to check the current mode of the device
-    sendMessage([...NOVATION_LAUNCHPAD_MK3_X_SYSEX_HEADER, 0x0e, 0xf7]);
-  };
-
-  // Immediately check the device mode
-  setTimeout(checkMode, 0);
-
-  /**
-   * Start an interval to periodically check the current mode of the device,
-   * this will allow users to be notified if the device reaches an unexpected
-   * state.
-   */
-  const interval = setInterval(checkMode, 1000);
-
-  return {
-    performModeSwitch: () => {
-      hasSwitched = true;
-      sendMessage([...NOVATION_LAUNCHPAD_MK3_X_SYSEX_HEADER, 0x0e, 1, 0xf7]);
-    },
-    close: async () => {
-      clearInterval(interval);
-      if (hasSwitched) {
-        sendMessage([...NOVATION_LAUNCHPAD_MK3_X_SYSEX_HEADER, 0x0e, 0, 0xf7]);
-      }
-    },
-  };
-};
-
 export const createNovationLaunchpadMk3XFeedbackProfile: MidiFeedbackProfileInit =
   ({ connection, inputProfile, sendMessage }) => {
-    const modeSwitcher = createModeSwitcher(sendMessage);
+    const modeSwitcher = createNovationModeSwitcher({
+      ...NOVATION_LAUNCHPAD_MK3_X_MODE_SWITCHING,
+      sendMessage,
+    });
 
     const profile = createBasicColorVelocityFeedbackProfile({
       defaultVelocities: {
@@ -497,7 +372,10 @@ export const createNovationLaunchpadMk3XFeedbackProfileRGB: MidiFeedbackProfileI
       }
     };
 
-    const modeSwitcher = createModeSwitcher(sendMessage);
+    const modeSwitcher = createNovationModeSwitcher({
+      ...NOVATION_LAUNCHPAD_MK3_X_MODE_SWITCHING,
+      sendMessage,
+    });
 
     const clear = () => {
       lastColours.fill([-1, -1, -1]);
@@ -590,21 +468,13 @@ export const NOVATION_LAUNCHPAD_MK3_X: MidiProfileDefinition = {
     default: {
       name: 'Programmer Mode - Sysex RGB Feedback',
       input: ({ connection }) =>
-        new NovationLaunchpadMk3XProfileProgrammerMode(
-          connection,
-          'rgb',
-          novationLaunchpadMk3XProgrammerLayout,
-        ),
+        new NovationLaunchpadMk3XProfileProgrammerMode(connection, 'rgb'),
       feedback: createNovationLaunchpadMk3XFeedbackProfileRGB,
     },
     notes: {
       name: 'Programmer Mode - Note Feedback',
       input: ({ connection }) =>
-        new NovationLaunchpadMk3XProfileProgrammerMode(
-          connection,
-          'notes',
-          novationLaunchpadMk3XProgrammerLayout,
-        ),
+        new NovationLaunchpadMk3XProfileProgrammerMode(connection, 'notes'),
       feedback: createNovationLaunchpadMk3XFeedbackProfile,
     },
   },
