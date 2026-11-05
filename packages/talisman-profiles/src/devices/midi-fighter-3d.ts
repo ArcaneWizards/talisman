@@ -19,6 +19,8 @@ import {
   MIDI_FIGHTER_9_COLOR_SPACE,
 } from './shared/midi-fighter.js';
 
+const LED_FEEDBACK_KEY = 'feedback-9-color';
+
 export const createMidiFighter3DProfile: MidiProfileInit = () => {
   const items: Record<string, MidiControllerItem> = {};
   const buttonNatures: Record<
@@ -48,6 +50,7 @@ export const createMidiFighter3DProfile: MidiProfileInit = () => {
         buttonNatures[controller] = { item: id, nature: buttonNature };
         items[id] = {
           id,
+          feedback: LED_FEEDBACK_KEY,
           note: [
             {
               id: {
@@ -113,6 +116,10 @@ export const createMidiFighter3DProfile: MidiProfileInit = () => {
         items[id] = {
           id,
           label: SIDE_BUTTON_LABELS[button],
+          position: {
+            col: button < 3 ? -1 : 4,
+            row: 1 + (button % 3),
+          },
           note: [
             {
               id: {
@@ -131,7 +138,15 @@ export const createMidiFighter3DProfile: MidiProfileInit = () => {
   return new MidiProfileBasic({
     getItems: () => Object.values(items),
     getItem: (id) => items[id] ?? null,
-    getFeedbackCapabilities: () => ({}),
+    getFeedbackCapabilities: () => ({
+      [LED_FEEDBACK_KEY]: {
+        led: {
+          type: 'palette',
+          brightnessValues: 1,
+          palette: MIDI_FIGHTER_9_COLOR_SPACE.map((c) => c.color),
+        },
+      },
+    }),
     getAction: (msg): MidiControllerAction | null => {
       if (msg.type === 'control-change') {
         if (msg.channel === BUTTON_CONTROL_CHANGE_CHANNEL) {

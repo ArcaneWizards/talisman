@@ -6,21 +6,27 @@ import {
   MidiControllerAction,
   MidiControllerItem,
   MidiNumericNature,
-  MidiProfileInit,
   MidiColorFeedback,
   MidiFeedbackProfile,
   MidiFeedbackProfileInit,
   MidiProfileDefinition,
+  MidiProfile,
 } from '@arcanewizards/talisman/core';
 import { ColorSpace, RGB } from '@arcanewizards/talisman/color';
 import { MidiProfileBasic } from '@arcanewizards/talisman/profile';
 import {
+  createMidiFighterClassicColorPalette,
   createMidiFighterClassicColorSpace,
+  createMidiFighterExpandedColorPalette,
   createMidiFighterExpandedColorSpace,
   MIDI_FIGHTER_BRIGHTNESS_LEVELS,
 } from './shared/midi-fighter.js';
 
-export const createMidiFighterTwisterProfile: MidiProfileInit = () => {
+const FEEDBACK_KEY = 'feedback-encoder';
+
+export const createMidiFighterTwisterProfile = (
+  feedbackMode: 'classic' | 'expanded',
+): MidiProfile => {
   const items: Record<string, MidiControllerItem> = {};
   const buttonNatures: Record<
     string,
@@ -55,6 +61,7 @@ export const createMidiFighterTwisterProfile: MidiProfileInit = () => {
         encoderNatures[controller] = { item: id, nature: encoderNature };
         items[id] = {
           id,
+          feedback: FEEDBACK_KEY,
           controlChange: [
             {
               id: {
@@ -123,6 +130,10 @@ export const createMidiFighterTwisterProfile: MidiProfileInit = () => {
         items[id] = {
           id,
           label: SIDE_BUTTON_LABELS[button],
+          position: {
+            col: button < 3 ? -1 : 4,
+            row: 3 - (button % 3),
+          },
           controlChange: [
             {
               id: {
@@ -141,7 +152,21 @@ export const createMidiFighterTwisterProfile: MidiProfileInit = () => {
   return new MidiProfileBasic({
     getItems: () => Object.values(items),
     getItem: (id) => items[id] ?? null,
-    getFeedbackCapabilities: () => ({}),
+    getFeedbackCapabilities: () => ({
+      [FEEDBACK_KEY]: {
+        led: {
+          type: 'palette',
+          brightnessValues: 1,
+          palette:
+            feedbackMode === 'classic'
+              ? createMidiFighterClassicColorPalette()
+              : createMidiFighterExpandedColorPalette(),
+        },
+        encoderLEDs: {
+          modes: ['fill'],
+        },
+      },
+    }),
     getAction: (msg): MidiControllerAction | null => {
       if (msg.type === 'control-change') {
         if (msg.channel === 0) {
@@ -370,12 +395,12 @@ export const MIDI_FIGHTER_TWISTER: MidiProfileDefinition = {
   subProfiles: {
     default: {
       name: 'Color Map: Classic',
-      input: createMidiFighterTwisterProfile,
+      input: () => createMidiFighterTwisterProfile('classic'),
       feedback: createMidiFighterTwisterClassicFeedback,
     },
     expanded: {
       name: 'Color Map: Expanded',
-      input: createMidiFighterTwisterProfile,
+      input: () => createMidiFighterTwisterProfile('expanded'),
       feedback: createMidiFighterTwisterExpandedFeedback,
     },
   },
