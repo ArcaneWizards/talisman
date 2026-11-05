@@ -3,6 +3,7 @@ import { createBasicColorVelocityFeedbackProfile } from '@arcanewizards/talisman
 import { MidiProfileBase } from '@arcanewizards/talisman/profile';
 import {
   createNovationLaunchpadRGBColorSpace,
+  createNovationLaunchpadRGBPallette,
   NovationButtonInfo,
   NovationButtonOnlyLayout,
 } from './shared/novation.js';
@@ -14,7 +15,6 @@ import {
   MidiButtonNature,
   MidiControllerItem,
   MidiProfile,
-  MidiProfileInit,
   MidiProfileDefinition,
   MidiColorFeedback,
   MidiFeedbackProfile,
@@ -25,6 +25,8 @@ import { startsWithSysex } from '@arcanewizards/talisman/util';
 const NOVATION_LAUNCHPAD_MK3_X_SYSEX_HEADER = [
   0xf0, 0x00, 0x20, 0x29, 0x02, 0x0c,
 ];
+
+const FEEDBACK_KEY = 'feedback-rgb';
 
 const UNIVERSAL_CONTROLLER_BUTTONS = Object.freeze([
   {
@@ -164,6 +166,7 @@ const addControllerButtons = (
     items[id] = {
       id,
       label: 'label' in button ? button.label : undefined,
+      feedback: FEEDBACK_KEY,
       position: { col, row },
       controlChange: [
         {
@@ -196,6 +199,7 @@ export const novationLaunchpadMk3XProgrammerLayout: NovationButtonOnlyLayout =
         items[id] = {
           id,
           position: { col, row },
+          feedback: FEEDBACK_KEY,
           note: [
             {
               id: {
@@ -225,6 +229,7 @@ class NovationLaunchpadMk3XProfileProgrammerMode extends MidiProfileBase {
 
   public constructor(
     private readonly connection: MidiInputConnectionInfo,
+    private readonly ledMode: 'rgb' | 'notes',
     _layout: NovationButtonOnlyLayout,
   ) {
     super();
@@ -344,15 +349,27 @@ class NovationLaunchpadMk3XProfileProgrammerMode extends MidiProfileBase {
     return false;
   };
 
-  public getFeedbackCapabilities = () => ({});
+  public getFeedbackCapabilities: MidiProfile['getFeedbackCapabilities'] =
+    () => ({
+      [FEEDBACK_KEY]: {
+        led:
+          this.ledMode === 'notes'
+            ? {
+                type: 'palette',
+                brightnessValues: 1,
+                palette: createNovationLaunchpadRGBPallette(),
+              }
+            : {
+                type: 'rgb',
+                limits: {
+                  rBits: 7,
+                  gBits: 7,
+                  bBits: 7,
+                },
+              },
+      },
+    });
 }
-
-export const createNovationLaunchpadMk3XProfileProgrammerMode: MidiProfileInit =
-  ({ connection }) =>
-    new NovationLaunchpadMk3XProfileProgrammerMode(
-      connection,
-      novationLaunchpadMk3XProgrammerLayout,
-    );
 
 let colorSpace: ColorSpace<[number]> | null = null;
 
@@ -572,12 +589,22 @@ export const NOVATION_LAUNCHPAD_MK3_X: MidiProfileDefinition = {
   subProfiles: {
     default: {
       name: 'Programmer Mode - Sysex RGB Feedback',
-      input: createNovationLaunchpadMk3XProfileProgrammerMode,
+      input: ({ connection }) =>
+        new NovationLaunchpadMk3XProfileProgrammerMode(
+          connection,
+          'rgb',
+          novationLaunchpadMk3XProgrammerLayout,
+        ),
       feedback: createNovationLaunchpadMk3XFeedbackProfileRGB,
     },
     notes: {
       name: 'Programmer Mode - Note Feedback',
-      input: createNovationLaunchpadMk3XProfileProgrammerMode,
+      input: ({ connection }) =>
+        new NovationLaunchpadMk3XProfileProgrammerMode(
+          connection,
+          'notes',
+          novationLaunchpadMk3XProgrammerLayout,
+        ),
       feedback: createNovationLaunchpadMk3XFeedbackProfile,
     },
   },

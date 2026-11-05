@@ -3,6 +3,7 @@ import { createBasicColorVelocityFeedbackProfile } from '@arcanewizards/talisman
 import {
   createNovationButtonOnlyProfile,
   createNovationLaunchpadRGBColorSpace,
+  createNovationLaunchpadRGBPallette,
   NovationButtonInfo,
   NovationButtonOnlyLayout,
 } from './shared/novation.js';
@@ -13,12 +14,17 @@ import {
   MidiButtonNature,
   MidiControllerItem,
   MidiProfile,
-  MidiProfileInit,
   MidiColorFeedback,
   MidiFeedbackProfile,
   MidiFeedbackProfileInit,
   MidiProfileDefinition,
 } from '@arcanewizards/talisman/core';
+
+const NOVATION_LAUNCHPAD_MK3_MINI_SYSEX_HEADER = [
+  0xf0, 0x00, 0x20, 0x29, 0x02, 0x0d,
+];
+
+const FEEDBACK_KEY = 'feedback-rgb';
 
 const UNIVERSAL_CONTROLLER_BUTTONS = Object.freeze([
   {
@@ -155,6 +161,7 @@ const addControllerButtons = (
     items[id] = {
       id,
       position: { col, row },
+      feedback: FEEDBACK_KEY,
       controlChange: [
         {
           id: {
@@ -186,6 +193,7 @@ export const novationLaunchpadMk3MiniSessionLayout: NovationButtonOnlyLayout =
         items[id] = {
           id,
           position: { col, row },
+          feedback: FEEDBACK_KEY,
           note: [
             {
               id: {
@@ -206,12 +214,6 @@ export const novationLaunchpadMk3MiniSessionLayout: NovationButtonOnlyLayout =
 
     return { items, notes, controllers };
   };
-
-export const createNovationLaunchpadMk3MiniProfileSessionMode: MidiProfileInit =
-  createNovationButtonOnlyProfile({
-    getLayout: novationLaunchpadMk3MiniSessionLayout,
-    noteOffMode: 'note-off',
-  });
 
 let colorSpace: ColorSpace<[number]> | null = null;
 
@@ -306,12 +308,7 @@ export const createNovationLaunchpadMk3MiniFeedbackProfileRGB: MidiFeedbackProfi
 
         const sendBatch = () => {
           sendMessage([
-            0xf0,
-            0x00,
-            0x20,
-            0x29,
-            0x02,
-            0x0d,
+            ...NOVATION_LAUNCHPAD_MK3_MINI_SYSEX_HEADER,
             0x03,
             ...batch.flat(),
             0xf7,
@@ -356,14 +353,41 @@ export const NOVATION_LAUNCHPAD_MK3_MINI: MidiProfileDefinition = {
       name: 'Sysex RGB Feedback',
       notice:
         'To be able to control the lights of the top row of buttons, please ensure your launchpad is in Programmer mode',
-      input: createNovationLaunchpadMk3MiniProfileSessionMode,
+      input: createNovationButtonOnlyProfile({
+        getLayout: novationLaunchpadMk3MiniSessionLayout,
+        noteOffMode: 'note-off',
+        getFeedbackCapabilities: () => ({
+          [FEEDBACK_KEY]: {
+            led: {
+              type: 'rgb',
+              limits: {
+                rBits: 7,
+                gBits: 7,
+                bBits: 7,
+              },
+            },
+          },
+        }),
+      }),
       feedback: createNovationLaunchpadMk3MiniFeedbackProfileRGB,
     },
     notes: {
       name: 'Note Feedback',
       notice:
         'To be able to control the lights of the top row of buttons, please ensure your launchpad is in Programmer mode',
-      input: createNovationLaunchpadMk3MiniProfileSessionMode,
+      input: createNovationButtonOnlyProfile({
+        getLayout: novationLaunchpadMk3MiniSessionLayout,
+        noteOffMode: 'note-off',
+        getFeedbackCapabilities: () => ({
+          [FEEDBACK_KEY]: {
+            led: {
+              type: 'palette',
+              brightnessValues: 1,
+              palette: createNovationLaunchpadRGBPallette(),
+            },
+          },
+        }),
+      }),
       feedback: createNovationLaunchpadMk3MiniFeedbackProfile,
     },
   },

@@ -1,4 +1,4 @@
-import { FC, ReactNode, SVGProps, useMemo } from 'react';
+import { FC, Fragment, ReactNode, SVGProps, useMemo } from 'react';
 import { TalismanFullProfileInfo } from './device-profile-details';
 import {
   MIDI_CHANNEL_OPTIONS_SHORT,
@@ -8,6 +8,7 @@ import {
   MidiNumericNature,
 } from '@arcanewizards/talisman';
 import { isDefined } from './util';
+import { RGB } from '@arcanewizards/talisman/color';
 
 type CellSpan = {
   cols: [number, number];
@@ -179,6 +180,7 @@ export type MidiPreviewColorsProp = {
   text: string;
   hover: string;
   highlight: string;
+  elementBackground: string;
 };
 
 export type MidiDevicePreviewProps = Omit<
@@ -317,28 +319,73 @@ type UseFeedbackSymbolsArgs = {
   colors: MidiPreviewColorsProp;
 };
 
+const NUMBER_OF_ENCODER_LINES = 11;
+const ENCODER_LINE_ROTATION_FACTOR = 0.8;
+
+const feedbackEncoderLines = (colors: RGB[]) => {
+  return (
+    <>
+      {Array.from({ length: NUMBER_OF_ENCODER_LINES }).map((_, i) => {
+        const color = colors[
+          Math.min(
+            Math.round((colors.length / NUMBER_OF_ENCODER_LINES) * i),
+            colors.length - 1,
+          )
+        ] ?? [0, 0, 0];
+
+        return (
+          <line
+            key={i}
+            x1={FEEDBACK_WIDTH / 2}
+            y1={GRID_SIZE / 8}
+            x2={FEEDBACK_WIDTH / 2}
+            y2={FEEDBACK_HEIGHT * 0.3}
+            stroke={`rgb(${color.join(',')})`}
+            strokeWidth={GRID_SIZE / 16}
+            strokeLinecap="round"
+            style={{
+              transformOrigin: `${FEEDBACK_WIDTH / 2}px ${FEEDBACK_HEIGHT * 0.6}px`,
+              transform: `rotate(${((i - Math.floor(NUMBER_OF_ENCODER_LINES / 2)) / NUMBER_OF_ENCODER_LINES) * 360 * ENCODER_LINE_ROTATION_FACTOR}deg)`,
+            }}
+          />
+        );
+      })}
+    </>
+  );
+};
+
 const useFeedbackSymbols = ({
   namespace,
   info,
   colors: c,
 }: UseFeedbackSymbolsArgs) => {
   const rainbowGradient = `${namespace}-rainbow-gradient`;
+  const encoderMask = `${namespace}-encoder-mask`;
   const noFeedback = `${namespace}-no-feedback`;
   const mixedFeedback = `${namespace}-mixed-feedback`;
 
   const defs = useMemo(
     () => (
-      <linearGradient id={rainbowGradient} x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="red" />
-        <stop offset="16.66%" stopColor="orange" />
-        <stop offset="33.33%" stopColor="yellow" />
-        <stop offset="50%" stopColor="green" />
-        <stop offset="66.66%" stopColor="blue" />
-        <stop offset="83.33%" stopColor="indigo" />
-        <stop offset="100%" stopColor="violet" />
-      </linearGradient>
+      <>
+        <linearGradient
+          id={rainbowGradient}
+          x1="0%"
+          y1="0%"
+          x2="100%"
+          y2="100%"
+        >
+          <stop offset="0%" stopColor="red" />
+          <stop offset="16.66%" stopColor="orange" />
+          <stop offset="33.33%" stopColor="yellow" />
+          <stop offset="50%" stopColor="green" />
+          <stop offset="66.66%" stopColor="blue" />
+          <stop offset="83.33%" stopColor="indigo" />
+          <stop offset="100%" stopColor="violet" />
+        </linearGradient>
+        <mask id={encoderMask}>{feedbackEncoderLines([[255, 255, 255]])}</mask>
+      </>
     ),
-    [rainbowGradient],
+    [rainbowGradient, encoderMask],
   );
 
   const symbols = useMemo(() => {
@@ -386,6 +433,7 @@ const useFeedbackSymbols = ({
             value.led.limits.bBits +
             value.led.limits.gBits +
             value.led.limits.rBits;
+
           symbols.push(
             <symbol
               id={id}
@@ -398,6 +446,7 @@ const useFeedbackSymbols = ({
                 width={FEEDBACK_WIDTH - margin * 2}
                 height={FEEDBACK_HEIGHT - margin * 2}
                 fill={`url(#${rainbowGradient})`}
+                mask={value.encoderLEDs ? `url(#${encoderMask})` : undefined}
               />
               <text
                 x={FEEDBACK_WIDTH / 2}
@@ -411,6 +460,7 @@ const useFeedbackSymbols = ({
                 stroke={c.border}
                 strokeWidth={FEEDBACK_FONT_SIZE / 2}
                 paintOrder="stroke"
+                opacity={0.9}
               >
                 {bits}bit
               </text>
@@ -426,6 +476,7 @@ const useFeedbackSymbols = ({
                 stroke={c.border}
                 strokeWidth={FEEDBACK_FONT_SIZE / 2}
                 paintOrder="stroke"
+                opacity={0.9}
               >
                 RGB
               </text>
@@ -445,23 +496,28 @@ const useFeedbackSymbols = ({
           const pGridHeight = (FEEDBACK_HEIGHT - margin * 2) / (isEven ? 2 : 1);
 
           const grid: ReactNode[] = [];
-          for (let i = 0; i < showColors; i++) {
-            const color = colors[Math.round(i * (colors.length / showColors))];
-            if (!color) continue;
-            const row = isEven ? Math.floor(i / (showColors / 2)) : 0;
-            const col = isEven ? i % (showColors / 2) : i;
-            const x = col * pGridWidth + margin;
-            const y = row * pGridHeight + margin;
-            grid.push(
-              <rect
-                key={i}
-                x={x}
-                y={y}
-                width={pGridWidth}
-                height={pGridHeight}
-                fill={`rgb(${color.join(',')})`}
-              />,
-            );
+          if (value.encoderLEDs) {
+            grid.push(<g key="encoder">{feedbackEncoderLines(colors)}</g>);
+          } else {
+            for (let i = 0; i < showColors; i++) {
+              const color =
+                colors[Math.round(i * (colors.length / showColors))];
+              if (!color) continue;
+              const row = isEven ? Math.floor(i / (showColors / 2)) : 0;
+              const col = isEven ? i % (showColors / 2) : i;
+              const x = col * pGridWidth + margin;
+              const y = row * pGridHeight + margin;
+              grid.push(
+                <rect
+                  key={i}
+                  x={x}
+                  y={y}
+                  width={pGridWidth}
+                  height={pGridHeight}
+                  fill={`rgb(${color.join(',')})`}
+                />,
+              );
+            }
           }
 
           symbols.push(
@@ -483,6 +539,7 @@ const useFeedbackSymbols = ({
                 stroke={c.border}
                 strokeWidth={FEEDBACK_FONT_SIZE / 2}
                 paintOrder="stroke"
+                opacity={0.9}
               >
                 {colors.length}
               </text>
@@ -498,6 +555,7 @@ const useFeedbackSymbols = ({
                 stroke={c.border}
                 strokeWidth={FEEDBACK_FONT_SIZE / 2}
                 paintOrder="stroke"
+                opacity={0.9}
               >
                 colors
               </text>
@@ -526,6 +584,7 @@ const useFeedbackSymbols = ({
             stroke={c.border}
             strokeWidth={FEEDBACK_FONT_SIZE / 2}
             paintOrder="stroke"
+            opacity={0.5}
           >
             NO
           </text>
@@ -541,6 +600,7 @@ const useFeedbackSymbols = ({
             stroke={c.border}
             strokeWidth={FEEDBACK_FONT_SIZE / 2}
             paintOrder="stroke"
+            opacity={0.5}
           >
             FDBK
           </text>
@@ -586,6 +646,7 @@ const useFeedbackSymbols = ({
   }, [
     info.feedbackCapabilities,
     rainbowGradient,
+    encoderMask,
     namespace,
     c,
     noFeedback,
@@ -607,6 +668,7 @@ const useMemoizedColors = (rawColors: MidiPreviewColorsProp) =>
       text: rawColors.text,
       hover: rawColors.hover,
       highlight: rawColors.highlight,
+      elementBackground: rawColors.elementBackground,
     }),
     [
       rawColors.cellBackground,
@@ -614,6 +676,7 @@ const useMemoizedColors = (rawColors: MidiPreviewColorsProp) =>
       rawColors.text,
       rawColors.hover,
       rawColors.highlight,
+      rawColors.elementBackground,
     ],
   );
 
@@ -716,6 +779,117 @@ const textElements = ({
   return { defs, elements };
 };
 
+type OrientationElementsArgs = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  orientation: 'circular' | 'horizontal' | 'vertical' | 'xy' | 'none';
+  c: MidiPreviewColorsProp;
+};
+
+const orientationElements = ({
+  x,
+  y,
+  width,
+  height,
+  orientation,
+  c,
+}: OrientationElementsArgs): ReactNode => {
+  if (orientation === 'none') return null;
+
+  if (orientation === 'circular') {
+    return (
+      <circle
+        cx={x + width / 2}
+        cy={y + height / 2}
+        r={Math.min(width, height) / 2 - MARGIN / 2}
+        fill={c.elementBackground}
+        stroke={c.border}
+        strokeWidth={5}
+      />
+    );
+  }
+
+  if (orientation === 'xy') {
+    return (
+      <>
+        <line
+          x1={x}
+          y1={y + height / 2}
+          x2={x + width}
+          y2={y + height / 2}
+          stroke={c.border}
+          strokeWidth={5}
+          strokeDasharray="10,5"
+        />
+        <line
+          x1={x + width / 2}
+          y1={y}
+          x2={x + width / 2}
+          y2={y + height}
+          stroke={c.border}
+          strokeWidth={5}
+          strokeDasharray="10,5"
+        />
+      </>
+    );
+  }
+
+  if (orientation === 'horizontal') {
+    const sliderWidth = Math.min(width / 4, GRID_SIZE / 3);
+    return (
+      <>
+        <line
+          x1={x}
+          y1={y + height / 2}
+          x2={x + width}
+          y2={y + height / 2}
+          stroke={c.border}
+          strokeWidth={5}
+          strokeDasharray="10,5"
+        />
+        <rect
+          x={x + (width - sliderWidth) * 0.1}
+          y={y + MARGIN / 2}
+          width={sliderWidth}
+          height={height - MARGIN}
+          fill={c.elementBackground}
+          stroke={c.border}
+          strokeWidth={5}
+        />
+      </>
+    );
+  }
+  if (orientation === 'vertical') {
+    const sliderHeight = Math.min(height / 4, GRID_SIZE / 3);
+    return (
+      <>
+        <line
+          x1={x + width / 2}
+          y1={y}
+          x2={x + width / 2}
+          y2={y + height}
+          stroke={c.border}
+          strokeWidth={5}
+          strokeDasharray="10,5"
+        />
+        <rect
+          x={x + MARGIN / 2}
+          y={y + (height - sliderHeight) * 0.9}
+          width={width - MARGIN}
+          height={sliderHeight}
+          fill={c.elementBackground}
+          stroke={c.border}
+          strokeWidth={5}
+        />
+      </>
+    );
+  }
+
+  const _exhaustiveCheck: never = orientation;
+};
+
 const NO_FEEDBACK_SYMBOL = Symbol('no-feedback');
 
 export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
@@ -763,8 +937,12 @@ export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
       const height =
         GRID_SIZE * (cell.span.rows[1] - cell.span.rows[0] + 1) +
         GAP * (cell.span.rows[1] - cell.span.rows[0]);
-      const x = MARGIN + cell.span.cols[0] * (GRID_SIZE + GAP);
-      const y = vh - (MARGIN + cell.span.rows[0] * (GRID_SIZE + GAP)) - height;
+      const x =
+        MARGIN + (cell.span.cols[0] - gridInfo.minX) * (GRID_SIZE + GAP);
+      const y =
+        vh -
+        (MARGIN + (cell.span.rows[0] - gridInfo.minY) * (GRID_SIZE + GAP)) -
+        height;
 
       items.push(
         <rect
@@ -777,6 +955,24 @@ export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
           stroke={c.border}
         />,
       );
+
+      const orientations = Array.from(
+        new Set(cell.items.map((item) => item.position?.orientation ?? 'none')),
+      );
+      const orientation = orientationElements({
+        x,
+        y,
+        width,
+        height: height - TEXT_HEIGHT,
+        orientation: (orientations.length === 1 && orientations[0]) || 'none',
+        c,
+      });
+
+      if (orientation) {
+        items.push(
+          <Fragment key={`cell-${i}-orientation`}>{orientation}</Fragment>,
+        );
+      }
 
       const feedback = Array.from(
         new Set(cell.items.map((item) => item.feedback).filter(isDefined)),
@@ -882,6 +1078,7 @@ export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
         span: CellSpan;
       }
     > = {};
+    if (!gridInfo) return [];
     for (const { item, opacity } of selectedItems || []) {
       const span = getCellSpan(item);
       if (!span) continue;
@@ -894,7 +1091,7 @@ export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
         span,
       };
     }
-    const rows = gridInfo?.rows || 0;
+    const rows = gridInfo.rows;
     const vh = MARGIN * 2 + GRID_SIZE * rows + GAP * (rows - 1);
     return Object.entries(highlighedFingerprints).map(
       ([fingerprint, { opacity, span }]) => {
@@ -904,8 +1101,11 @@ export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
         const height =
           GRID_SIZE * (span.rows[1] - span.rows[0] + 1) +
           GAP * (span.rows[1] - span.rows[0]);
-        const x = MARGIN + span.cols[0] * (GRID_SIZE + GAP);
-        const y = vh - (MARGIN + span.rows[0] * (GRID_SIZE + GAP)) - height;
+        const x = MARGIN + (span.cols[0] - gridInfo.minX) * (GRID_SIZE + GAP);
+        const y =
+          vh -
+          (MARGIN + (span.rows[0] - gridInfo.minY) * (GRID_SIZE + GAP)) -
+          height;
         return (
           <g key={fingerprint} opacity={opacity}>
             <rect
@@ -922,7 +1122,7 @@ export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
         );
       },
     );
-  }, [selectedItems, c, gridInfo?.rows]);
+  }, [selectedItems, c, gridInfo]);
 
   if (!elements)
     return (

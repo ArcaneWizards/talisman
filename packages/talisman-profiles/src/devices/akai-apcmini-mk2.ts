@@ -584,7 +584,7 @@ export const createApcMiniMk2Profile =
           ],
           position: {
             col,
-            row: 0,
+            row: [-1, 0],
             orientation: 'vertical',
           },
           feedback: null,

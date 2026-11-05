@@ -6,12 +6,15 @@ import {
   RGB,
 } from '@arcanewizards/talisman/color';
 
+export const createMidiFighterClassicColorPalette = () =>
+  Array.from({ length: 125 }).map((_, i) =>
+    hslToRgb({ h: (360 + 240 - (i / 125) * 360) % 360, s: 100, l: 50 }),
+  );
+
 export const createMidiFighterClassicColorSpace = (): ColorSpace<
   [number, number]
 > => {
-  const NOTE_TO_COLOR = Array.from({ length: 125 }).map((_, i) =>
-    hslToRgb({ h: (360 + 240 - (i / 125) * 360) % 360, s: 100, l: 50 }),
-  );
+  const NOTE_TO_COLOR = createMidiFighterClassicColorPalette();
 
   return createColorSpace({
     // Device supports 32 values of brightness (0-31)
@@ -230,10 +233,13 @@ export const MIDI_FIGHTER_EXPANDED_PALLETTE = [
  */
 export const MIDI_FIGHTER_BRIGHTNESS_LEVELS = [0, 0.2, 1];
 
+export const createMidiFighterExpandedColorPalette = () =>
+  MIDI_FIGHTER_EXPANDED_PALLETTE.map(hexToRGB);
+
 export const createMidiFighterExpandedColorSpace = (): ColorSpace<
   [number, number]
 > => {
-  const rgb: RGB[] = MIDI_FIGHTER_EXPANDED_PALLETTE.map(hexToRGB);
+  const rgb: RGB[] = createMidiFighterExpandedColorPalette();
 
   return createColorSpace({
     // Device supports 32 values of brightness (0-31)

@@ -504,11 +504,11 @@ export type MidiCoordinateInfo = {
   row?: number | [number, number];
   /**
    * In cases where the control has a specific orientation,
-   * this indicates whether it is vertical or horizontal.
+   * this can be specified here.
    *
-   * (for example faders)
+   * (for example vertical/horizontal faders, or circular knobs)
    */
-  orientation?: 'vertical' | 'horizontal';
+  orientation?: 'vertical' | 'horizontal' | 'circular' | 'xy';
 };
 
 /**

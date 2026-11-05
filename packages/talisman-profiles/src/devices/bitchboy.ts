@@ -34,11 +34,11 @@ export const createBitchboyProfile: MidiProfileInit = () => {
   {
     // Encapsulate to leave out of scope
 
-    // 3x3 Pad Grid Left
+    // 3x3 Pad Grid Right
     const PAD_3X3_NOTES = [36, 37, 38, 40, 41, 42, 44, 45, 46];
     for (let i = 0; i < PAD_3X3_NOTES.length; i++) {
       const note = getMidiNote(PAD_3X3_NOTES[i]!);
-      const col = (i % 3) + 9;
+      const col = (i % 3) + 11;
       const row = Math.floor(i / 3);
       const id = itemId('note', note);
       const nature: MidiButtonNature = { nature: 'grid' };
@@ -144,7 +144,7 @@ export const createBitchboyProfile: MidiProfileInit = () => {
     }
 
     // Faders
-    for (let col = 0; col < 9; col++) {
+    for (let col = 0; col < 8; col++) {
       const controller = getMidiController(col);
       const id = itemId('cc', controller);
       const nature: MidiNumericNature = {
@@ -171,7 +171,7 @@ export const createBitchboyProfile: MidiProfileInit = () => {
     }
 
     // FX Sliders
-    for (let i = 0; i < 9; i++) {
+    for (let i = 0; i < 4; i++) {
       const controller = getMidiController(8 + i);
       const row = 7 - i;
       const id = itemId('cc', controller);
@@ -189,7 +189,7 @@ export const createBitchboyProfile: MidiProfileInit = () => {
           },
         ],
         position: {
-          col: 8,
+          col: [8, 10],
           row,
           orientation: 'horizontal',
         },
@@ -212,10 +212,10 @@ export const createBitchboyProfile: MidiProfileInit = () => {
     };
 
     // Knobs
-    for (let i = 0; i < 9; i++) {
+    for (let i = 0; i < 8; i++) {
       const controller = getMidiController(i + 20);
       const row = 7 - (i >> 1);
-      const col = ((i % 2) << 1) + 9;
+      const col = ((i % 2) << 1) + 11;
       const id = itemId('cc', controller);
       const nature: MidiNumericNature = {
         nature: 'encoder',
@@ -233,6 +233,7 @@ export const createBitchboyProfile: MidiProfileInit = () => {
         position: {
           col,
           row,
+          orientation: 'circular',
         },
         feedback: null,
       };
@@ -244,8 +245,9 @@ export const createBitchboyProfile: MidiProfileInit = () => {
     id: 'trackpad',
     label: 'Trackpad',
     position: {
-      col: 8,
+      col: [8, 10],
       row: [0, 2],
+      orientation: 'xy',
     },
     controlChange: [
       {

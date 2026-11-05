@@ -3,6 +3,7 @@ import { createBasicColorVelocityFeedbackProfile } from '@arcanewizards/talisman
 import {
   createNovationButtonOnlyProfile,
   createNovationLaunchpadRGBColorSpace,
+  createNovationLaunchpadRGBPallette,
   NovationButtonInfo,
   NovationButtonOnlyLayout,
 } from './shared/novation.js';
@@ -12,12 +13,17 @@ import {
   MidiButtonNature,
   MidiControllerItem,
   MidiProfile,
-  MidiProfileInit,
   MidiColorFeedback,
   MidiFeedbackProfile,
   MidiFeedbackProfileInit,
   MidiProfileDefinition,
 } from '@arcanewizards/talisman/core';
+
+const NOVATION_LAUNCHPAD_MK2_PRO_SYSEX_HEADER = [
+  0xf0, 0x00, 0x20, 0x29, 0x02, 0x10,
+];
+
+const FEEDBACK_KEY = 'feedback-rgb';
 
 const CONTROLLER_BUTTONS = Object.freeze([
   {
@@ -224,6 +230,8 @@ const CONTROLLER_BUTTONS = Object.freeze([
  */
 const SIDE_LED: MidiControllerItem = {
   id: 'side',
+  label: 'Side LED',
+  feedback: FEEDBACK_KEY,
   note: [
     {
       id: {
@@ -234,7 +242,7 @@ const SIDE_LED: MidiControllerItem = {
     },
   ],
   position: {
-    row: 0,
+    row: -1,
     col: [4, 5],
   },
 };
@@ -254,6 +262,7 @@ const addControllerButtons = (
     items[id] = {
       id,
       position: { col, row },
+      feedback: FEEDBACK_KEY,
       controlChange: [
         {
           id: {
@@ -285,6 +294,7 @@ export const novationLaunchpadMK2ProProgrammerLayout: NovationButtonOnlyLayout =
         items[id] = {
           id,
           position: { col, row },
+          feedback: FEEDBACK_KEY,
           note: [
             {
               id: {
@@ -315,12 +325,6 @@ export const novationLaunchpadMK2ProProgrammerLayout: NovationButtonOnlyLayout =
 
     return { items, notes, controllers };
   };
-
-export const createNovationLaunchpadMk2ProProfileProgrammerMode: MidiProfileInit =
-  createNovationButtonOnlyProfile({
-    getLayout: novationLaunchpadMK2ProProgrammerLayout,
-    noteOffMode: 'note-off',
-  });
 
 let colorSpace: ColorSpace<[number]> | null = null;
 
@@ -406,12 +410,7 @@ export const createNovationLaunchpadMk2ProFeedbackProfileRGB: MidiFeedbackProfil
 
         const sendBatch = () => {
           sendMessage([
-            0xf0,
-            0x00,
-            0x20,
-            0x29,
-            0x02,
-            0x10,
+            ...NOVATION_LAUNCHPAD_MK2_PRO_SYSEX_HEADER,
             0x0b,
             ...batch.flat(),
             0xf7,
@@ -454,12 +453,39 @@ export const NOVATION_LAUNCHPAD_MK2_PRO: MidiProfileDefinition = {
   subProfiles: {
     default: {
       name: 'Programmer Mode - Sysex RGB Feedback',
-      input: createNovationLaunchpadMk2ProProfileProgrammerMode,
+      input: createNovationButtonOnlyProfile({
+        getLayout: novationLaunchpadMK2ProProgrammerLayout,
+        noteOffMode: 'note-off',
+        getFeedbackCapabilities: () => ({
+          [FEEDBACK_KEY]: {
+            led: {
+              type: 'rgb',
+              limits: {
+                rBits: 6,
+                gBits: 6,
+                bBits: 6,
+              },
+            },
+          },
+        }),
+      }),
       feedback: createNovationLaunchpadMk2ProFeedbackProfileRGB,
     },
     notes: {
       name: 'Programmer Mode - Note Feedback',
-      input: createNovationLaunchpadMk2ProProfileProgrammerMode,
+      input: createNovationButtonOnlyProfile({
+        getLayout: novationLaunchpadMK2ProProgrammerLayout,
+        noteOffMode: 'note-off',
+        getFeedbackCapabilities: () => ({
+          [FEEDBACK_KEY]: {
+            led: {
+              type: 'palette',
+              brightnessValues: 1,
+              palette: createNovationLaunchpadRGBPallette(),
+            },
+          },
+        }),
+      }),
       feedback: createNovationLaunchpadMk2ProFeedbackProfile,
     },
   },

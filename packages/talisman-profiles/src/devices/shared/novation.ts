@@ -2,9 +2,9 @@ import {
   ColorSpace,
   createColorSpace,
   hexToRGB,
-  RGB,
 } from '@arcanewizards/talisman/color';
 import {
+  FeedbackCapabilityProfile,
   MidiButtonNature,
   MidiControllerAction,
   MidiControllerItem,
@@ -182,10 +182,13 @@ export const NOVATION_LAUNCHPAD_RGB_PALLETTE = [
   '4a1400',
 ];
 
+export const createNovationLaunchpadRGBPallette = () =>
+  NOVATION_LAUNCHPAD_RGB_PALLETTE.map(hexToRGB);
+
 export const createNovationLaunchpadRGBColorSpace = (): ColorSpace<
   [number]
 > => {
-  const rgb: RGB[] = NOVATION_LAUNCHPAD_RGB_PALLETTE.map(hexToRGB);
+  const rgb = createNovationLaunchpadRGBPallette();
   return createColorSpace({
     sizes: [rgb.length],
     argsToRgb: ([velocity]) => {
@@ -214,6 +217,7 @@ export type CreateNovationButtonOnlyProfileArgs = {
   };
   noteOffMode: '0-velocity' | 'note-off';
   handleSysex?: (msg: number[]) => MidiControllerAction | null;
+  getFeedbackCapabilities?: () => Record<string, FeedbackCapabilityProfile>;
 };
 
 export type NovationButtonOnlyLayout =
@@ -223,6 +227,7 @@ export const createNovationButtonOnlyProfile =
   ({
     getLayout,
     noteOffMode,
+    getFeedbackCapabilities,
   }: CreateNovationButtonOnlyProfileArgs): MidiProfileInit =>
   () => {
     const { items, notes, controllers } = getLayout();
@@ -230,7 +235,7 @@ export const createNovationButtonOnlyProfile =
     return new MidiProfileBasic({
       getItems: () => Object.values(items),
       getItem: (id) => items[id] ?? null,
-      getFeedbackCapabilities: () => ({}),
+      getFeedbackCapabilities: () => getFeedbackCapabilities?.() ?? {},
       getAction: (msg): MidiControllerAction | null => {
         if (msg.type === 'note') {
           const info = notes[msg.note];
