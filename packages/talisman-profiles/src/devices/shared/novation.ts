@@ -5,6 +5,7 @@ import {
   RGB,
 } from '@arcanewizards/talisman/color';
 import {
+  FeedbackCapabilityProfile,
   MidiButtonNature,
   MidiControllerAction,
   MidiControllerItem,
@@ -214,6 +215,7 @@ export type CreateNovationButtonOnlyProfileArgs = {
   };
   noteOffMode: '0-velocity' | 'note-off';
   handleSysex?: (msg: number[]) => MidiControllerAction | null;
+  getFeedbackCapabilities?: () => Record<string, FeedbackCapabilityProfile>;
 };
 
 export type NovationButtonOnlyLayout =
@@ -223,6 +225,7 @@ export const createNovationButtonOnlyProfile =
   ({
     getLayout,
     noteOffMode,
+    getFeedbackCapabilities,
   }: CreateNovationButtonOnlyProfileArgs): MidiProfileInit =>
   () => {
     const { items, notes, controllers } = getLayout();
@@ -230,7 +233,7 @@ export const createNovationButtonOnlyProfile =
     return new MidiProfileBasic({
       getItems: () => Object.values(items),
       getItem: (id) => items[id] ?? null,
-      getFeedbackCapabilities: () => ({}),
+      getFeedbackCapabilities: () => getFeedbackCapabilities?.() ?? {},
       getAction: (msg): MidiControllerAction | null => {
         if (msg.type === 'note') {
           const info = notes[msg.note];

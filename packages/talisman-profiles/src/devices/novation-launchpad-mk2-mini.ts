@@ -2,6 +2,7 @@ import {
   ColorSpace,
   createColorSpace,
   hslToRgb,
+  RGB,
 } from '@arcanewizards/talisman/color';
 import { createBasicColorVelocityFeedbackProfile } from '@arcanewizards/talisman/feedback';
 import {
@@ -16,7 +17,10 @@ import {
   MidiButtonNature,
   MidiControllerItem,
   MidiProfileDefinition,
+  FeedbackCapabilityProfile,
 } from '@arcanewizards/talisman/core';
+
+const FEEDBACK_ID = 'rg-feedback';
 
 const novationLaunchpadMk2MiniLayout: NovationButtonOnlyLayout = () => {
   const items: Record<string, MidiControllerItem> = {};
@@ -33,6 +37,7 @@ const novationLaunchpadMk2MiniLayout: NovationButtonOnlyLayout = () => {
       items[id] = {
         id,
         position: { col, row },
+        feedback: FEEDBACK_ID,
         note: [
           {
             id: {
@@ -58,7 +63,8 @@ const novationLaunchpadMk2MiniLayout: NovationButtonOnlyLayout = () => {
     const note = getMidiNote((7 - row) * 16 + 8);
     items[id] = {
       id,
-      position: { col: 8, row },
+      position: { col: 8, row, orientation: 'circular' },
+      feedback: FEEDBACK_ID,
       label: RIGHT_LABELS[row],
       note: [
         {
@@ -84,7 +90,8 @@ const novationLaunchpadMk2MiniLayout: NovationButtonOnlyLayout = () => {
     const controller = getMidiController(0x68 + col);
     items[id] = {
       id,
-      position: { col, row: 8 },
+      position: { col, row: 8, orientation: 'circular' },
+      feedback: FEEDBACK_ID,
       label: String(col + 1),
       controlChange: [
         {
@@ -107,6 +114,32 @@ export const createNovationLaunchpadMk2MiniProfile =
   createNovationButtonOnlyProfile({
     getLayout: novationLaunchpadMk2MiniLayout,
     noteOffMode: '0-velocity',
+    getFeedbackCapabilities: () => {
+      /**
+       * Deduplicate deliberate NOVATION_RG_COLOURS duplicates before
+       * sending palette
+       */
+      const noteToValue: Map<number, RGB> = new Map();
+      for (const [note, rgb] of NOVATION_RG_COLOURS) {
+        if (!noteToValue.has(note)) {
+          // Value may already be set by earlier values in the array
+          // that actually indicate the color (ignore e.g. blue remappings)
+          noteToValue.set(
+            note,
+            hslToRgb({ h: rgb.hue, s: 100, l: rgb.lightness }),
+          );
+        }
+      }
+      return {
+        [FEEDBACK_ID]: {
+          led: {
+            type: 'palette',
+            brightnessValues: 1,
+            palette: Array.from(noteToValue.values()),
+          },
+        } satisfies FeedbackCapabilityProfile,
+      };
+    },
   });
 
 export const NOVATION_RG_COLOURS = Object.freeze([
@@ -127,8 +160,6 @@ export const NOVATION_RG_COLOURS = Object.freeze([
   [16, { lightness: 17, hue: 120 }],
   [96, { lightness: 30, hue: 120 }],
   [48, { lightness: 50, hue: 120 }],
-  [16, { lightness: 17, hue: 120 }],
-  [96, { lightness: 30, hue: 120 }],
   // Blue -> Green mapping, so that blue colors don't appear as black / red
   [16, { lightness: 17, hue: 240 }],
   [96, { lightness: 30, hue: 240 }],
