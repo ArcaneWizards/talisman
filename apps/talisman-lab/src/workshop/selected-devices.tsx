@@ -426,6 +426,7 @@ export const useSelectedDevices = (
     } catch (cause) {
       const error = new Error(`Failed to open MIDI input`, { cause });
       log.error(error);
+      setInput(null);
       setInputStatus({
         status: 'error',
         errors: [`${error.message}`, `${cause}`],
@@ -450,6 +451,7 @@ export const useSelectedDevices = (
           cause,
         });
         log.error(error);
+        setOutput(null);
         setOutputStatus({
           status: 'error',
           errors: [`${error.message}`, `${cause}`],
