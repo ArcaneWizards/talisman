@@ -3,6 +3,7 @@ import { createBasicColorVelocityFeedbackProfile } from '@arcanewizards/talisman
 import {
   createNovationButtonOnlyProfile,
   createNovationLaunchpadRGBColorSpace,
+  createNovationLaunchpadRGBPallette,
   NovationButtonInfo,
   NovationButtonOnlyLayout,
 } from './shared/novation.js';
@@ -13,7 +14,6 @@ import {
   MidiButtonNature,
   MidiControllerItem,
   MidiProfile,
-  MidiProfileInit,
   MidiColorFeedback,
   MidiFeedbackProfile,
   MidiFeedbackProfileInit,
@@ -23,6 +23,8 @@ import {
 const NOVATION_LAUNCHPAD_MK2_SYSEX_HEADER = [
   0xf0, 0x00, 0x20, 0x29, 0x02, 0x18,
 ];
+
+const FEEDBACK_KEY = 'feedback-rgb';
 
 const UNIVERSAL_CONTROLLER_BUTTONS = Object.freeze([
   {
@@ -152,6 +154,7 @@ const addControllerButtons = (
     const id = `controller-${col}-${row}`;
     items[id] = {
       id,
+      feedback: FEEDBACK_KEY,
       position: { col, row },
       controlChange: [
         {
@@ -183,6 +186,7 @@ export const novationLaunchpadMk2SessionLayout: NovationButtonOnlyLayout =
         const note = getMidiNote((row + 1) * 10 + col + 1);
         items[id] = {
           id,
+          feedback: FEEDBACK_KEY,
           position: { col, row },
           note: [
             {
@@ -204,12 +208,6 @@ export const novationLaunchpadMk2SessionLayout: NovationButtonOnlyLayout =
 
     return { items, notes, controllers };
   };
-
-export const createNovationLaunchpadMk2ProfileSessionMode: MidiProfileInit =
-  createNovationButtonOnlyProfile({
-    getLayout: novationLaunchpadMk2SessionLayout,
-    noteOffMode: 'note-off',
-  });
 
 let colorSpace: ColorSpace<[number]> | null = null;
 
@@ -337,12 +335,39 @@ export const NOVATION_LAUNCHPAD_MK2: MidiProfileDefinition = {
   subProfiles: {
     default: {
       name: 'Session Mode - Sysex RGB Feedback',
-      input: createNovationLaunchpadMk2ProfileSessionMode,
+      input: createNovationButtonOnlyProfile({
+        getLayout: novationLaunchpadMk2SessionLayout,
+        noteOffMode: 'note-off',
+        getFeedbackCapabilities: () => ({
+          [FEEDBACK_KEY]: {
+            led: {
+              type: 'rgb',
+              limits: {
+                rBits: 6,
+                gBits: 6,
+                bBits: 6,
+              },
+            },
+          },
+        }),
+      }),
       feedback: createNovationLaunchpadMk2FeedbackProfileRGB,
     },
     notes: {
       name: 'Session Mode - Note Feedback',
-      input: createNovationLaunchpadMk2ProfileSessionMode,
+      input: createNovationButtonOnlyProfile({
+        getLayout: novationLaunchpadMk2SessionLayout,
+        noteOffMode: 'note-off',
+        getFeedbackCapabilities: () => ({
+          [FEEDBACK_KEY]: {
+            led: {
+              type: 'palette',
+              brightnessValues: 1,
+              palette: createNovationLaunchpadRGBPallette(),
+            },
+          },
+        }),
+      }),
       feedback: createNovationLaunchpadMk2FeedbackProfile,
     },
   },
