@@ -126,6 +126,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
     position: {
       col: 9,
       row: 11,
+      orientation: 'circular',
     },
     feedback: FEEDBACK_CAPABILITY_RING,
   } satisfies FullyDefinedNote);
@@ -193,6 +194,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
       position: {
         col: 9,
         row: 10,
+        orientation: 'circular',
       },
       feedback: FEEDBACK_CAPABILITY_BUTTON_WHITE,
     },
@@ -291,6 +293,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
       position: {
         col: 6,
         row: 5,
+        orientation: 'circular',
       },
       feedback: FEEDBACK_CAPABILITY_BUTTON_RED,
     },
@@ -300,6 +303,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
       position: {
         col: 7,
         row: 6,
+        orientation: 'circular',
       },
       feedback: FEEDBACK_CAPABILITY_BUTTON_RED,
     },
@@ -309,6 +313,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
       position: {
         col: [0, 1],
         row: 5,
+        orientation: 'circular',
       },
       feedback: FEEDBACK_CAPABILITY_BUTTON_WHITE,
     },
@@ -531,6 +536,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
                     // Hardcode platter touch positions as they are in center
                     col: colStart === 0 ? [2, 5] : [13, 16],
                     row: [7, 10],
+                    orientation: 'circular',
                   }
                 : action === 'pre-fader-listen' || action === 'load'
                   ? {
@@ -605,6 +611,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         position: {
           col,
           row: 7,
+          orientation: 'circular',
         },
         feedback: null,
       },
@@ -628,6 +635,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         position: {
           col,
           row: 8,
+          orientation: 'circular',
         },
         feedback: null,
       },
@@ -651,6 +659,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         position: {
           col,
           row: 9,
+          orientation: 'circular',
         },
         feedback: null,
       },
@@ -674,6 +683,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         position: {
           col,
           row: 10,
+          orientation: 'circular',
         },
         feedback: null,
       },
@@ -696,6 +706,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         position: {
           col,
           row: 11,
+          orientation: 'circular',
         },
         feedback: null,
       },
@@ -718,6 +729,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         position: {
           col: col === 8 ? 3 : 14,
           row: 12,
+          orientation: 'circular',
         },
         feedback: null,
       },
@@ -740,6 +752,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         position: {
           col: col === 8 ? 4 : 15,
           row: 12,
+          orientation: 'circular',
         },
         feedback: null,
       },

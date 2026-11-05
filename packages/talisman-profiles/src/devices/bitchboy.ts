@@ -233,6 +233,7 @@ export const createBitchboyProfile: MidiProfileInit = () => {
         position: {
           col,
           row,
+          orientation: 'circular',
         },
         feedback: null,
       };
@@ -246,6 +247,7 @@ export const createBitchboyProfile: MidiProfileInit = () => {
     position: {
       col: [8, 10],
       row: [0, 2],
+      orientation: 'xy',
     },
     controlChange: [
       {

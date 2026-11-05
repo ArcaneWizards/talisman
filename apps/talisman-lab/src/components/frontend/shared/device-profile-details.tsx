@@ -41,6 +41,7 @@ const PREVIEW_COLORS: MidiPreviewColorsProp = {
   text: 'var(--sigil-foreground)',
   hover: 'var(--sigil-usage-hint-foreground)',
   highlight: 'var(--sigil-foreground-highlight)',
+  elementBackground: 'var(--sigil-bg-light)',
 };
 
 const SELECT_COLORS: MidiPreviewColorsProp = {

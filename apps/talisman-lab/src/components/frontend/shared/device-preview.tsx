@@ -1,4 +1,4 @@
-import { FC, ReactNode, SVGProps, useMemo } from 'react';
+import { FC, Fragment, ReactNode, SVGProps, useMemo } from 'react';
 import { TalismanFullProfileInfo } from './device-profile-details';
 import {
   MIDI_CHANNEL_OPTIONS_SHORT,
@@ -179,6 +179,7 @@ export type MidiPreviewColorsProp = {
   text: string;
   hover: string;
   highlight: string;
+  elementBackground: string;
 };
 
 export type MidiDevicePreviewProps = Omit<
@@ -526,6 +527,7 @@ const useFeedbackSymbols = ({
             stroke={c.border}
             strokeWidth={FEEDBACK_FONT_SIZE / 2}
             paintOrder="stroke"
+            opacity={0.5}
           >
             NO
           </text>
@@ -541,6 +543,7 @@ const useFeedbackSymbols = ({
             stroke={c.border}
             strokeWidth={FEEDBACK_FONT_SIZE / 2}
             paintOrder="stroke"
+            opacity={0.5}
           >
             FDBK
           </text>
@@ -607,6 +610,7 @@ const useMemoizedColors = (rawColors: MidiPreviewColorsProp) =>
       text: rawColors.text,
       hover: rawColors.hover,
       highlight: rawColors.highlight,
+      elementBackground: rawColors.elementBackground,
     }),
     [
       rawColors.cellBackground,
@@ -614,6 +618,7 @@ const useMemoizedColors = (rawColors: MidiPreviewColorsProp) =>
       rawColors.text,
       rawColors.hover,
       rawColors.highlight,
+      rawColors.elementBackground,
     ],
   );
 
@@ -716,6 +721,117 @@ const textElements = ({
   return { defs, elements };
 };
 
+type OrientationElementsArgs = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  orientation: 'circular' | 'horizontal' | 'vertical' | 'xy' | 'none';
+  c: MidiPreviewColorsProp;
+};
+
+const orientationElements = ({
+  x,
+  y,
+  width,
+  height,
+  orientation,
+  c,
+}: OrientationElementsArgs): ReactNode => {
+  if (orientation === 'none') return null;
+
+  if (orientation === 'circular') {
+    return (
+      <circle
+        cx={x + width / 2}
+        cy={y + height / 2}
+        r={Math.min(width, height) / 2 - MARGIN / 2}
+        fill={c.elementBackground}
+        stroke={c.border}
+        strokeWidth={5}
+      />
+    );
+  }
+
+  if (orientation === 'xy') {
+    return (
+      <>
+        <line
+          x1={x}
+          y1={y + height / 2}
+          x2={x + width}
+          y2={y + height / 2}
+          stroke={c.border}
+          strokeWidth={5}
+          strokeDasharray="10,5"
+        />
+        <line
+          x1={x + width / 2}
+          y1={y}
+          x2={x + width / 2}
+          y2={y + height}
+          stroke={c.border}
+          strokeWidth={5}
+          strokeDasharray="10,5"
+        />
+      </>
+    );
+  }
+
+  if (orientation === 'horizontal') {
+    const sliderWidth = Math.min(width / 4, GRID_SIZE / 3);
+    return (
+      <>
+        <line
+          x1={x}
+          y1={y + height / 2}
+          x2={x + width}
+          y2={y + height / 2}
+          stroke={c.border}
+          strokeWidth={5}
+          strokeDasharray="10,5"
+        />
+        <rect
+          x={x + (width - sliderWidth) * 0.1}
+          y={y + MARGIN / 2}
+          width={sliderWidth}
+          height={height - MARGIN}
+          fill={c.elementBackground}
+          stroke={c.border}
+          strokeWidth={5}
+        />
+      </>
+    );
+  }
+  if (orientation === 'vertical') {
+    const sliderHeight = Math.min(height / 4, GRID_SIZE / 3);
+    return (
+      <>
+        <line
+          x1={x + width / 2}
+          y1={y}
+          x2={x + width / 2}
+          y2={y + height}
+          stroke={c.border}
+          strokeWidth={5}
+          strokeDasharray="10,5"
+        />
+        <rect
+          x={x + MARGIN / 2}
+          y={y + (height - sliderHeight) * 0.9}
+          width={width - MARGIN}
+          height={sliderHeight}
+          fill={c.elementBackground}
+          stroke={c.border}
+          strokeWidth={5}
+        />
+      </>
+    );
+  }
+
+  const _exhaustiveCheck: never = orientation;
+};
+
 const NO_FEEDBACK_SYMBOL = Symbol('no-feedback');
 
 export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
@@ -763,8 +879,12 @@ export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
       const height =
         GRID_SIZE * (cell.span.rows[1] - cell.span.rows[0] + 1) +
         GAP * (cell.span.rows[1] - cell.span.rows[0]);
-      const x = MARGIN + cell.span.cols[0] * (GRID_SIZE + GAP);
-      const y = vh - (MARGIN + cell.span.rows[0] * (GRID_SIZE + GAP)) - height;
+      const x =
+        MARGIN + (cell.span.cols[0] - gridInfo.minX) * (GRID_SIZE + GAP);
+      const y =
+        vh -
+        (MARGIN + (cell.span.rows[0] - gridInfo.minY) * (GRID_SIZE + GAP)) -
+        height;
 
       items.push(
         <rect
@@ -777,6 +897,24 @@ export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
           stroke={c.border}
         />,
       );
+
+      const orientations = Array.from(
+        new Set(cell.items.map((item) => item.position?.orientation ?? 'none')),
+      );
+      const orientation = orientationElements({
+        x,
+        y,
+        width,
+        height: height - TEXT_HEIGHT,
+        orientation: (orientations.length === 1 && orientations[0]) || 'none',
+        c,
+      });
+
+      if (orientation) {
+        items.push(
+          <Fragment key={`cell-${i}-orientation`}>{orientation}</Fragment>,
+        );
+      }
 
       const feedback = Array.from(
         new Set(cell.items.map((item) => item.feedback).filter(isDefined)),
@@ -882,6 +1020,7 @@ export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
         span: CellSpan;
       }
     > = {};
+    if (!gridInfo) return [];
     for (const { item, opacity } of selectedItems || []) {
       const span = getCellSpan(item);
       if (!span) continue;
@@ -894,7 +1033,7 @@ export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
         span,
       };
     }
-    const rows = gridInfo?.rows || 0;
+    const rows = gridInfo.rows;
     const vh = MARGIN * 2 + GRID_SIZE * rows + GAP * (rows - 1);
     return Object.entries(highlighedFingerprints).map(
       ([fingerprint, { opacity, span }]) => {
@@ -904,8 +1043,11 @@ export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
         const height =
           GRID_SIZE * (span.rows[1] - span.rows[0] + 1) +
           GAP * (span.rows[1] - span.rows[0]);
-        const x = MARGIN + span.cols[0] * (GRID_SIZE + GAP);
-        const y = vh - (MARGIN + span.rows[0] * (GRID_SIZE + GAP)) - height;
+        const x = MARGIN + (span.cols[0] - gridInfo.minX) * (GRID_SIZE + GAP);
+        const y =
+          vh -
+          (MARGIN + (span.rows[0] - gridInfo.minY) * (GRID_SIZE + GAP)) -
+          height;
         return (
           <g key={fingerprint} opacity={opacity}>
             <rect
@@ -922,7 +1064,7 @@ export const MidiDevicePreview: FC<MidiDevicePreviewProps> = ({
         );
       },
     );
-  }, [selectedItems, c, gridInfo?.rows]);
+  }, [selectedItems, c, gridInfo]);
 
   if (!elements)
     return (
