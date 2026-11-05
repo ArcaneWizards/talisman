@@ -2,7 +2,6 @@ import {
   ColorSpace,
   createColorSpace,
   hexToRGB,
-  RGB,
 } from '@arcanewizards/talisman/color';
 import {
   FeedbackCapabilityProfile,
@@ -183,10 +182,13 @@ export const NOVATION_LAUNCHPAD_RGB_PALLETTE = [
   '4a1400',
 ];
 
+export const createNovationLaunchpadRGBPallette = () =>
+  NOVATION_LAUNCHPAD_RGB_PALLETTE.map(hexToRGB);
+
 export const createNovationLaunchpadRGBColorSpace = (): ColorSpace<
   [number]
 > => {
-  const rgb: RGB[] = NOVATION_LAUNCHPAD_RGB_PALLETTE.map(hexToRGB);
+  const rgb = createNovationLaunchpadRGBPallette();
   return createColorSpace({
     sizes: [rgb.length],
     argsToRgb: ([velocity]) => {
