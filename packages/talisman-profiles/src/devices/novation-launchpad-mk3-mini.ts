@@ -20,6 +20,10 @@ import {
   MidiProfileDefinition,
 } from '@arcanewizards/talisman/core';
 
+const NOVATION_LAUNCHPAD_MK3_MINI_SYSEX_HEADER = [
+  0xf0, 0x00, 0x20, 0x29, 0x02, 0x0d,
+];
+
 const UNIVERSAL_CONTROLLER_BUTTONS = Object.freeze([
   {
     controller: 91,
@@ -306,12 +310,7 @@ export const createNovationLaunchpadMk3MiniFeedbackProfileRGB: MidiFeedbackProfi
 
         const sendBatch = () => {
           sendMessage([
-            0xf0,
-            0x00,
-            0x20,
-            0x29,
-            0x02,
-            0x0d,
+            ...NOVATION_LAUNCHPAD_MK3_MINI_SYSEX_HEADER,
             0x03,
             ...batch.flat(),
             0xf7,
