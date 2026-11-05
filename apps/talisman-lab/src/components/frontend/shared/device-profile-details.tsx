@@ -370,6 +370,11 @@ export const DeviceProfileDetails: FC<DeviceProfileDetailsProps> = ({
       [selectedItems],
     );
 
+  useEffect(() => {
+    // Reset selected items when the profile or sub-profile changes
+    setSelectedItems([]);
+  }, [profileId, subProfileKey]);
+
   const selectedDeviceInfo =
     (deviceInfo.success && deviceInfo.data[subProfileKey ?? '']) || null;
 
