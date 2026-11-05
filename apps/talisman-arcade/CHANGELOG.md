@@ -1,5 +1,15 @@
 # @arcanewizards/talisman-arcade
 
+## 0.0.3
+
+### Patch Changes
+
+- Updated dependencies [10aff01]
+- Updated dependencies [9217fe3]
+- Updated dependencies [9217fe3]
+  - @arcanewizards/talisman@0.1.0
+  - @arcanewizards/talisman-profiles@0.0.3
+
 ## 0.0.2
 
 ### Patch Changes
