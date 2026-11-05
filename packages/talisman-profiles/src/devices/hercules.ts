@@ -83,29 +83,55 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
 
   const PLATTER = 0x08;
 
-  const MAIN_NOTES = Object.freeze({
-    [0x00]: {
-      id: 'browse-push',
-      label: 'Browser',
-      note: [
-        {
-          id: {
-            type: 'note',
-            channel: 0,
-            note: 0x00,
-          },
-          nature: {
-            nature: 'navigation',
-            navigation: 'enter',
-          },
+  const BROWSE_BUTTON = Object.freeze({
+    id: 'browse-push',
+    label: 'Browser',
+    note: [
+      {
+        id: {
+          type: 'note',
+          channel: 0,
+          note: 0x00,
         },
-      ],
-      position: {
-        col: 9,
-        row: 9,
+        nature: {
+          nature: 'navigation',
+          navigation: 'enter',
+        },
       },
-      feedback: FEEDBACK_CAPABILITY_RING,
+    ],
+    controlChange: [
+      {
+        id: {
+          type: 'control-change',
+          channel: 0,
+          controller: 1,
+        },
+        nature: {
+          nature: 'navigation',
+          role: 'up-down',
+        },
+      },
+      {
+        id: {
+          type: 'control-change',
+          channel: 0,
+          controller: 2,
+        },
+        nature: {
+          nature: 'navigation',
+          role: 'left-right',
+        },
+      },
+    ],
+    position: {
+      col: 9,
+      row: 11,
     },
+    feedback: FEEDBACK_CAPABILITY_RING,
+  } satisfies FullyDefinedNote);
+
+  const MAIN_NOTES = Object.freeze({
+    [0x00]: BROWSE_BUTTON,
     [0x01]: {
       id: 'beatmatch-guide',
       label: 'Beatmatch Guide',
@@ -166,7 +192,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
       ],
       position: {
         col: 9,
-        row: 8,
+        row: 10,
       },
       feedback: FEEDBACK_CAPABILITY_BUTTON_WHITE,
     },
@@ -212,6 +238,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
       ],
       position: {
         col: 9,
+        row: 8,
       },
       feedback: null,
     },
@@ -232,15 +259,20 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
       ],
       position: {
         col: 9,
+        row: 7,
       },
       feedback: null,
     },
   } satisfies Record<string, FullyDefinedFader>);
 
+  const platterId = (deckId: DeckID) => `${deckId}.platter`;
+
   const DECK_NOTES = Object.freeze({
     [PLATTER]: {
+      // Even though this is defined in NOTES, we reuse this item later for
+      // platter CC changes
       action: 'platter-touch',
-      label: 'Platter Touch',
+      label: 'Platter',
       position: null,
       feedback: null,
     },
@@ -249,13 +281,13 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
       label: 'FX Toggle',
       position: {
         col: 2,
-        row: 9,
+        row: 12,
       },
       feedback: FEEDBACK_CAPABILITY_BUTTON_RED,
     },
     [0x01]: {
       action: 'slip',
-      label: null,
+      label: 'Slip',
       position: {
         col: 6,
         row: 5,
@@ -264,16 +296,16 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
     },
     [0x02]: {
       action: 'quantize',
-      label: null,
+      label: 'Quantize',
       position: {
         col: 7,
-        row: 7,
+        row: 6,
       },
       feedback: FEEDBACK_CAPABILITY_BUTTON_RED,
     },
     [0x03]: {
       action: 'vinyl',
-      label: null,
+      label: 'Vinyl',
       position: {
         col: [0, 1],
         row: 5,
@@ -282,7 +314,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
     },
     [0x04]: {
       action: 'shift',
-      label: null,
+      label: 'Shift',
       position: {
         col: [0, 1],
         row: 3,
@@ -291,7 +323,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
     },
     [0x05]: {
       action: 'sync',
-      label: null,
+      label: 'Sync',
       position: {
         col: [0, 1],
         row: 2,
@@ -300,7 +332,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
     },
     [0x06]: {
       action: 'cue',
-      label: null,
+      label: 'Cue',
       position: {
         col: [0, 1],
         row: 1,
@@ -309,7 +341,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
     },
     [0x07]: {
       action: 'play-pause',
-      label: null,
+      label: 'Play/Pause',
       position: {
         col: [0, 1],
         row: 0,
@@ -318,7 +350,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
     },
     [0x09]: {
       action: 'loop-in',
-      label: null,
+      label: 'Loop In',
       position: {
         col: 0,
         row: 4,
@@ -327,7 +359,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
     },
     [0x0a]: {
       action: 'loop-out',
-      label: null,
+      label: 'Loop Out',
       position: {
         col: 1,
         row: 4,
@@ -336,25 +368,25 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
     },
     [0x0b]: {
       action: 'loop-in-long-press',
-      label: null,
+      label: 'Loop In Long Press',
       position: null,
       feedback: null,
     },
     [0x0c]: {
       action: 'pre-fader-listen',
-      label: null,
+      label: 'Pre-Fader Listen',
       position: null,
       feedback: FEEDBACK_CAPABILITY_BUTTON_RED,
     },
     [0x0d]: {
       action: 'load',
-      label: null,
+      label: 'Load',
       position: null,
       feedback: null,
     },
     [0x0f]: {
       action: 'hotkey-mode-hot-cue',
-      label: null,
+      label: 'Hot Cue',
       position: {
         col: 2,
         row: 3,
@@ -363,7 +395,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
     },
     [0x10]: {
       action: 'hotkey-mode-roll',
-      label: null,
+      label: 'Roll',
       position: {
         col: 3,
         row: 3,
@@ -372,7 +404,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
     },
     [0x11]: {
       action: 'hotkey-mode-slicer',
-      label: null,
+      label: 'Slicer',
       position: {
         col: 4,
         row: 3,
@@ -381,7 +413,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
     },
     [0x12]: {
       action: 'hotkey-mode-sampler',
-      label: null,
+      label: 'Sampler',
       position: {
         col: 5,
         row: 3,
@@ -390,7 +422,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
     },
     [0x13]: {
       action: 'hotkey-mode-tones',
-      label: null,
+      label: 'Tones',
       position: {
         col: 2,
         row: 3,
@@ -399,7 +431,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
     },
     [0x14]: {
       action: 'hotkey-mode-fx',
-      label: null,
+      label: 'FX',
       position: {
         col: 3,
         row: 3,
@@ -408,7 +440,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
     },
     [0x15]: {
       action: 'hotkey-mode-slicer-loop',
-      label: null,
+      label: 'Slicer Loop',
       position: {
         col: 4,
         row: 3,
@@ -417,7 +449,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
     },
     [0x16]: {
       action: 'hotkey-mode-beat-jump',
-      label: null,
+      label: 'Beat Jump',
       position: {
         col: 5,
         row: 3,
@@ -428,7 +460,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
     number,
     {
       action: DeckAction;
-      label: string | null;
+      label: string;
       position: MidiCoordinateInfo | null;
       feedback: FeedbackCapability | null;
     }
@@ -445,11 +477,12 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
     const colStart = midiChannel === 1 || midiChannel === 4 ? 0 : 11;
     return Object.fromEntries(
       Object.entries(DECK_NOTES).map(
-        ([note, { action, label, position, feedback }]) =>
-          [
+        ([note, { action, label, position, feedback }]) => {
+          const isPlatter = note === PLATTER.toString();
+          return [
             note as DeckNoteID,
             {
-              id: `${deckId}.${note}`,
+              id: isPlatter ? platterId(deckId) : `${deckId}.${note}`,
               label: `${deckLabel} ${label}`,
               note: [
                 {
@@ -465,12 +498,45 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
                   },
                 },
               ],
-              position:
-                action === 'pre-fader-listen' || action === 'load'
+              controlChange: isPlatter
+                ? [
+                    {
+                      id: {
+                        type: 'control-change',
+                        channel: midiChannel,
+                        controller: 0x09,
+                      },
+                      nature: {
+                        nature: 'deck',
+                        role: 'platter-adjust',
+                        channel: deckChannel,
+                      },
+                    },
+                    {
+                      id: {
+                        type: 'control-change',
+                        channel: midiChannel,
+                        controller: 0x0a,
+                      },
+                      nature: {
+                        nature: 'deck',
+                        role: 'platter-scratch',
+                        channel: deckChannel,
+                      },
+                    },
+                  ]
+                : [],
+              position: isPlatter
+                ? {
+                    // Hardcode platter touch positions as they are in center
+                    col: colStart === 0 ? [2, 5] : [13, 16],
+                    row: [7, 10],
+                  }
+                : action === 'pre-fader-listen' || action === 'load'
                   ? {
                       // Hardcode headphone positions as they are in center
                       col: colStart === 0 ? 8 : 10,
-                      row: action === 'pre-fader-listen' ? 6 : 9,
+                      row: action === 'pre-fader-listen' ? 6 : 12,
                     }
                   : position
                     ? {
@@ -486,7 +552,8 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
                     : undefined,
               feedback,
             },
-          ] satisfies [DeckNoteID, FullyDefinedNote],
+          ] satisfies [DeckNoteID, FullyDefinedNote];
+        },
       ),
     ) as Record<DeckNoteID, FullyDefinedNote>;
   };
@@ -514,6 +581,8 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         ],
         position: {
           col,
+          row: [2, 4],
+          orientation: 'vertical',
         },
         feedback: null,
       },
@@ -535,6 +604,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         ],
         position: {
           col,
+          row: 7,
         },
         feedback: null,
       },
@@ -557,6 +627,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         ],
         position: {
           col,
+          row: 8,
         },
         feedback: null,
       },
@@ -579,6 +650,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         ],
         position: {
           col,
+          row: 9,
         },
         feedback: null,
       },
@@ -601,6 +673,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         ],
         position: {
           col,
+          row: 10,
         },
         feedback: null,
       },
@@ -622,6 +695,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         ],
         position: {
           col,
+          row: 11,
         },
         feedback: null,
       },
@@ -643,6 +717,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         ],
         position: {
           col: col === 8 ? 3 : 14,
+          row: 12,
         },
         feedback: null,
       },
@@ -664,6 +739,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         ],
         position: {
           col: col === 8 ? 4 : 15,
+          row: 12,
         },
         feedback: null,
       },
@@ -686,6 +762,7 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
         position: {
           col: col === 8 ? [6, 7] : [17, 18],
           row: [0, 3],
+          orientation: 'vertical',
         },
         feedback: null,
       },
@@ -868,13 +945,14 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
       } else if (msg.type === 'control-change') {
         if (msg.channel === 0) {
           if (msg.controller >= 0x1 && msg.controller <= 0x02) {
+            const cc = BROWSE_BUTTON.controlChange.find(
+              (c) => c.id.controller === msg.controller,
+            );
+            if (!cc) return null;
             return {
-              item: items.main.notes[0].id,
+              item: BROWSE_BUTTON.id,
               action: 'relative-value',
-              nature: {
-                nature: 'navigation',
-                role: msg.controller === 0x1 ? 'up-down' : 'left-right',
-              },
+              nature: cc.nature,
               degreesPerIncrement: 15,
               change: getRelativeChange(msg.value),
               precisionBits: 7,
@@ -911,19 +989,16 @@ export const createHerculesDJControlInpulse300Profile: MidiProfileInit = () => {
           }
         } else if (isDeckChannel(msg.channel)) {
           const deckId = CHANNEL_TO_DECK[msg.channel];
-          const channel = DECK_TO_RESOLVED_CHANNEL[deckId];
           if (msg.controller === 0x09 || msg.controller === 0x0a) {
+            const item = items[deckId].notes[PLATTER];
+            const nature = item.controlChange?.find(
+              (c) => c.id.controller === msg.controller,
+            )?.nature;
+            if (!nature || !('role' in nature)) return null;
             return {
-              item: items[deckId].notes[PLATTER].id,
+              item: item.id,
               action: 'relative-value',
-              nature: {
-                nature: 'deck',
-                role:
-                  msg.controller === 0x09
-                    ? 'platter-adjust'
-                    : 'platter-scratch',
-                channel,
-              },
+              nature,
               degreesPerIncrement: 1,
               change: getRelativeChange(msg.value),
               precisionBits: 7,
