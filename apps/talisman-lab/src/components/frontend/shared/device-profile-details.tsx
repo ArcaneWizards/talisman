@@ -259,6 +259,42 @@ const ItemDetails: FC<ItemDetailsProps> = ({ profileId, items, device }) => {
               <span>{item.id}</span>
             </span>
           </div>
+          {item.position && (
+            <div
+              className="
+                flex w-full items-center justify-center gap-1 select-text
+              "
+            >
+              {(['col', 'row'] as const).map((axis) => {
+                const value = item.position?.[axis];
+                if (value === undefined) return null;
+
+                return (
+                  <span
+                    key={axis}
+                    className="
+                      rounded-sigil-control bg-sigil-border px-0.5 py-0.3
+                      font-mono text-sigil-control
+                    "
+                  >
+                    <span
+                      className="
+                        pointer-events-none text-sigil-foreground-muted
+                        select-none
+                      "
+                    >
+                      {axis === 'col' ? 'x: ' : 'y: '}
+                    </span>
+                    <span>
+                      {typeof value === 'number'
+                        ? value
+                        : `${value[0]}-${value[1]}`}
+                    </span>
+                  </span>
+                );
+              })}
+            </div>
+          )}
           {item.note?.length && (
             <div className="text-sigil-control">
               <div className="font-bold">Notes: </div>
