@@ -344,6 +344,16 @@ export const useSelectedDevices = (
     cells: {},
   });
 
+  useEffect(() => {
+    // Reset interaction state when device or profile changes
+    interactionState.current = {
+      modifier: false,
+      cols: {},
+      rows: {},
+      cells: {},
+    };
+  }, [input, output, inputProfile, outputProfile]);
+
   const configRef = useRef<UserConfig>(config);
 
   useEffect(() => {
