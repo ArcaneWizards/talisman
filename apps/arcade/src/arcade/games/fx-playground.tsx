@@ -3,6 +3,7 @@ import { GameContext } from './context';
 import { MidiActionEvent } from '@talisman-midi/talisman';
 import { MidiCoordinatePoint } from '@talisman-midi/talisman/util';
 import { gameGrid } from '../grid';
+import { Button, Group } from '@arcanejs/react-toolkit';
 
 type Artifacts = {
   state: 'active' | 'inactive';
@@ -18,7 +19,7 @@ type InteractionState = {
 const FADE_PER_SECOND = 0.5;
 
 export const FxPlayground: FC = () => {
-  const { devices } = useContext(GameContext);
+  const { devices, changeGame } = useContext(GameContext);
 
   const interaction = useRef<InteractionState>({
     pressing: {},
@@ -115,5 +116,14 @@ export const FxPlayground: FC = () => {
     };
   }, [devices]);
 
-  return <>FX Playground</>;
+  return (
+    <Group title="FX Playground">
+      <Button
+        onClick={() => {
+          changeGame('menu');
+        }}
+        text="Main Menu"
+      />
+    </Group>
+  );
 };
