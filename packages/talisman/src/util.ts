@@ -284,7 +284,16 @@ export function getCenterPosition(
   return { row, col };
 }
 
-export const getCoordinateRanges = (items: Iterable<MidiControllerItem>) => {
+export type MidiGridArea = {
+  minCol: number;
+  maxCol: number;
+  minRow: number;
+  maxRow: number;
+};
+
+export const getCoordinateRanges = (
+  items: Iterable<MidiControllerItem>,
+): MidiGridArea => {
   let minCol = Infinity;
   let maxCol = -Infinity;
   let minRow = Infinity;

@@ -89,14 +89,14 @@ const UNIVERSAL_CONTROLLER_BUTTONS = Object.freeze([
   {
     label: 'Novation Logo',
     controller: 99,
-    nature: { nature: 'unknown' },
+    nature: null,
     col: 8,
     row: 8,
   },
 ] satisfies Array<{
   label?: string;
   controller: MidiController;
-  nature: MidiButtonNature;
+  nature: MidiButtonNature | null;
   col: number;
   row: number;
 }>);
@@ -183,11 +183,11 @@ const addControllerButtons = (
             channel: 0,
             controller,
           },
-          nature,
+          nature: nature ?? undefined,
         },
       ],
     };
-    controllers[controller] = { item: id, nature };
+    if (nature) controllers[controller] = { item: id, nature };
   }
 };
 
