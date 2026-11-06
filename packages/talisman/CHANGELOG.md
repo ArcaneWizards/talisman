@@ -1,5 +1,15 @@
 # @arcanewizards/talisman
 
+## 0.1.1
+
+### Patch Changes
+
+- 1d36ecd: Bump version to publish to new namespace from CI
+
+  All packages and apps have now been moved into the
+  [@talisman-midi](https://www.npmjs.com/org/talisman-midi) namespace on NPM.
+  This version bump is to make the first publish to this namespace from CI.
+
 ## 0.1.0
 
 ### Minor Changes

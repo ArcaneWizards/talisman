@@ -3,7 +3,7 @@
   "productName": "Talisman MIDI Lab Desktop",
   "description": "Test MIDI controllers for use with Arcane software",
   "author": "Arcane Wizards Ltd.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "main": "dist/main.js",
   "scripts": {
