@@ -15,15 +15,15 @@ import {
   MidiFeedbackProfileInit,
   MidiProfileDefinition,
   MidiProfileFeedbackCapabilities,
-} from '@arcanewizards/talisman/core';
-import { MidiProfileBasic } from '@arcanewizards/talisman/profile';
+} from '@talisman-midi/talisman/core';
+import { MidiProfileBasic } from '@talisman-midi/talisman/profile';
 import {
   colorEqual,
   ColorSpace,
   createColorSpace,
   RGB,
-} from '@arcanewizards/talisman/color';
-import { midiNumberToValues } from '@arcanewizards/talisman/util';
+} from '@talisman-midi/talisman/color';
+import { midiNumberToValues } from '@talisman-midi/talisman/util';
 
 export const AKAI_BRIGHTNESS_CHANNELS = Object.freeze([
   0.1, 0.25, 0.5, 0.65, 0.75, 0.9, 1.0,

@@ -15,14 +15,14 @@ import {
   MidiFeedbackProfileInit,
   MidiProfileDefinition,
   FeedbackCapabilityProfile,
-} from '@arcanewizards/talisman/core';
+} from '@talisman-midi/talisman/core';
 import {
   ColorSpace,
   createColorSpace,
   hexToRGB,
   RGB,
-} from '@arcanewizards/talisman/color';
-import { MidiProfileBasic } from '@arcanewizards/talisman/profile';
+} from '@talisman-midi/talisman/color';
+import { MidiProfileBasic } from '@talisman-midi/talisman/profile';
 
 const FEEDBACK_CAPABILITY_RING = 'ring';
 const FEEDBACK_CAPABILITY_BUTTON_RED = 'red';

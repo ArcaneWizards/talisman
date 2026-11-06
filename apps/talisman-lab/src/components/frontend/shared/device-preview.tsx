@@ -6,9 +6,9 @@ import {
   MidiButtonNature,
   MidiControllerItem,
   MidiNumericNature,
-} from '@arcanewizards/talisman';
+} from '@talisman-midi/talisman';
 import { isDefined } from './util';
-import { RGB } from '@arcanewizards/talisman/color';
+import { RGB } from '@talisman-midi/talisman/color';
 
 type CellSpan = {
   cols: [number, number];

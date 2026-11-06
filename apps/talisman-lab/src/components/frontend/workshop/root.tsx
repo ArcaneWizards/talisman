@@ -16,7 +16,7 @@ import { StageContext } from '@arcanejs/toolkit-frontend';
 
 import { MidiMessageMonitor } from '../shared/midi-message-monitor';
 import { UserConfigEditor } from './user-config';
-import { MidiMessageDescription } from '@arcanewizards/talisman/util';
+import { MidiMessageDescription } from '@talisman-midi/talisman/util';
 import { License } from './license';
 import { UpdateDetails } from '@arcanewizards/sigil/frontend/updates';
 import {

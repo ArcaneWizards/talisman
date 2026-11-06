@@ -9,7 +9,7 @@ import {
   MIDISupportResponse,
 } from '@arcanewizards/midi';
 import { Logger } from '@arcanejs/protocol/logging';
-import { KNOWN_MIDI_PROFILES } from '@arcanewizards/talisman-profiles';
+import { KNOWN_MIDI_PROFILES } from '@talisman-midi/profiles';
 
 const MIDI_STATUS_POLL_INTERVAL = 1000;
 

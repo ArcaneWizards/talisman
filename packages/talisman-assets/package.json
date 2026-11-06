@@ -1,8 +1,8 @@
 {
-  "name": "@arcanewizards/talisman-assets",
+  "name": "@talisman-midi/assets",
   "description": "Static assets used by the Talisman framework, packaged separately for easier bundling",
   "version": "0.0.1",
-  "private": true,
+  "private": false,
   "type": "module",
   "repository": {
     "type": "git",

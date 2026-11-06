@@ -28,10 +28,7 @@ import { api, GetEulaResponse } from '@arcanewizards/apis';
 import { UpdateCheckResult } from '@arcanewizards/sigil/frontend/updates';
 import { API_APP_ID } from './constants';
 import { EulaGate } from './eula';
-import {
-  KNOWN_MIDI_PROFILES,
-  KnownMidiProfile,
-} from '@arcanewizards/talisman-profiles';
+import { KNOWN_MIDI_PROFILES, KnownMidiProfile } from '@talisman-midi/profiles';
 import { TalismanSupportedDeviceData } from './components/frontend/shared';
 
 const DEFAULT_PORT: ListenerConfig['port'] = { from: 4110, to: 4200 };

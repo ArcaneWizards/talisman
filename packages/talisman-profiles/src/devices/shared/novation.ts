@@ -2,7 +2,7 @@ import {
   ColorSpace,
   createColorSpace,
   hexToRGB,
-} from '@arcanewizards/talisman/color';
+} from '@talisman-midi/talisman/color';
 import {
   FeedbackCapabilityProfile,
   MidiButtonNature,
@@ -11,12 +11,12 @@ import {
   MidiFeedbackProfile,
   MidiParsedMessage,
   MidiProfileInit,
-} from '@arcanewizards/talisman/core';
+} from '@talisman-midi/talisman/core';
 import {
   MidiProfileBase,
   MidiProfileBasic,
-} from '@arcanewizards/talisman/profile';
-import { startsWithSysex } from '@arcanewizards/talisman/util';
+} from '@talisman-midi/talisman/profile';
+import { startsWithSysex } from '@talisman-midi/talisman/util';
 
 /**
  * RGB Color Palette used for the Novation Launchpads, Mk1, Mk2 and Mk3.

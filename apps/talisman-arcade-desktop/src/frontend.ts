@@ -1,5 +1,5 @@
-import '@arcanewizards/talisman-arcade/frontend';
-import '@arcanewizards/talisman-arcade/entrypoint.css';
+import '@talisman-midi/arcade/frontend';
+import '@talisman-midi/arcade/entrypoint.css';
 
 import type { ElectronAPI } from './preload';
 import { BrowserCloseListener } from '@arcanewizards/sigil/frontend';

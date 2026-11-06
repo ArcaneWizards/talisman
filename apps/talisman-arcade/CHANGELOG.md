@@ -1,4 +1,4 @@
-# @arcanewizards/talisman-arcade
+# @talisman-midi/arcade
 
 ## 0.0.3
 
@@ -8,8 +8,8 @@
 - Updated dependencies [9217fe3]
 - Updated dependencies [37981da]
 - Updated dependencies [9217fe3]
-  - @arcanewizards/talisman@0.1.0
-  - @arcanewizards/talisman-profiles@0.0.3
+  - @talisman-midi/talisman@0.1.0
+  - @talisman-midi/profiles@0.0.3
 
 ## 0.0.2
 
@@ -28,5 +28,5 @@
 
 - 658542c: Initial version bump to test publish workflow
 - Updated dependencies [658542c]
-  - @arcanewizards/talisman-profiles@0.0.2
-  - @arcanewizards/talisman@0.0.2
+  - @talisman-midi/profiles@0.0.2
+  - @talisman-midi/talisman@0.0.2

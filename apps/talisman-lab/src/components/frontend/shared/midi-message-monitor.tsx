@@ -4,7 +4,7 @@ import {
   ToolbarWrapper,
 } from '@arcanewizards/sigil/frontend/toolbars';
 import { useMemo, ReactNode } from 'react';
-import type { MidiParsedMessage } from '@arcanewizards/talisman';
+import type { MidiParsedMessage } from '@talisman-midi/talisman';
 import { cn } from '@arcanejs/toolkit-frontend/util';
 import { ControlButton } from '@arcanewizards/sigil/frontend/controls';
 import type { BufferSlice } from '../../../shared/util';

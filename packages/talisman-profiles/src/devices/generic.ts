@@ -1,8 +1,8 @@
 import type {
   MidiProfileInit,
   MidiProfileDefinition,
-} from '@arcanewizards/talisman/core';
-import { MidiProfileBasic } from '@arcanewizards/talisman/profile';
+} from '@talisman-midi/talisman/core';
+import { MidiProfileBasic } from '@talisman-midi/talisman/profile';
 
 type GenericProfileOptions = {
   interpretZeroNoteOnAsRelease?: boolean;

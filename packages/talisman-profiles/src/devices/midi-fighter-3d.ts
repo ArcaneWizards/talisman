@@ -11,9 +11,9 @@ import {
   MidiFeedbackProfile,
   MidiFeedbackProfileInit,
   MidiProfileDefinition,
-} from '@arcanewizards/talisman/core';
-import { ColorSpace, RGB } from '@arcanewizards/talisman/color';
-import { MidiProfileBasic } from '@arcanewizards/talisman/profile';
+} from '@talisman-midi/talisman/core';
+import { ColorSpace, RGB } from '@talisman-midi/talisman/color';
+import { MidiProfileBasic } from '@talisman-midi/talisman/profile';
 import {
   createMidiFighter9ColorSpace,
   MIDI_FIGHTER_9_COLOR_SPACE,

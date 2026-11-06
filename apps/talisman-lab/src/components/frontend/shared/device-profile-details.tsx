@@ -7,7 +7,7 @@ import {
   MidiProfileDefinition,
   MidiProfileFeedbackCapabilities,
   ProfilePair,
-} from '@arcanewizards/talisman';
+} from '@talisman-midi/talisman';
 import {
   LoadingWrapper,
   success,

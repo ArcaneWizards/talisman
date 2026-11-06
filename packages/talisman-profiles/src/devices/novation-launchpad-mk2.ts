@@ -1,5 +1,5 @@
-import { colorEqual, ColorSpace, RGB } from '@arcanewizards/talisman/color';
-import { createBasicColorVelocityFeedbackProfile } from '@arcanewizards/talisman/feedback';
+import { colorEqual, ColorSpace, RGB } from '@talisman-midi/talisman/color';
+import { createBasicColorVelocityFeedbackProfile } from '@talisman-midi/talisman/feedback';
 import {
   createNovationLaunchpadRGBColorSpace,
   createNovationLaunchpadRGBPallette,
@@ -20,7 +20,7 @@ import {
   MidiFeedbackProfile,
   MidiFeedbackProfileInit,
   MidiProfileDefinition,
-} from '@arcanewizards/talisman/core';
+} from '@talisman-midi/talisman/core';
 
 const NOVATION_LAUNCHPAD_MK2_SYSEX_HEADER = [
   0xf0, 0x00, 0x20, 0x29, 0x02, 0x18,
