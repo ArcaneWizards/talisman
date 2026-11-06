@@ -38,7 +38,7 @@ export const useDeviceAutoSelection = (
         }
         let output = deviceConfig.output;
         const profile = ENABLED_MIDI_PROFILES[selectedProfile?.[0] ?? ''];
-        if (profile) {
+        if (profile && !output) {
           output =
             autoSelectOutputForInput(
               { inputDeviceName: deviceConfig.input },

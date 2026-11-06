@@ -52,6 +52,7 @@ export const DeviceConfig = ({
             update((current) => ({
               ...current,
               input,
+              output: '',
             }))
           }
           position="both"

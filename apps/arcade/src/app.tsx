@@ -13,6 +13,7 @@ import {
   useState,
 } from 'react';
 import { C } from './components/backend';
+import { DEFAULT_CONNECTION } from './arcade/midi-device-connection';
 import { getEnv } from './env';
 import { ListenerConfig } from '@arcanewizards/sigil/shared/config';
 import { ConnectionsContextProvider } from '@arcanejs/react-toolkit/connections';
@@ -65,12 +66,16 @@ const AppRoot: FC<AppRootProps> = ({ logger, license, updates }) => {
   };
 
   const [deviceState, setDeviceState] = useState<
-    Record<string, MidiDeviceState>
+    Record<string, MidiDeviceConnection>
   >({});
 
   const updateDeviceState = useCallback(
-    (uuid: string, state: MidiDeviceState | null) => {
+    (
+      uuid: string,
+      update: (current: MidiDeviceConnection) => MidiDeviceConnection | null,
+    ) => {
       setDeviceState((prev) => {
+        const state = update(prev[uuid] ?? DEFAULT_CONNECTION);
         if (state === null) {
           return Object.fromEntries(
             Object.entries(prev).filter(([key]) => key !== uuid),
@@ -88,7 +93,14 @@ const AppRoot: FC<AppRootProps> = ({ logger, license, updates }) => {
   const status: ApplicationState = useMemo(() => {
     return {
       updates,
-      devices: deviceState,
+      devices: Object.fromEntries(
+        Object.entries(deviceState).map(
+          ([uuid, { input, output, readiness }]) => [
+            uuid,
+            { input, output, readiness } satisfies MidiDeviceState,
+          ],
+        ),
+      ),
     };
   }, [updates, deviceState]);
 
@@ -97,9 +109,10 @@ const AppRoot: FC<AppRootProps> = ({ logger, license, updates }) => {
       {Object.entries(config.devices).map(([uuid, device]) => (
         <MidiDeviceConnection
           key={uuid}
+          midi={midi}
           uuid={uuid}
           updateState={updateDeviceState}
-          device={device}
+          config={device}
         />
       ))}
       <C.TalismanArcadeRoot

@@ -74,7 +74,6 @@ export type ConnectionStatus =
     }
   | {
       status: 'connected';
-      messagesReceived: number;
     };
 
 // Proto
