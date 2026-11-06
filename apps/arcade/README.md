@@ -29,7 +29,7 @@ and then run the app:
 
 ```sh
 npm install -g @talisman-midi/arcade@latest
-talisman-arcade
+NODE_ENV=production talisman-arcade
 ```
 
 ## Contributing

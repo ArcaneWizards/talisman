@@ -33,7 +33,7 @@ and then run the app:
 
 ```sh
 npm install -g @talisman-midi/lab@latest
-talisman-lab
+NODE_ENV=production talisman-lab
 ```
 
 ## Contributing
