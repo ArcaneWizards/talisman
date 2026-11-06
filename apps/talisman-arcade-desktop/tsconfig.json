@@ -1,5 +1,5 @@
 {
-  "extends": "@arcanewizards/talisman-typescript-config/react.json",
+  "extends": "@talisman-midi/typescript-config/react.json",
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",

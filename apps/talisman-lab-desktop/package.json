@@ -1,9 +1,9 @@
 {
-  "name": "@arcanewizards/talisman-lab-desktop",
+  "name": "@talisman-midi/lab-desktop",
   "productName": "Talisman MIDI Lab Desktop",
   "description": "Test MIDI controllers for use with Arcane software",
   "author": "Arcane Wizards Ltd.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "main": "dist/main.js",
   "scripts": {
@@ -12,7 +12,7 @@
     "check:types": "tsc --noEmit",
     "clean": "rm -rf dist",
     "build": "pnpm check:types && pnpm clean && pnpm build:main && pnpm build:preload && pnpm build:frontend",
-    "build:workspace": "pnpm -r --filter @arcanewizards/talisman-lab-desktop... build",
+    "build:workspace": "pnpm -r --filter @talisman-midi/lab-desktop... build",
     "build:main": "esbuild --define:process.env.NODE_ENV=\\\"production\\\" src/main.ts --bundle --platform=node --format=cjs --target=node20 --external:electron --external:@arcanewizards/electron-media-service --external:@arcanewizards/midi --external:@arcanewizards/net-utils-native --outfile=dist/main.js",
     "build:preload": "esbuild --define:process.env.NODE_ENV=\\\"production\\\" src/preload.ts --bundle --platform=node --format=cjs --target=node20 --external:electron --outfile=dist/preload.js",
     "build:frontend": "esbuild --define:process.env.NODE_ENV=\\\"production\\\" src/frontend.ts --bundle --platform=browser --format=iife --minify --outfile=dist/frontend.js",
@@ -30,12 +30,12 @@
     "semver": "^5.7.2"
   },
   "devDependencies": {
-    "@arcanewizards/talisman-eslint-config": "workspace:^",
-    "@arcanewizards/talisman-lab": "workspace:^",
+    "@talisman-midi/eslint-config": "workspace:^",
+    "@talisman-midi/lab": "workspace:^",
     "@arcanewizards/sigil": "^0.6.1",
     "@arcanewizards/sigil-assets": "^0.1.1",
-    "@arcanewizards/talisman-assets": "workspace:^",
-    "@arcanewizards/talisman-typescript-config": "workspace:^",
+    "@talisman-midi/assets": "workspace:^",
+    "@talisman-midi/typescript-config": "workspace:^",
     "@electron-forge/cli": "^7.11.1",
     "@electron-forge/maker-deb": "^7.11.1",
     "@electron-forge/maker-dmg": "^7.11.1",

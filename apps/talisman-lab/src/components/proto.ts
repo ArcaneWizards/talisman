@@ -7,10 +7,10 @@ import type {
 import type { Diff } from '@arcanejs/diff';
 import type { MidiEndpoints, MIDISupportResponse } from '@arcanewizards/midi';
 import type { MidiMessageBufferSlice } from './frontend/shared/midi-message-monitor';
-import type { MidiMessageDescription } from '@arcanewizards/talisman/util';
+import type { MidiMessageDescription } from '@talisman-midi/talisman/util';
 import type { UserActionState } from '@arcanewizards/sigil/frontend/user-actions';
 import type { UpdateCheckResult } from '@arcanewizards/sigil/frontend/updates';
-import type { MidiDeviceReadiness } from '@arcanewizards/talisman';
+import type { MidiDeviceReadiness } from '@talisman-midi/talisman';
 import type {
   TalismanFullProfileInfo,
   TalismanSupportedDeviceData,

@@ -1,4 +1,17 @@
-# @arcanewizards/talisman-profiles
+# @talisman-midi/profiles
+
+## 0.0.4
+
+### Patch Changes
+
+- 1d36ecd: Bump version to publish to new namespace from CI
+
+  All packages and apps have now been moved into the
+  [@talisman-midi](https://www.npmjs.com/org/talisman-midi) namespace on NPM.
+  This version bump is to make the first publish to this namespace from CI.
+
+- Updated dependencies [1d36ecd]
+  - @talisman-midi/talisman@0.1.1
 
 ## 0.0.3
 
@@ -14,7 +27,7 @@
 - 9217fe3: Add testing information to profile
 - Updated dependencies [10aff01]
 - Updated dependencies [9217fe3]
-  - @arcanewizards/talisman@0.1.0
+  - @talisman-midi/talisman@0.1.0
 
 ## 0.0.2
 
@@ -22,4 +35,4 @@
 
 - 658542c: Initial version bump to test publish workflow
 - Updated dependencies [658542c]
-  - @arcanewizards/talisman@0.0.2
+  - @talisman-midi/talisman@0.0.2

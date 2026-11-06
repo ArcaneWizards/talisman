@@ -4,7 +4,7 @@ import {
   hexToRGB,
   hslToRgb,
   RGB,
-} from '@arcanewizards/talisman/color';
+} from '@talisman-midi/talisman/color';
 
 export const createMidiFighterClassicColorPalette = () =>
   Array.from({ length: 125 }).map((_, i) =>

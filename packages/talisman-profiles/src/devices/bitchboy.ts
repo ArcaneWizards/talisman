@@ -13,13 +13,13 @@ import {
   MidiFeedbackProfileInit,
   MidiProfileDefinition,
   MidiProfileFeedbackCapabilities,
-} from '@arcanewizards/talisman';
+} from '@talisman-midi/talisman';
 import {
   ColorSpace,
   createColorSpace,
   RGB,
-} from '@arcanewizards/talisman/color';
-import { MidiProfileBasic } from '@arcanewizards/talisman/profile';
+} from '@talisman-midi/talisman/color';
+import { MidiProfileBasic } from '@talisman-midi/talisman/profile';
 import { AKAI_VELOCITY_TO_RGB } from './akai-apcmini-mk2.js';
 
 const itemId = (type: 'cc' | 'note', index: number) => `${type}:${index}`;

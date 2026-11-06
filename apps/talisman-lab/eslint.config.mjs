@@ -1,7 +1,7 @@
 import { defineConfig } from 'eslint/config';
 import eslintPluginBetterTailwindcss from 'eslint-plugin-better-tailwindcss';
-import library from '@arcanewizards/talisman-eslint-config/library.js';
-import reactTailwindConfig from '@arcanewizards/talisman-eslint-config/react-tailwind.js';
+import library from '@talisman-midi/eslint-config/library.js';
+import reactTailwindConfig from '@talisman-midi/eslint-config/react-tailwind.js';
 
 const { REACT_TAILWIND_CALLEES } = reactTailwindConfig;
 

@@ -3,7 +3,7 @@ import {
   AKAI_VELOCITY_TO_RGB,
   createAkaiColorSpace,
 } from './akai-apcmini-mk2.js';
-import { colorArrayToColor } from '@arcanewizards/talisman/util';
+import { colorArrayToColor } from '@talisman-midi/talisman/util';
 
 describe('Akai APC Mini Mk2 Feedback Profile', () => {
   it('color count', () => {

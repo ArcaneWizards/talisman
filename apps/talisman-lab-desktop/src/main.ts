@@ -16,7 +16,7 @@ import type { NewWindowOptions } from '@arcanewizards/sigil/frontend' with {
 import type { SigilAppInstance } from '@arcanewizards/sigil' with {
   'resolution-mode': 'require',
 };
-import { runTalismanLabServer, type AppApi } from '@arcanewizards/talisman-lab';
+import { runTalismanLabServer, type AppApi } from '@talisman-midi/lab';
 import { productName } from '../package.json';
 
 const logger = pino(

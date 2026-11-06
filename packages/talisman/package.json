@@ -1,41 +1,41 @@
 {
-  "name": "@arcanewizards/talisman",
-  "version": "0.1.0",
+  "name": "@talisman-midi/talisman",
+  "version": "0.1.1",
   "private": false,
   "type": "module",
   "exports": {
     ".": {
-      "@arcanewizards/talisman-source": "./src/index.ts",
+      "@talisman-midi/source": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
     "./color": {
-      "@arcanewizards/talisman-source": "./src/color.ts",
+      "@talisman-midi/source": "./src/color.ts",
       "types": "./dist/color.d.ts",
       "import": "./dist/color.js",
       "require": "./dist/color.cjs"
     },
     "./core": {
-      "@arcanewizards/talisman-source": "./src/core.ts",
+      "@talisman-midi/source": "./src/core.ts",
       "types": "./dist/core.d.ts",
       "import": "./dist/core.js",
       "require": "./dist/core.cjs"
     },
     "./feedback": {
-      "@arcanewizards/talisman-source": "./src/feedback.ts",
+      "@talisman-midi/source": "./src/feedback.ts",
       "types": "./dist/feedback.d.ts",
       "import": "./dist/feedback.js",
       "require": "./dist/feedback.cjs"
     },
     "./profile": {
-      "@arcanewizards/talisman-source": "./src/profile.ts",
+      "@talisman-midi/source": "./src/profile.ts",
       "types": "./dist/profile.d.ts",
       "import": "./dist/profile.js",
       "require": "./dist/profile.cjs"
     },
     "./util": {
-      "@arcanewizards/talisman-source": "./src/util.ts",
+      "@talisman-midi/source": "./src/util.ts",
       "types": "./dist/util.d.ts",
       "import": "./dist/util.js",
       "require": "./dist/util.cjs"
@@ -54,8 +54,8 @@
     "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest --coverage"
   },
   "devDependencies": {
-    "@arcanewizards/talisman-eslint-config": "workspace:^",
-    "@arcanewizards/talisman-typescript-config": "workspace:^",
+    "@talisman-midi/eslint-config": "workspace:^",
+    "@talisman-midi/typescript-config": "workspace:^",
     "@jest/globals": "^30.1.2",
     "check-export-map": "^1.3.1",
     "eslint": "^9.39.4",

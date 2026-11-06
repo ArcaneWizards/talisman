@@ -16,7 +16,7 @@ It is for users who wish to:
 
 ## Headless / CLI Version
 
-[![](https://img.shields.io/npm/v/@arcanewizards/talisman-lab)](https://www.npmjs.com/package/@arcanewizards/talisman-lab)
+[![](https://img.shields.io/npm/v/@talisman-midi/lab)](https://www.npmjs.com/package/@talisman-midi/lab)
 
 This application can be installed and run via NPM, allowing the application UI to be accessed via a browser on any device on the same network.
 
@@ -25,14 +25,14 @@ For example, you can have Talisman Lab running on a Headless Mac Mini.
 Make sure you have Node v22 or higher installed, and then use `npx` to download and install the desired version:
 
 ```sh
-npx @arcanewizards/talisman-lab@latest
+npx @talisman-midi/lab@latest
 ```
 
-Or use `pnpm`, `npm`, or `yarn` to install the package `@arcanewizards/talisman-lab` globally,
+Or use `pnpm`, `npm`, or `yarn` to install the package `@talisman-midi/lab` globally,
 and then run the app:
 
 ```sh
-npm install -g @arcanewizards/talisman-lab@latest
+npm install -g @talisman-midi/lab@latest
 talisman-lab
 ```
 

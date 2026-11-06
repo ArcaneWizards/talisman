@@ -1,4 +1,4 @@
 import { defineConfig } from 'eslint/config';
-import library from '@arcanewizards/talisman-eslint-config/library.js';
+import library from '@talisman-midi/eslint-config/library.js';
 
 export default defineConfig([library]);

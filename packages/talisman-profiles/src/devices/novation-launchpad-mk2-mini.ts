@@ -3,8 +3,8 @@ import {
   createColorSpace,
   hslToRgb,
   RGB,
-} from '@arcanewizards/talisman/color';
-import { createBasicColorVelocityFeedbackProfile } from '@arcanewizards/talisman/feedback';
+} from '@talisman-midi/talisman/color';
+import { createBasicColorVelocityFeedbackProfile } from '@talisman-midi/talisman/feedback';
 import {
   createNovationButtonOnlyProfile,
   NovationButtonInfo,
@@ -18,7 +18,7 @@ import {
   MidiControllerItem,
   MidiProfileDefinition,
   FeedbackCapabilityProfile,
-} from '@arcanewizards/talisman/core';
+} from '@talisman-midi/talisman/core';
 
 const FEEDBACK_ID = 'rg-feedback';
 

@@ -1,5 +1,5 @@
 {
-  "name": "@arcanewizards/talisman-eslint-config",
+  "name": "@talisman-midi/eslint-config",
   "version": "0.0.0",
   "private": true,
   "files": [

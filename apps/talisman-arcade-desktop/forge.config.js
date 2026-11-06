@@ -5,7 +5,7 @@ const APP_NAME = 'Talisman MIDI Arcade';
 const PACKAGED_RUNTIME_DEPENDENCIES = [
   '@arcanewizards/midi',
   '@arcanewizards/sigil-assets',
-  '@arcanewizards/talisman-assets',
+  '@talisman-midi/assets',
   'bindings',
   'file-uri-to-path',
   'material-symbols',
@@ -16,7 +16,7 @@ const PACKAGED_RUNTIME_DEPENDENCIES = [
 const STRICT_FILTERS = {
   '/node_modules/@arcanewizards/midi': ['dist', 'native', 'package.json'],
   '/node_modules/@arcanewizards/sigil-assets': ['assets', 'package.json'],
-  '/node_modules/@arcanewizards/talisman-assets': ['assets', 'package.json'],
+  '/node_modules/@talisman-midi/assets': ['assets', 'package.json'],
 };
 
 const PACKAGED_RUNTIME_DEPENDENCY_PATHS = PACKAGED_RUNTIME_DEPENDENCIES.map(

@@ -8,12 +8,12 @@ import {
   MidiProfileDefinition,
   parseMidiMessages,
   parseSingleMidiMessage,
-} from '@arcanewizards/talisman';
+} from '@talisman-midi/talisman';
 import { CircularBuffer } from '../shared/util';
 import { Logger } from '@arcanejs/protocol/logging';
 import { MIDIInput, MIDIMessageEvent, MIDIOutput } from '@arcanewizards/midi';
-import { KNOWN_MIDI_PROFILES } from '@arcanewizards/talisman-profiles';
-import { hslToRgb, RGB } from '@arcanewizards/talisman/color';
+import { KNOWN_MIDI_PROFILES } from '@talisman-midi/profiles';
+import { hslToRgb, RGB } from '@talisman-midi/talisman/color';
 import {
   getCenterPosition,
   getCoordinateRanges,
@@ -21,12 +21,12 @@ import {
   getPositions,
   getRowsAndColumns,
   MidiMessageDescription,
-} from '@arcanewizards/talisman/util';
+} from '@talisman-midi/talisman/util';
 import {
   MidiCoordinateInfo,
   MidiDeviceReadiness,
   MidiColorFeedback,
-} from '@arcanewizards/talisman/core';
+} from '@talisman-midi/talisman/core';
 import { useShutdownHandler } from '@arcanewizards/sigil';
 import { ProcessedMidiMessage } from '../components/frontend/shared/midi-message-monitor';
 
