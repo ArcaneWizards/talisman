@@ -116,6 +116,7 @@ export type TalismanArcadeRootComponent = BaseComponentProto<
   midi: MIDINetworkState;
   config: ArcadeConfig;
   state: ApplicationState;
+  child: AnyComponentProto | null;
 };
 
 export type LicenseGateComponent = BaseComponentProto<

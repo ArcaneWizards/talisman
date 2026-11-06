@@ -27,9 +27,9 @@ type Props = {
 };
 
 export const TalismanArcadeRoot: FC<Props> = ({ info }) => {
-  const { config, state, midi } = info;
+  const { config, state, midi, child } = info;
 
-  const { sendMessage } = useContext(StageContext);
+  const { sendMessage, renderComponent } = useContext(StageContext);
 
   const updateConfig = useCallback(
     (change: (current: ArcadeConfig) => ArcadeConfig) => {
@@ -139,6 +139,7 @@ export const TalismanArcadeRoot: FC<Props> = ({ info }) => {
                   />
                 ))}
               </div>
+              {child && renderComponent(child)}
             </div>
           </div>
         </Layout>

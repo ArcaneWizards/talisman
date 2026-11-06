@@ -1,7 +1,8 @@
 import { IDMap } from '@arcanejs/toolkit/util';
 import type { ArcadeConfig } from '../proto';
 import {
-  Base,
+  AnyComponent,
+  BaseParent,
   EventEmitter,
   Listenable,
 } from '@arcanejs/toolkit/components/base';
@@ -17,6 +18,7 @@ import {
   AnyClientComponentMessage,
 } from '@arcanejs/protocol';
 import { Diff } from '@arcanejs/diff';
+import { ToolkitRenderContext } from '@arcanejs/toolkit';
 
 export type Events = {
   updateConfig: (diff: Diff<ArcadeConfig>) => void;
@@ -49,7 +51,7 @@ const DEFAULT_PROPS: AppRootProps = {
 type SupportedCalls = never;
 
 export class TalismanArcadeRoot
-  extends Base<
+  extends BaseParent<
     Namespace,
     TalismanArcadeRootComponent,
     AppRootProps,
@@ -78,6 +80,12 @@ export class TalismanArcadeRoot
   addListener = this.events.addListener;
   removeListener = this.events.removeListener;
 
+  public validateChildren = (children: AnyComponent[]) => {
+    if (children.length > 1) {
+      throw new Error('AppContext can only have one child');
+    }
+  };
+
   /** @hidden */
   public handleMessage = (message: AnyClientComponentMessage) => {
     if (isTalismanArcadeComponentMessage(message, 'talisman-arcade-root')) {
@@ -93,7 +101,10 @@ export class TalismanArcadeRoot
   };
 
   /** @hidden */
-  public getProtoInfo(idMap: IDMap): TalismanArcadeRootComponent {
+  public getProtoInfo(
+    idMap: IDMap,
+    context: ToolkitRenderContext,
+  ): TalismanArcadeRootComponent {
     return {
       namespace: 'talisman-arcade',
       component: 'talisman-arcade-root',
@@ -102,6 +113,10 @@ export class TalismanArcadeRoot
       midi: this.props.midi,
       config: this.props.config,
       state: this.props.state,
+      child:
+        this.getChildren()
+          .slice(0, 1)
+          .map((c) => c.getProtoInfo(idMap, context))[0] ?? null,
     };
   }
 }

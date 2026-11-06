@@ -36,6 +36,9 @@ import { API_APP_ID } from './constants';
 import { EulaGate } from './eula';
 import { MidiDeviceConnection } from './arcade/midi-device-connection';
 import { useDeviceAutoSelection } from './arcade/device-auto-selection';
+import { GameSelector } from './arcade/games/game-selector';
+import { Game, GameContext, GameContextData } from './arcade/games/context';
+import { FxPlayground } from './arcade/games/fx-playground';
 
 const DEFAULT_PORT: ListenerConfig['port'] = { from: 4120, to: 4200 };
 
@@ -74,8 +77,18 @@ const AppRoot: FC<AppRootProps> = ({ logger, license, updates }) => {
       uuid: string,
       update: (current: MidiDeviceConnection) => MidiDeviceConnection | null,
     ) => {
+      const deviceConfig = config.devices[uuid];
+      if (!deviceConfig) {
+        return;
+      }
       setDeviceState((prev) => {
-        const state = update(prev[uuid] ?? DEFAULT_CONNECTION);
+        const state = update(
+          prev[uuid] ?? { ...DEFAULT_CONNECTION, config: deviceConfig },
+        );
+        if (state === (prev[uuid] ?? null)) {
+          // No change in state, return previous state
+          return prev;
+        }
         if (state === null) {
           return Object.fromEntries(
             Object.entries(prev).filter(([key]) => key !== uuid),
@@ -87,7 +100,7 @@ const AppRoot: FC<AppRootProps> = ({ logger, license, updates }) => {
         };
       });
     },
-    [setDeviceState],
+    [setDeviceState, config],
   );
 
   const status: ApplicationState = useMemo(() => {
@@ -103,6 +116,15 @@ const AppRoot: FC<AppRootProps> = ({ logger, license, updates }) => {
       ),
     };
   }, [updates, deviceState]);
+
+  const [game, changeGame] = useState<Game>('menu');
+
+  const gameContextValue: GameContextData = useMemo(() => {
+    return {
+      devices: [...Object.values(deviceState)],
+      changeGame,
+    };
+  }, [deviceState]);
 
   return (
     <>
@@ -121,7 +143,12 @@ const AppRoot: FC<AppRootProps> = ({ logger, license, updates }) => {
         config={config}
         onUpdateConfig={onUpdateConfig}
         state={status}
-      />
+      >
+        <GameContext.Provider value={gameContextValue}>
+          {game === 'menu' && <GameSelector />}
+          {game === 'fx-playground' && <FxPlayground />}
+        </GameContext.Provider>
+      </C.TalismanArcadeRoot>
     </>
   );
 };

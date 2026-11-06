@@ -1,4 +1,4 @@
-import { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArcadeDeviceConfig,
   ConnectionStatus,
@@ -9,13 +9,16 @@ import {
   MidiFeedbackProfile,
   MidiInputConnectionInfo,
   MidiProfile,
+  parseMidiMessages,
 } from '@talisman-midi/talisman';
 import { useLogger, useShutdownHandler } from '@arcanewizards/sigil';
 import { MidiNetworkContext } from './network-state';
-import { MIDIInput, MIDIOutput } from '@arcanewizards/midi';
+import { MIDIInput, MIDIMessageEvent, MIDIOutput } from '@arcanewizards/midi';
 import { ALL_MIDI_PROFILES } from '../constants';
+import { isEqual } from 'lodash';
 
 export type MidiDeviceConnection = MidiDeviceState & {
+  config: ArcadeDeviceConfig;
   inputProfile: MidiProfile | null;
   outputProfile: MidiFeedbackProfile | null;
 };
@@ -40,7 +43,7 @@ type ConnectedOutput = {
   connected: boolean;
 };
 
-export const DEFAULT_CONNECTION: MidiDeviceConnection = {
+export const DEFAULT_CONNECTION: Omit<MidiDeviceConnection, 'config'> = {
   input: { status: 'disabled' },
   output: { status: 'disabled' },
   readiness: null,
@@ -97,7 +100,12 @@ export const MidiDeviceConnection: FC<Props> = ({
     setMidiDeviceReadiness(null);
 
     inputProfile?.addEventListener('readiness', (event) => {
-      setMidiDeviceReadiness(event.readiness);
+      setMidiDeviceReadiness((current) => {
+        if (isEqual(current, event.readiness)) {
+          return current;
+        }
+        return event.readiness;
+      });
     });
 
     return inputProfile;
@@ -135,6 +143,7 @@ export const MidiDeviceConnection: FC<Props> = ({
   const setAllConnections = useCallback(
     (state: ConnectionStatus) => {
       updateState(uuid, () => ({
+        config,
         input: state,
         output: state,
         readiness: null,
@@ -142,7 +151,7 @@ export const MidiDeviceConnection: FC<Props> = ({
         outputProfile: null,
       }));
     },
-    [updateState, uuid],
+    [updateState, uuid, config],
   );
 
   useEffect(() => {
@@ -273,6 +282,29 @@ export const MidiDeviceConnection: FC<Props> = ({
     midiDeviceReadiness,
   ]);
 
+  const handleMidiMessage = useCallback(
+    (input: ConnectedInput, event: MIDIMessageEvent) => {
+      if (!input.connected) {
+        return;
+      }
+      try {
+        for (const [msg] of parseMidiMessages(event.message)) {
+          inputProfile?.receiveMessage(msg);
+        }
+      } catch (cause) {
+        const error = new Error(`Unable to handle MIDI message`, { cause });
+        log.error(error);
+      }
+    },
+    [inputProfile, log],
+  );
+
+  const handleMidiMessageRef = useRef(handleMidiMessage);
+
+  useEffect(() => {
+    handleMidiMessageRef.current = handleMidiMessage;
+  }, [handleMidiMessage]);
+
   useEffect(() => {
     if (!input) return;
 
@@ -285,6 +317,9 @@ export const MidiDeviceConnection: FC<Props> = ({
       // But prevent more messages being sent to this input instance
       input.connected = false;
     });
+    input.input.addEventListener('message', (event) =>
+      handleMidiMessageRef.current(input, event),
+    );
 
     return () => {
       log.info(`Closing MIDI input ${name}`);
