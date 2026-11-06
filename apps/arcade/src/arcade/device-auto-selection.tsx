@@ -23,31 +23,26 @@ export const useDeviceAutoSelection = (
 
       for (const [uuid, deviceConfig] of Object.entries(current.devices)) {
         if (!deviceConfig.input) continue;
-        let selectedProfile = autoSelectProfileAndSubprofile(
-          {
-            inputDeviceName: deviceConfig.input,
-          },
-          ENABLED_MIDI_PROFILES,
-        );
-        if (
-          !selectedProfile ||
-          (selectedProfile[0] === deviceConfig.selectedProfile?.[0] &&
-            selectedProfile[1] === deviceConfig.selectedProfile?.[1])
-        ) {
-          selectedProfile = deviceConfig.selectedProfile;
-        }
-        let output = deviceConfig.output;
+        const selectedProfile =
+          deviceConfig.selectedProfile ??
+          autoSelectProfileAndSubprofile(
+            {
+              inputDeviceName: deviceConfig.input,
+            },
+            ENABLED_MIDI_PROFILES,
+          );
         const profile = ENABLED_MIDI_PROFILES[selectedProfile?.[0] ?? ''];
-        if (profile && !output) {
-          output =
+        const output =
+          deviceConfig.output ||
+          (profile &&
             autoSelectOutputForInput(
               { inputDeviceName: deviceConfig.input },
               midi.endpoints.outputs.map((o) => ({
                 outputDeviceName: o.name,
               })),
               profile,
-            )?.outputDeviceName ?? output;
-        }
+            )?.outputDeviceName) ||
+          null;
         if (
           !isEqual(deviceConfig.selectedProfile, selectedProfile) ||
           deviceConfig.output !== output

@@ -52,7 +52,10 @@ export const DeviceConfig = ({
             update((current) => ({
               ...current,
               input,
+              // Make blank so auto-selection will trigger
               output: '',
+              // Make blank so auto-selection will trigger
+              selectedProfile: null,
             }))
           }
           position="both"
