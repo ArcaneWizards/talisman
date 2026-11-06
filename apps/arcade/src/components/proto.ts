@@ -10,6 +10,8 @@ import z from 'zod';
 import { GET_EULA_RESPONSE, GetEulaResponse } from '@arcanewizards/apis';
 import { UserActionState } from '@arcanewizards/sigil/frontend/user-actions';
 import { UpdateCheckResult } from '@arcanewizards/sigil/frontend/updates';
+import { MidiDeviceReadiness } from '@talisman-midi/talisman';
+import { v4 as uuidv4 } from 'uuid';
 
 export const LOGO_URL_PATH = 'logo-animated.svg';
 export const LOGO_STATIC_URL_PATH = 'logo-static.svg';
@@ -29,17 +31,35 @@ const AGREED_TO_EULA = z.object({
   updateId: z.string(),
 });
 
-export const LAB_CONFIG = z.object({
+const ARCADE_DEVICE_CONFIG = z.object({
+  input: z.string().nullable(),
+  output: z.string().nullable(),
+  selectedProfile: z.tuple([z.string(), z.string()]).nullable(),
+  fps: z.number(),
+});
+
+export type ArcadeDeviceConfig = z.infer<typeof ARCADE_DEVICE_CONFIG>;
+
+export const ARCADE_CONFIG = z.object({
   agreedToEula: AGREED_TO_EULA.optional(),
   checkForUpdates: z.boolean().optional().default(true),
   animatedLogo: z.boolean().optional().default(true),
+  devices: z.record(ARCADE_DEVICE_CONFIG),
 });
 
-export type LabConfig = z.infer<typeof LAB_CONFIG>;
+export type ArcadeConfig = z.infer<typeof ARCADE_CONFIG>;
 
-export const DEFAULT_CONFIG: LabConfig = {
+export const DEFAULT_CONFIG: ArcadeConfig = {
   checkForUpdates: true,
   animatedLogo: true,
+  devices: {
+    [uuidv4()]: {
+      input: null,
+      output: null,
+      selectedProfile: null,
+      fps: 60,
+    },
+  },
 };
 
 // Data
@@ -54,7 +74,6 @@ export type ConnectionStatus =
     }
   | {
       status: 'connected';
-      messagesReceived: number;
     };
 
 // Proto
@@ -78,8 +97,15 @@ export type MIDINetworkState = {
   >;
 };
 
+export type MidiDeviceState = {
+  input: ConnectionStatus;
+  output: ConnectionStatus;
+  readiness: MidiDeviceReadiness | null;
+};
+
 export type ApplicationState = {
   updates: UpdateCheckResult | null;
+  devices: Record<string, MidiDeviceState>;
 };
 
 export type TalismanArcadeRootComponent = BaseComponentProto<
@@ -88,8 +114,9 @@ export type TalismanArcadeRootComponent = BaseComponentProto<
 > & {
   license: GetEulaResponse | null;
   midi: MIDINetworkState;
-  config: LabConfig;
+  config: ArcadeConfig;
   state: ApplicationState;
+  child: AnyComponentProto | null;
 };
 
 export type LicenseGateComponent = BaseComponentProto<
@@ -110,7 +137,7 @@ export type TalismanArcadeUpdateConfig =
   BaseClientComponentMessage<Namespace> & {
     component: 'talisman-arcade-root';
     action: 'update-config';
-    diff: Diff<LabConfig>;
+    diff: Diff<ArcadeConfig>;
   };
 
 export type LicenseGateAcceptLicense = BaseClientComponentMessage<Namespace> & {

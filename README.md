@@ -1,7 +1,7 @@
 # Talisman MIDI Project
 
 <p align="center">
-  <img src="./packages/talisman-assets/assets/logo-animated.svg" alt="Talisman Project Logo" height="200">
+  <img src="./packages/assets/assets/logo-animated.svg" alt="Talisman Project Logo" height="200">
 </p>
 
 ## Contributing

@@ -9,7 +9,7 @@ import {
   MIDISupportResponse,
 } from '@arcanewizards/midi';
 import { Logger } from '@arcanejs/protocol/logging';
-import { KNOWN_MIDI_PROFILES } from '@talisman-midi/profiles';
+import { ENABLED_MIDI_PROFILES } from '../constants';
 
 const MIDI_STATUS_POLL_INTERVAL = 1000;
 
@@ -102,7 +102,7 @@ export const useMidiNetworkState = (log: Logger): MidiNetworkContext => {
   const profiles: MIDINetworkState['profiles'] = useMemo(
     () =>
       Object.fromEntries(
-        Object.entries(KNOWN_MIDI_PROFILES).map(
+        Object.entries(ENABLED_MIDI_PROFILES).map(
           ([key, { name, subProfiles }]) => [
             key,
             {

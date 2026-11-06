@@ -205,9 +205,15 @@ export const midiNumberToValues = (
   return values;
 };
 
+export type MidiCoordinatePoint = { row: number; col: number };
+export type MidiCoordinatePartialPoint = {
+  row: number | null;
+  col: number | null;
+};
+
 export function* getPositions(
   p: MidiCoordinateInfo | null | undefined,
-): Generator<{ row: number; col: number }> {
+): Generator<MidiCoordinatePoint> {
   if (!p) {
     return;
   }
@@ -248,7 +254,18 @@ export function* getRowsAndColumns(
   }
 }
 
-export const getCenterPosition = (p: MidiCoordinateInfo | null | undefined) => {
+export function getCenterPosition(
+  p: MidiCoordinateInfo | null | undefined,
+  requireBoth: true,
+): MidiCoordinatePoint | null;
+export function getCenterPosition(
+  p: MidiCoordinateInfo | null | undefined,
+  requireBoth?: false,
+): MidiCoordinatePartialPoint;
+export function getCenterPosition(
+  p: MidiCoordinateInfo | null | undefined,
+  requireBoth?: boolean,
+): MidiCoordinatePartialPoint | null {
   const row =
     typeof p?.row === 'number'
       ? p.row
@@ -261,10 +278,22 @@ export const getCenterPosition = (p: MidiCoordinateInfo | null | undefined) => {
       : p?.col
         ? (p.col[0] + p.col[1]) / 2
         : null;
+  if (requireBoth && (row === null || col === null)) {
+    return null;
+  }
   return { row, col };
+}
+
+export type MidiGridArea = {
+  minCol: number;
+  maxCol: number;
+  minRow: number;
+  maxRow: number;
 };
 
-export const getCoordinateRanges = (items: Iterable<MidiControllerItem>) => {
+export const getCoordinateRanges = (
+  items: Iterable<MidiControllerItem>,
+): MidiGridArea => {
   let minCol = Infinity;
   let maxCol = -Infinity;
   let minRow = Infinity;

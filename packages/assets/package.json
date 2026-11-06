@@ -12,6 +12,8 @@
   "exports": {
     ".": "./package.json",
     "./package.json": "./package.json",
+    "./arcade-logo-animated.svg": "./assets/arcade-logo-animated.svg",
+    "./arcade-logo-static.svg": "./assets/arcade-logo-static.svg",
     "./logo-animated.svg": "./assets/logo-animated.svg",
     "./logo-static.svg": "./assets/logo-static.svg"
   },

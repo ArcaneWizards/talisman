@@ -1,7 +1,7 @@
 # Talisman MIDI Lab
 
 <p align="center">
-  <img src="../../packages/talisman-assets/assets/logo-animated.svg" alt="Talisman Arcade Logo" height="200">
+  <img src="../../packages/assets/assets/logo-animated.svg" alt="Talisman Arcade Logo" height="200">
 </p>
 
 This application open-source and is part of the
@@ -33,7 +33,7 @@ and then run the app:
 
 ```sh
 npm install -g @talisman-midi/lab@latest
-talisman-lab
+NODE_ENV=production talisman-lab
 ```
 
 ## Contributing
