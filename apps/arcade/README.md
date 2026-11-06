@@ -1,7 +1,7 @@
 # Talisman MIDI Arcade
 
 <p align="center">
-  <img src="../../packages/talisman-assets/assets/logo-animated.svg" alt="Talisman Arcade Logo" height="200">
+  <img src="../../packages/assets/assets/arcade-logo-animated.svg" alt="Talisman Arcade Logo" height="200">
 </p>
 
 This application open-source and is part of the
