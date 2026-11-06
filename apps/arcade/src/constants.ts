@@ -2,6 +2,7 @@ import type {
   UpdateBannerStrings,
   UpdateDetailsStrings,
 } from '@arcanewizards/sigil/frontend/updates';
+import { KNOWN_MIDI_PROFILES } from '@talisman-midi/profiles';
 
 export const TALISMAN_LAB_APP_NAME = 'Talisman MIDI Arcade';
 
@@ -50,3 +51,9 @@ export const STRINGS = {
     lastChecked: (time: string) => `Last checked: ${time}`,
   },
 } as const;
+
+export const ENABLED_MIDI_PROFILES = Object.fromEntries(
+  Object.entries(KNOWN_MIDI_PROFILES).filter(
+    ([_, value]) => value.testing.ready,
+  ),
+);

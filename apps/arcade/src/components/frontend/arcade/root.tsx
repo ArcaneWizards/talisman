@@ -1,6 +1,6 @@
 import { FC, useCallback, useContext, useMemo } from 'react';
 import {
-  LabConfig,
+  ArcadeConfig,
   TalismanArcadeRootComponent,
   TalismanArcadeUpdateConfig,
 } from '../../proto';
@@ -20,18 +20,19 @@ import {
 } from './context';
 import { Settings } from './settings';
 import { Logo } from './logo';
+import { DeviceConfig } from './device-config';
 
 type Props = {
   info: TalismanArcadeRootComponent;
 };
 
 export const TalismanArcadeRoot: FC<Props> = ({ info }) => {
-  const { config, state } = info;
+  const { config, state, midi } = info;
 
   const { sendMessage } = useContext(StageContext);
 
   const updateConfig = useCallback(
-    (change: (current: LabConfig) => LabConfig) => {
+    (change: (current: ArcadeConfig) => ArcadeConfig) => {
       const diff = diffJson(config, change(config));
       sendMessage?.<TalismanArcadeUpdateConfig>({
         type: 'component-message',
@@ -111,6 +112,33 @@ export const TalismanArcadeRoot: FC<Props> = ({ info }) => {
               "
             >
               <Logo animatedLogo={config.animatedLogo} />
+              <div
+                className="
+                  flex w-full max-w-[1015px] flex-wrap justify-center gap-2
+                  rounded-md bg-sigil-bg-dark p-2 text-sigil-foreground
+                "
+              >
+                {Object.entries(config.devices).map(([uuid, device]) => (
+                  <DeviceConfig
+                    key={uuid}
+                    midi={midi}
+                    config={device}
+                    state={state.devices[uuid] ?? null}
+                    update={(change) =>
+                      updateConfig((prev) => {
+                        return {
+                          ...prev,
+                          devices: Object.fromEntries(
+                            Object.entries(prev.devices).map(([id, d]) =>
+                              id === uuid ? [id, change(d)] : [id, d],
+                            ),
+                          ),
+                        };
+                      })
+                    }
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </Layout>

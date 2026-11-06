@@ -1,5 +1,5 @@
 import { IDMap } from '@arcanejs/toolkit/util';
-import type { LabConfig } from '../proto';
+import type { ArcadeConfig } from '../proto';
 import {
   Base,
   EventEmitter,
@@ -19,7 +19,7 @@ import {
 import { Diff } from '@arcanejs/diff';
 
 export type Events = {
-  updateConfig: (diff: Diff<LabConfig>) => void;
+  updateConfig: (diff: Diff<ArcadeConfig>) => void;
 };
 
 export type AppRootProps = Pick<
@@ -41,6 +41,7 @@ const DEFAULT_PROPS: AppRootProps = {
   config: DEFAULT_CONFIG,
   state: {
     updates: null,
+    devices: {},
   },
   license: null,
 };

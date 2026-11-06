@@ -1,9 +1,9 @@
 import { createContext, useContext } from 'react';
-import { ApplicationState, LabConfig } from '../../proto';
+import { ApplicationState, ArcadeConfig } from '../../proto';
 
 export type ConfigContextData = {
-  config: LabConfig;
-  updateConfig: (change: (current: LabConfig) => LabConfig) => void;
+  config: ArcadeConfig;
+  updateConfig: (change: (current: ArcadeConfig) => ArcadeConfig) => void;
 };
 
 export const ConfigContext = createContext<ConfigContextData>(
@@ -16,6 +16,7 @@ export const ConfigContext = createContext<ConfigContextData>(
 
 export const ApplicationStateContext = createContext<ApplicationState>({
   updates: null,
+  devices: {},
 });
 
 export const useApplicationState = () => useContext(ApplicationStateContext);

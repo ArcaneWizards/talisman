@@ -5,8 +5,8 @@ import {
   createBrowserMediaSession,
 } from '@arcanewizards/sigil/frontend';
 import { isTalismanArcadeComponent, NAMESPACE } from '../proto';
-import { TalismanArcadeRoot } from './workshop/root';
-import { LicenseGate } from './workshop/license';
+import { TalismanArcadeRoot } from './arcade/root';
+import { LicenseGate } from './arcade/license';
 
 export type TalismanArcadeBrowserContext = BaseBrowserContext;
 
