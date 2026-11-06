@@ -53,7 +53,7 @@ jobs:
           fi
 
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "tag=@arcanewizards/${{ inputs.app }}@${VERSION}" >> $GITHUB_OUTPUT
+          echo "tag=@talisman-midi/${{ inputs.app }}@${VERSION}" >> $GITHUB_OUTPUT
 
           # Get the directory of the app being built
           echo "app_dir=apps/${{ inputs.app }}-desktop" >> $GITHUB_OUTPUT
@@ -107,8 +107,8 @@ jobs:
       - name: Enable pnpm
         run: corepack enable pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm build --filter=@arcanewizards/${{ inputs.app }}-desktop
-      - run: pnpm test --filter=@arcanewizards/${{ inputs.app }}-desktop...
+      - run: pnpm build --filter=@talisman-midi/${{ inputs.app }}-desktop
+      - run: pnpm test --filter=@talisman-midi/${{ inputs.app }}-desktop...
       - name: Determine build variables
         id: build_vars
         env:
@@ -118,9 +118,9 @@ jobs:
           echo "x64File=out/${APP_NAME}.v${VERSION}.Intel.dmg" >> $GITHUB_OUTPUT
           echo "arm64File=out/${APP_NAME}.v${VERSION}.Apple Silicon.dmg" >> $GITHUB_OUTPUT
 
-          if [ "${APP_NAME}" == "talisman-lab" ]; then
+          if [ "${APP_NAME}" == "lab" ]; then
             echo "sourceFile=out/make/Talisman MIDI Lab.dmg" >> $GITHUB_OUTPUT
-          elif [ "${APP_NAME}" == "talisman-arcade" ]; then
+          elif [ "${APP_NAME}" == "arcade" ]; then
             echo "sourceFile=out/make/Talisman MIDI Arcade.dmg" >> $GITHUB_OUTPUT
           else
             echo "Unrecognized app name: ${APP_NAME}"
@@ -227,7 +227,7 @@ jobs:
       - name: Enable pnpm
         run: corepack enable pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm build --filter=@arcanewizards/${{ inputs.app }}-desktop
+      - run: pnpm build --filter=@talisman-midi/${{ inputs.app }}-desktop
       - name: Determine build variables
         id: build_vars
         env:
@@ -235,9 +235,9 @@ jobs:
           VERSION: ${{ needs.pre-release-checks.outputs.version }}
         run: |
           $ErrorActionPreference = "Stop"
-          if ($env:APP_NAME -eq "talisman-lab") {
+          if ($env:APP_NAME -eq "lab") {
             echo "x64File=out/$env:APP_NAME.v$env:VERSION.Setup.exe" >> $env:GITHUB_OUTPUT
-          } elseif ($env:APP_NAME -eq "talisman-arcade") {
+          } elseif ($env:APP_NAME -eq "arcade") {
             echo "x64File=out/$env:APP_NAME.v$env:VERSION.Setup.exe" >> $env:GITHUB_OUTPUT
           } else {
             echo "Unrecognized app name: $env:APP_NAME"
