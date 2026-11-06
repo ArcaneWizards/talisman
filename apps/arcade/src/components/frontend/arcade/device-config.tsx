@@ -192,6 +192,11 @@ export const DeviceConfig = ({
             />
           </>
         ) : null}
+        {state.readiness?.state === 'unusable' ? (
+          <ControlParagraph position="both" mode="error">
+            {state.readiness.message}
+          </ControlParagraph>
+        ) : null}
       </div>
     </div>
   );
