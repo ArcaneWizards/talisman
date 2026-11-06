@@ -389,8 +389,7 @@ export const useSelectedDevices = (
 
   useEffect(() => {
     if (config.selectedInput === null) {
-      setInputStatus({ status: 'disabled' });
-      setOutputStatus({ status: 'disabled' });
+      setAllConnections({ status: 'disabled' });
       return;
     }
 
@@ -408,72 +407,74 @@ export const useSelectedDevices = (
       return;
     }
 
-    setAllConnections({ status: 'connecting' });
+    setInputStatus({ status: 'connecting' });
 
-    const handleInitError = (type: 'input' | 'output') => (cause: unknown) => {
-      const error = new Error(`Failed to initialize MIDI ${type}`, {
-        cause,
-      });
-      log.error(error);
-      (type === 'input' ? setInputStatus : setOutputStatus)({
-        status: 'error',
-        errors: [`${error.message}`, `${cause}`],
-      });
-    };
-
-    try {
-      if (!selectedInputDevice) {
-        throw new Error(
-          `MIDI input device "${config.selectedInput}" not found`,
+    const initPromise = selectedInputDevice
+      ? m.openInput(selectedInputDevice)
+      : Promise.reject(
+          new Error(`MIDI input device "${config.selectedInput}" not found`),
         );
-      }
-      m.openInput(selectedInputDevice)
-        .then((input: MIDIInput) => {
-          setInput({ input, connected: true });
-          log.info(`Opened MIDI input on port ${selectedInputDevice.name}`);
-        })
-        .catch(handleInitError('input'));
-    } catch (cause) {
-      const error = new Error(`Failed to open MIDI input`, { cause });
-      log.error(error);
-      setInput(null);
-      setInputStatus({
-        status: 'error',
-        errors: [`${error.message}`, `${cause}`],
-      });
-    }
-
-    if (config.selectedOutput) {
-      try {
-        if (!selectedOutputDevice) {
-          throw new Error(
-            `MIDI output device "${config.selectedOutput}" not found`,
-          );
-        }
-        m.openOutput(selectedOutputDevice)
-          .then((output: MIDIOutput) => {
-            setOutput({ output, connected: true });
-            log.info(`Opened MIDI output on port ${selectedOutputDevice.name}`);
-          })
-          .catch(handleInitError('output'));
-      } catch (cause) {
-        const error = new Error(`Failed to open MIDI output`, {
+    initPromise
+      .then((input: MIDIInput) => {
+        setInput({ input, connected: true });
+        log.info(`Opened MIDI input ${config.selectedInput}`);
+      })
+      .catch((cause) => {
+        const error = new Error(`Failed to initialize MIDI input`, {
           cause,
         });
         log.error(error);
-        setOutput(null);
-        setOutputStatus({
+        setInputStatus({
           status: 'error',
           errors: [`${error.message}`, `${cause}`],
         });
-      }
+      });
+  }, [
+    log,
+    setAllConnections,
+    config.selectedInput,
+    selectedInputDevice,
+    m,
+    support,
+  ]);
+
+  useEffect(() => {
+    if (!support?.supported || !config.selectedInput) {
+      // Only initialize an output with an input
+      return;
+    }
+    if (config.selectedOutput) {
+      setOutputStatus({ status: 'connecting' });
+
+      const initPromise = selectedOutputDevice
+        ? m.openOutput(selectedOutputDevice)
+        : Promise.reject(
+            new Error(
+              `MIDI output device "${config.selectedOutput}" not found`,
+            ),
+          );
+
+      initPromise
+        .then((output: MIDIOutput) => {
+          setOutput({ output, connected: true });
+          log.info(`Opened MIDI output ${config.selectedOutput}`);
+        })
+        .catch((cause) => {
+          const error = new Error(`Failed to initialize MIDI output`, {
+            cause,
+          });
+          log.error(error);
+          setOutputStatus({
+            status: 'error',
+            errors: [`${error.message}`, `${cause}`],
+          });
+        });
     }
   }, [
     log,
     setAllConnections,
     config.selectedInput,
     config.selectedOutput,
-    selectedInputDevice,
     selectedOutputDevice,
     m,
     support,
