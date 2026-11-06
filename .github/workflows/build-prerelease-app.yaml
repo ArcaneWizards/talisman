@@ -8,15 +8,15 @@ on:
   workflow_dispatch:
     inputs:
       app:
-        description: "App to build"
+        description: 'App to build'
         required: true
-        default: talisman-lab
+        default: lab
         type: choice
         options:
-          - talisman-lab
-          - talisman-arcade
+          - lab
+          - arcade
       os:
-        description: "OS to build for"
+        description: 'OS to build for'
         required: true
         default: all
         type: choice
@@ -25,7 +25,7 @@ on:
           - macos
           - windows
       arch:
-        description: "Architecture to build for"
+        description: 'Architecture to build for'
         required: false
         default: all
         type: choice
