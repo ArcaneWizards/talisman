@@ -14,14 +14,14 @@ import {
   rgbToLightness,
 } from '@talisman-midi/talisman/color';
 import { isDefined } from '../../shared/util';
-import { useMenuTimeout } from '../hooks';
+import { useMenuTimeout as useScreenSaverTimeout } from '../hooks';
 
 export const FxPlayground: FC = () => {
   const { devices, changeGame } = useContext(GameContext);
 
   const artifacts = useRef<Artifact[]>([]);
 
-  const resetMenuResetTimeout = useMenuTimeout(60_000);
+  const resetScreenSaverResetTimeout = useScreenSaverTimeout(60_000);
 
   useEffect(() => {
     const unbind: Array<() => void> = [];
@@ -81,7 +81,7 @@ export const FxPlayground: FC = () => {
         const center = getCenterPosition(item?.position, true);
         if (!center) return;
         if (event.action.action === 'button-press') {
-          resetMenuResetTimeout();
+          resetScreenSaverResetTimeout();
           artifacts.current.push({
             type: 'wave',
             center,
@@ -107,13 +107,13 @@ export const FxPlayground: FC = () => {
         u();
       }
     };
-  }, [devices, changeGame, resetMenuResetTimeout]);
+  }, [devices, changeGame, resetScreenSaverResetTimeout]);
 
   return (
     <Group title="FX Playground">
       <Button
         onClick={() => {
-          changeGame('menu');
+          changeGame('main-menu');
         }}
         text="Main Menu"
       />

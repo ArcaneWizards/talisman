@@ -39,6 +39,7 @@ import { useDeviceAutoSelection } from './arcade/device-auto-selection';
 import { ScreenSaver } from './arcade/games/screensaver';
 import { Game, GameContext, GameContextData } from './arcade/games/context';
 import { FxPlayground } from './arcade/games/fx-playground';
+import { MainMenu } from './arcade/games/main-menu';
 
 const DEFAULT_PORT: ListenerConfig['port'] = { from: 4120, to: 4200 };
 
@@ -117,7 +118,7 @@ const AppRoot: FC<AppRootProps> = ({ logger, license, updates }) => {
     };
   }, [updates, deviceState]);
 
-  const [game, changeGame] = useState<Game>('menu');
+  const [game, changeGame] = useState<Game>('main-menu');
 
   const gameContextValue: GameContextData = useMemo(() => {
     return {
@@ -145,7 +146,8 @@ const AppRoot: FC<AppRootProps> = ({ logger, license, updates }) => {
         state={status}
       >
         <GameContext.Provider value={gameContextValue}>
-          {game === 'menu' && <ScreenSaver />}
+          {game === 'main-menu' && <MainMenu />}
+          {game === 'screen-saver' && <ScreenSaver />}
           {game === 'fx-playground' && <FxPlayground />}
         </GameContext.Provider>
       </C.TalismanArcadeRoot>

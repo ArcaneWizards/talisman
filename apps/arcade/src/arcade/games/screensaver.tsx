@@ -111,7 +111,7 @@ export const ScreenSaver: FC = () => {
         const item = input.getItem(event.action.item);
         if (!item?.position) return;
         if (event.action.action === 'button-press') {
-          changeGame('fx-playground');
+          changeGame('main-menu');
         }
       };
       input.addEventListener('action', onMessage);
@@ -129,12 +129,12 @@ export const ScreenSaver: FC = () => {
   }, [devices, changeGame]);
 
   return (
-    <Group>
+    <Group title="Screen Saver">
       <Button
         onClick={() => {
-          changeGame('fx-playground');
+          changeGame('main-menu');
         }}
-        text="FX Playground"
+        text="Main Menu"
       />
     </Group>
   );

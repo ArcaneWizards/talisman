@@ -8,7 +8,7 @@ export const useMenuTimeout = (timeoutMs: number) => {
   const resetMenuResetTimeout = useCallback(() => {
     if (menuResetTimeout.current) clearTimeout(menuResetTimeout.current);
     menuResetTimeout.current = setTimeout(() => {
-      changeGame('menu');
+      changeGame('screen-saver');
     }, timeoutMs);
   }, [changeGame, timeoutMs]);
 
