@@ -7,7 +7,12 @@ import {
 } from '@talisman-midi/talisman/util';
 import { Button, Group } from '@arcanejs/react-toolkit';
 import { addArtifact, advanceArtifact, Artifact } from '../artifacts';
-import { COLORS, hslToRgb, RGB } from '@talisman-midi/talisman/color';
+import {
+  COLORS,
+  hslToRgb,
+  RGB,
+  rgbToLightness,
+} from '@talisman-midi/talisman/color';
 import { isDefined } from '../../shared/util';
 
 export const FxPlayground: FC = () => {
@@ -61,7 +66,7 @@ export const FxPlayground: FC = () => {
           }
 
           output.setItemColor(item.id, {
-            mode: 'active',
+            mode: rgbToLightness(rgb) > 0.5 ? 'active' : 'empty',
             color: rgb,
           });
 

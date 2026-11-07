@@ -6,7 +6,12 @@ import {
   getCenterPosition,
   getCoordinateRanges,
 } from '@talisman-midi/talisman/util';
-import { COLORS, hslToRgb, RGB } from '@talisman-midi/talisman/color';
+import {
+  COLORS,
+  hslToRgb,
+  RGB,
+  rgbToLightness,
+} from '@talisman-midi/talisman/color';
 import { addArtifact, advanceArtifact, Artifact } from '../artifacts';
 import { isDefined } from '../../shared/util';
 
@@ -72,7 +77,7 @@ export const GameSelector: FC = () => {
           }
 
           output.setItemColor(item.id, {
-            mode: 'active',
+            mode: rgbToLightness(rgb) > 0.5 ? 'active' : 'empty',
             color: rgb,
           });
 

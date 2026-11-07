@@ -72,6 +72,18 @@ export const rgbToHsl = (rgb: RGB): HSL => {
   };
 };
 
+export const rgbToLightness = (rgb: RGB): number => {
+  const rn = rgb[0] / 255;
+  const gn = rgb[1] / 255;
+  const bn = rgb[2] / 255;
+
+  const max = Math.max(rn, gn, bn);
+  const min = Math.min(rn, gn, bn);
+
+  const l = (max + min) / 2;
+  return Math.round(l * 100);
+};
+
 export const hslToRgb = ({ h, s, l }: HSL): RGB => {
   const sn = s / 100;
   const ln = l / 100;
