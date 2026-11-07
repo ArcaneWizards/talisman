@@ -12,23 +12,26 @@ import {
   RGB,
   rgbToLightness,
 } from '@talisman-midi/talisman/color';
-import { addArtifact, advanceArtifact, Artifact } from '../artifacts';
-import { isDefined } from '../../shared/util';
+import { addArtifact, Artifact } from '../artifacts';
+import { createArtifactInterval, createRenderInterval } from '../rendering';
 
 export const ScreenSaver: FC = () => {
   const { devices, changeGame } = useContext(GameContext);
 
   const artifacts = useRef<Artifact[]>([]);
 
+  useEffect(() => {
+    const artifactInterval = createArtifactInterval(devices, artifacts);
+    return () => {
+      clearInterval(artifactInterval);
+    };
+  }, [devices]);
+
   const dimensions = useMemo(() => {
     const items: MidiControllerItem[] = [];
 
     for (const d of devices) {
-      const input = d.inputProfile;
-      const output = d.outputProfile;
-      if (!input || !output) continue;
-
-      items.push(...input.getItems());
+      items.push(...d.inputProfile.getItems());
     }
 
     const { minRow, minCol, maxRow, maxCol } = getCoordinateRanges(items);
@@ -47,7 +50,7 @@ export const ScreenSaver: FC = () => {
           row: Math.round((minRow + maxRow) * Math.random() + minRow),
           col: Math.round((minCol + maxCol) * Math.random() + minCol),
         },
-        speedPerSecond: diameter / 5,
+        speedPerSecond: diameter / 2,
         leadingColor: COLORS.WHITE,
         trailingColor: hslToRgb({ h: Math.random() * 360, s: 100, l: 50 }),
         maxRadius: diameter * 2,
@@ -72,8 +75,7 @@ export const ScreenSaver: FC = () => {
 
       output.clear();
 
-      let lastFrame = Date.now();
-      const renderInterval = setInterval(() => {
+      const renderInterval = createRenderInterval(d, () => {
         for (const item of input.getItems()) {
           let rgb: RGB = [0, 0, 0];
           const center = getCenterPosition(item.position, true);
@@ -94,24 +96,15 @@ export const ScreenSaver: FC = () => {
             mode: rgbToLightness(rgb) > 0.5 ? 'active' : 'empty',
             color: rgb,
           });
-
-          output.frameFinished();
         }
-
-        const deltaTime = Date.now() - lastFrame;
-        artifacts.current = artifacts.current
-          .map((a) => advanceArtifact(a, deltaTime))
-          .filter(isDefined);
-
-        lastFrame = Date.now();
-      }, 1000 / d.config.fps);
+      });
 
       const onMessage = (event: MidiActionEvent) => {
         if (!event.action.item) return;
         const item = input.getItem(event.action.item);
         if (!item?.position) return;
         if (event.action.action === 'button-press') {
-          changeGame('fx-playground');
+          changeGame('main-menu');
         }
       };
       input.addEventListener('action', onMessage);
@@ -129,12 +122,12 @@ export const ScreenSaver: FC = () => {
   }, [devices, changeGame]);
 
   return (
-    <Group>
+    <Group title="Screen Saver">
       <Button
         onClick={() => {
-          changeGame('fx-playground');
+          changeGame('main-menu');
         }}
-        text="FX Playground"
+        text="Main Menu"
       />
     </Group>
   );

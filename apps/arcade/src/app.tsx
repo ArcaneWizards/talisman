@@ -10,10 +10,15 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import { C } from './components/backend';
-import { DEFAULT_CONNECTION } from './arcade/midi-device-connection';
+import {
+  DEFAULT_CONNECTION,
+  isDeviceReady,
+  MidiDeviceConnection,
+} from './arcade/midi-device-connection';
 import { getEnv } from './env';
 import { ListenerConfig } from '@arcanewizards/sigil/shared/config';
 import { ConnectionsContextProvider } from '@arcanejs/react-toolkit/connections';
@@ -34,11 +39,19 @@ import { api, GetEulaResponse } from '@arcanewizards/apis';
 import { UpdateCheckResult } from '@arcanewizards/sigil/frontend/updates';
 import { API_APP_ID } from './constants';
 import { EulaGate } from './eula';
-import { MidiDeviceConnection } from './arcade/midi-device-connection';
+import { MidiDeviceConnectionState } from './arcade/midi-device-connection';
 import { useDeviceAutoSelection } from './arcade/device-auto-selection';
 import { ScreenSaver } from './arcade/games/screensaver';
-import { Game, GameContext, GameContextData } from './arcade/games/context';
+import {
+  Game,
+  GameColors,
+  GameContext,
+  GameContextData,
+} from './arcade/games/context';
 import { FxPlayground } from './arcade/games/fx-playground';
+import { MainMenu } from './arcade/games/main-menu';
+import { TapAMole } from './arcade/games/tap-a-mole';
+import { filter } from './shared/util';
 
 const DEFAULT_PORT: ListenerConfig['port'] = { from: 4120, to: 4200 };
 
@@ -56,6 +69,21 @@ type AppRootProps = {
   updates: UpdateCheckResult | null;
 };
 
+const getGame = (game: Game): ReactNode => {
+  switch (game) {
+    case 'main-menu':
+      return <MainMenu />;
+    case 'screen-saver':
+      return <ScreenSaver />;
+    case 'fx-playground':
+      return <FxPlayground />;
+    case 'tap-a-mole':
+      return <TapAMole />;
+  }
+  const _exhaustiveCheck: never = game;
+  return null;
+};
+
 const AppRoot: FC<AppRootProps> = ({ logger, license, updates }) => {
   const { data: config, updateData: updateConfig } =
     useDataFileContext(LabConfigData);
@@ -69,13 +97,15 @@ const AppRoot: FC<AppRootProps> = ({ logger, license, updates }) => {
   };
 
   const [deviceState, setDeviceState] = useState<
-    Record<string, MidiDeviceConnection>
+    Record<string, MidiDeviceConnectionState>
   >({});
 
   const updateDeviceState = useCallback(
     (
       uuid: string,
-      update: (current: MidiDeviceConnection) => MidiDeviceConnection | null,
+      update: (
+        current: MidiDeviceConnectionState,
+      ) => MidiDeviceConnectionState | null,
     ) => {
       const deviceConfig = config.devices[uuid];
       if (!deviceConfig) {
@@ -117,12 +147,18 @@ const AppRoot: FC<AppRootProps> = ({ logger, license, updates }) => {
     };
   }, [updates, deviceState]);
 
-  const [game, changeGame] = useState<Game>('menu');
+  const [game, changeGame] = useState<Game>('main-menu');
+
+  const colors = useRef<GameColors>({
+    primary: [255, 255, 255],
+    secondary: [0, 255, 0],
+  });
 
   const gameContextValue: GameContextData = useMemo(() => {
     return {
-      devices: [...Object.values(deviceState)],
+      devices: [...filter(Object.values(deviceState), isDeviceReady)],
       changeGame,
+      colors,
     };
   }, [deviceState]);
 
@@ -145,8 +181,7 @@ const AppRoot: FC<AppRootProps> = ({ logger, license, updates }) => {
         state={status}
       >
         <GameContext.Provider value={gameContextValue}>
-          {game === 'menu' && <ScreenSaver />}
-          {game === 'fx-playground' && <FxPlayground />}
+          {getGame(game)}
         </GameContext.Provider>
       </C.TalismanArcadeRoot>
     </>
