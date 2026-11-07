@@ -3,6 +3,8 @@
  */
 export type RGB = [number, number, number];
 
+export type RGBA = [number, number, number, number];
+
 export interface HSL {
   /** Hue component of the color (0-360) */
   h: number;
@@ -11,6 +13,29 @@ export interface HSL {
   /** Lightness component of the color (0-100) */
   l: number;
 }
+
+export const COLORS = Object.freeze({
+  BLACK: [0, 0, 0],
+  WHITE: [255, 255, 255],
+} satisfies Record<string, RGB>);
+
+export const rgbToRgba = (rgb: RGB, alpha: number): RGBA => {
+  return [rgb[0], rgb[1], rgb[2], alpha];
+};
+
+export const addRGBA = (background: RGB, overlay: RGBA): RGB => {
+  const alpha = overlay[3];
+  return addRGB(background, [overlay[0], overlay[1], overlay[2]], alpha);
+};
+
+export const addRGB = (background: RGB, overlay: RGB, alpha: number): RGB => {
+  const invAlpha = 1 - alpha;
+  return [
+    Math.round(background[0] * invAlpha + overlay[0] * alpha),
+    Math.round(background[1] * invAlpha + overlay[1] * alpha),
+    Math.round(background[2] * invAlpha + overlay[2] * alpha),
+  ];
+};
 
 export const rgbToHsl = (rgb: RGB): HSL => {
   const rn = rgb[0] / 255;
@@ -45,6 +70,18 @@ export const rgbToHsl = (rgb: RGB): HSL => {
     s: Math.round(s * 100),
     l: Math.round(l * 100),
   };
+};
+
+export const rgbToLightness = (rgb: RGB): number => {
+  const rn = rgb[0] / 255;
+  const gn = rgb[1] / 255;
+  const bn = rgb[2] / 255;
+
+  const max = Math.max(rn, gn, bn);
+  const min = Math.min(rn, gn, bn);
+
+  const l = (max + min) / 2;
+  return Math.round(l * 100);
 };
 
 export const hslToRgb = ({ h, s, l }: HSL): RGB => {

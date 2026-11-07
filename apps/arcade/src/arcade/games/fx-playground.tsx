@@ -1,45 +1,27 @@
 import { FC, useContext, useEffect, useRef } from 'react';
 import { GameContext } from './context';
 import { MidiActionEvent } from '@talisman-midi/talisman';
-import { MidiCoordinatePoint } from '@talisman-midi/talisman/util';
-import { gameGrid } from '../grid';
+import {
+  getCenterPosition,
+  getCoordinateRanges,
+} from '@talisman-midi/talisman/util';
 import { Button, Group } from '@arcanejs/react-toolkit';
-
-type Artifacts = {
-  state: 'active' | 'inactive';
-  opacity: number;
-  center: MidiCoordinatePoint;
-};
-
-type InteractionState = {
-  pressing: Record<string, Artifacts>;
-  artifacts: Artifacts[];
-};
-
-const FADE_PER_SECOND = 0.5;
+import { addArtifact, advanceArtifact, Artifact } from '../artifacts';
+import {
+  COLORS,
+  hslToRgb,
+  RGB,
+  rgbToLightness,
+} from '@talisman-midi/talisman/color';
+import { isDefined } from '../../shared/util';
+import { useMenuTimeout } from '../hooks';
 
 export const FxPlayground: FC = () => {
   const { devices, changeGame } = useContext(GameContext);
 
-  const interaction = useRef<InteractionState>({
-    pressing: {},
-    artifacts: [],
-  });
+  const artifacts = useRef<Artifact[]>([]);
 
-  useEffect(() => {
-    devices.forEach((d) => {
-      d.outputProfile?.clear();
-      d.outputProfile?.frameFinished();
-
-      for (const item of d.inputProfile?.getItems() ?? []) {
-        d.outputProfile?.setItemColor(item.id, {
-          mode: 'active',
-          color: [100, 0, 0],
-        });
-      }
-      d.outputProfile?.frameFinished();
-    });
-  }, [devices]);
+  const resetMenuResetTimeout = useMenuTimeout(60_000);
 
   useEffect(() => {
     const unbind: Array<() => void> = [];
@@ -51,61 +33,72 @@ export const FxPlayground: FC = () => {
 
       output.clear();
 
-      const { render, getCenterPosition, setColor } = gameGrid({
-        input,
-        output,
-        background: [255, 0, 0],
-      });
+      const { minRow, minCol, maxRow, maxCol } = getCoordinateRanges(
+        input.getItems(),
+      );
+
+      const diameter = Math.sqrt(
+        (maxRow - minRow) ** 2 + (maxCol - minCol) ** 2,
+      );
 
       let lastFrame = Date.now();
-      const interval = setInterval(() => {
-        interaction.current.artifacts = interaction.current.artifacts.filter(
-          (artifact) => {
-            // Adjust opacity
-            if (artifact.state === 'inactive') {
-              artifact.opacity -=
-                FADE_PER_SECOND * ((Date.now() - lastFrame) / 1000);
-            }
-            return artifact.opacity > 0;
-          },
-        );
+      const renderInterval = setInterval(() => {
+        for (const item of input.getItems()) {
+          let rgb: RGB = [0, 0, 0];
+          const center = getCenterPosition(item.position, true);
 
-        for (const artifact of interaction.current.artifacts) {
-          setColor(artifact.center, [
-            255 * artifact.opacity,
-            255 * artifact.opacity,
-            0,
-          ]);
+          if (!center) {
+            output.setItemColor(item.id, {
+              mode: 'empty',
+              color: COLORS.BLACK,
+            });
+            continue;
+          }
+
+          for (const artifact of artifacts.current) {
+            rgb = addArtifact(rgb, center, artifact);
+          }
+
+          output.setItemColor(item.id, {
+            mode: rgbToLightness(rgb) > 0.5 ? 'active' : 'empty',
+            color: rgb,
+          });
+
+          output.frameFinished();
         }
 
+        const deltaTime = Date.now() - lastFrame;
+        artifacts.current = artifacts.current
+          .map((a) => advanceArtifact(a, deltaTime))
+          .filter(isDefined);
+
         lastFrame = Date.now();
-        render();
       }, 1000 / d.config.fps);
 
       const onMessage = (event: MidiActionEvent) => {
         if (!event.action.item) return;
-        const center = getCenterPosition(event.action.item);
+        const item = input.getItem(event.action.item);
+        const center = getCenterPosition(item?.position, true);
         if (!center) return;
         if (event.action.action === 'button-press') {
-          const artifact: Artifacts = {
-            state: 'active',
-            opacity: 1,
+          resetMenuResetTimeout();
+          artifacts.current.push({
+            type: 'wave',
             center,
-          };
-          interaction.current.pressing[event.action.item] = artifact;
-          interaction.current.artifacts.push(artifact);
-        } else if (event.action.action === 'button-release') {
-          const a = interaction.current.pressing[event.action.item];
-          if (a) {
-            a.state = 'inactive';
-          }
-          delete interaction.current.pressing[event.action.item];
+            speedPerSecond: diameter / 2,
+            leadingColor: COLORS.WHITE,
+            trailingColor: hslToRgb({ h: Math.random() * 360, s: 100, l: 50 }),
+            maxRadius: diameter * 2,
+            leadingEdge: diameter / 16,
+            trailingEdge: diameter / 4,
+            radius: 0,
+          });
         }
       };
       input.addEventListener('action', onMessage);
       unbind.push(() => {
         input.removeEventListener('action', onMessage);
-        clearInterval(interval);
+        clearInterval(renderInterval);
       });
     }
 
@@ -114,7 +107,7 @@ export const FxPlayground: FC = () => {
         u();
       }
     };
-  }, [devices]);
+  }, [devices, changeGame, resetMenuResetTimeout]);
 
   return (
     <Group title="FX Playground">
