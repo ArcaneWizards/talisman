@@ -13,7 +13,7 @@ import {
   RGB,
   rgbToLightness,
 } from '@talisman-midi/talisman/color';
-import { useMenuTimeout as useScreenSaverTimeout } from '../hooks';
+import { useScreenSaverTimeout } from '../hooks';
 import { createArtifactInterval, createRenderInterval } from '../rendering';
 
 export const FxPlayground: FC = () => {

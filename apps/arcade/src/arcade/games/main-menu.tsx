@@ -9,9 +9,12 @@ import {
 import { RGB, rgbToLightness } from '@talisman-midi/talisman/color';
 import { isDefined } from '../../shared/util';
 import { ANY_LED_INTERACTIVE_ITEMS, selectItems } from '../item-selection';
+import { useScreenSaverTimeout } from '../hooks';
 
 export const MainMenu: FC = () => {
   const { devices, changeGame } = useContext(GameContext);
+
+  useScreenSaverTimeout(10_000);
 
   const deviceInfo: Array<{
     output: MidiFeedbackProfile;
