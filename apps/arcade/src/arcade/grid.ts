@@ -1,22 +1,19 @@
-import {
-  MidiControllerItem,
-  MidiCoordinateInfo,
-  MidiFeedbackProfile,
-  MidiProfile,
-} from '@talisman-midi/talisman';
-import { RGB } from '@talisman-midi/talisman/color';
+import { MidiCoordinateInfo, MidiProfile } from '@talisman-midi/talisman';
 import {
   getCenterPosition,
   getCoordinateRanges,
-  getPositions,
   MidiCoordinatePoint,
   MidiGridArea,
 } from '@talisman-midi/talisman/util';
+import { ItemSelector, selectItems } from './item-selection';
 
 type GameGridArgs = {
-  background: RGB;
   input: MidiProfile;
-  output: MidiFeedbackProfile;
+  selection: Array<{
+    selectors: Iterable<ItemSelector>;
+    minCols?: number;
+    minRows?: number;
+  }>;
 };
 
 const isExplicitCoordinate = (
@@ -124,140 +121,78 @@ export const getMaxContiguousArea = (
   };
 };
 
-export const gameGrid = ({ input, output, background }: GameGridArgs) => {
-  const usableFeedback = new Set(
-    Object.entries(input.getFeedbackCapabilities())
-      .filter(([, { led }]) => led?.type === 'rgb' || led?.type === 'palette')
-      .map(([id]) => id),
-  );
+export const gameGrid = ({ input, selection }: GameGridArgs) => {
+  const feedback = input.getFeedbackCapabilities();
 
-  /**
-   * All items with:
-   *
-   * - some form of color feedback
-   * - explicit row and column positions (i.e. not a range)
-   * - a nature defined (i.e. some form of input, and not just output)
-   */
-  const usableItems: MidiControllerItem[] = [];
-  for (const item of input.getItems()) {
-    if (!item.feedback || !usableFeedback.has(item.feedback)) {
-      // No usable color feedback
-      continue;
-    }
-    if (!isExplicitCoordinate(item.position)) {
-      continue;
-    }
-    if (
-      !item.note?.some((n) => n.nature) &&
-      !item.controlChange?.some((n) => n.nature)
-    ) {
-      // No nature defined (i.e. not an input)
-      continue;
-    }
-    usableItems.push(item);
-  }
+  for (const { selectors, minCols, minRows } of selection) {
+    const usableItems = selectItems(input.getItems(), feedback, selectors);
 
-  /**
-   * Max boundaries of elements from {@link usableItems}
-   */
-  const usableRange = getCoordinateRanges(usableItems);
-
-  const cellPresence: boolean[][] = Array.from(
-    { length: usableRange.maxCol - usableRange.minCol + 1 },
-    () =>
-      Array.from(
-        { length: usableRange.maxRow - usableRange.minRow + 1 },
-        () => false,
-      ),
-  );
-
-  for (const item of usableItems) {
-    if (isExplicitCoordinate(item.position)) {
-      const row = item.position.row - usableRange.minRow;
-      const col = item.position.col - usableRange.minCol;
-      if (col < 0) {
-        continue;
-      }
-      const colArray = cellPresence[col];
-      if (!colArray || row < 0 || row >= colArray.length) {
-        continue;
-      }
-      colArray[row] = true;
-    }
-  }
-
-  const { maxCol, maxRow, minCol, minRow } = getMaxContiguousArea(
-    usableRange,
-    cellPresence,
-  );
-
-  /**
-   * Center position for ALL items (not just grid items)
-   */
-  const centerPositions: Map<string, MidiCoordinatePoint> = new Map();
-  for (const item of input.getItems()) {
-    const center = getCenterPosition(item.position, true);
-    if (center) {
-      centerPositions.set(item.id, center);
-    }
-  }
-  const grid: RGB[][] = Array.from({ length: maxCol - minCol + 1 }, () =>
-    Array.from({ length: maxRow - minRow + 1 }, () => background),
-  );
-
-  return {
-    rows: maxCol - minCol + 1,
-    cols: maxRow - minRow + 1,
-    getCenterPosition: (itemId: string) => centerPositions.get(itemId) ?? null,
     /**
-     * Set a color in the "usable" grid coordinate system
+     * Max boundaries of elements from {@link usableItems}
      */
-    setColor: (position: MidiCoordinatePoint, color: RGB) => {
-      const row = position.row - minRow;
-      const col = position.col - minCol;
-      if (col < 0) {
-        return;
-      }
-      const colArray = grid[col];
-      if (!colArray || row < 0 || row >= colArray.length) {
-        return;
-      }
-      colArray[row] = color;
-    },
-    render: (finish = true) => {
-      for (const item of input.getItems()) {
-        let rgb: RGB | null = null;
-        let count = 0;
-        for (const pos of getPositions(item.position)) {
-          const row = pos.row - minRow;
-          const col = pos.col - minCol;
-          if (col >= 0 && row >= 0) {
-            const cell = grid[col]?.[row];
-            if (cell) {
-              if (!rgb) {
-                rgb = cell;
-              } else {
-                // Add the cell's RGB values to the running average
-                rgb = [
-                  (rgb[0] * count + cell[0]) / (count + 1),
-                  (rgb[1] * count + cell[1]) / (count + 1),
-                  (rgb[2] * count + cell[2]) / (count + 1),
-                ];
-              }
-              count++;
-            }
-          }
+    const usableRange = getCoordinateRanges(usableItems);
+
+    const cellPresence: boolean[][] = Array.from(
+      { length: usableRange.maxCol - usableRange.minCol + 1 },
+      () =>
+        Array.from(
+          { length: usableRange.maxRow - usableRange.minRow + 1 },
+          () => false,
+        ),
+    );
+
+    for (const item of usableItems) {
+      if (isExplicitCoordinate(item.position)) {
+        const row = item.position.row - usableRange.minRow;
+        const col = item.position.col - usableRange.minCol;
+        if (col < 0) {
+          continue;
         }
-        if (rgb) {
-          output.setItemColor(item.id, {
-            mode: 'active',
-            color: rgb,
-          });
+        const colArray = cellPresence[col];
+        if (!colArray || row < 0 || row >= colArray.length) {
+          continue;
         }
+        colArray[row] = true;
       }
-      if (finish) {
-        output.frameFinished();
+    }
+
+    const { maxCol, maxRow, minCol, minRow } = getMaxContiguousArea(
+      usableRange,
+      cellPresence,
+    );
+    const rows = maxCol - minCol + 1;
+    const cols = maxRow - minRow + 1;
+
+    if (minRows && rows < minRows) {
+      return null;
+    }
+    if (minCols && cols < minCols) {
+      return null;
+    }
+
+    /**
+     * Center position for ALL items (not just grid items)
+     */
+    const centerPositions: Map<string, MidiCoordinatePoint> = new Map();
+    for (const item of input.getItems()) {
+      const center = getCenterPosition(item.position, true);
+      if (center) {
+        centerPositions.set(item.id, center);
       }
-    },
-  };
+    }
+
+    return {
+      minCol,
+      minRow,
+      maxCol,
+      maxRow,
+      rows,
+      cols,
+      getCenterPosition: (itemId: string) =>
+        centerPositions.get(itemId) ?? null,
+      selectedItems: () => usableItems,
+    };
+  }
+
+  return null;
 };

@@ -17,18 +17,42 @@ import { MIDIInput, MIDIMessageEvent, MIDIOutput } from '@arcanewizards/midi';
 import { ALL_MIDI_PROFILES } from '../constants';
 import { isEqual } from 'lodash';
 
-export type MidiDeviceConnection = MidiDeviceState & {
+export type MidiDeviceConnectionState = MidiDeviceState & {
   config: ArcadeDeviceConfig;
   inputProfile: MidiProfile | null;
   outputProfile: MidiFeedbackProfile | null;
 };
+
+/**
+ * A stricter version of {@link MidiDeviceConnectionState}
+ * Represents a MIDI device that is fully connected and ready for use.
+ */
+export type MidiDeviceConnectionStateReady = MidiDeviceConnectionState & {
+  input: { status: 'connected' } & MidiDeviceConnectionState['input'];
+  output: { status: 'connected' } & MidiDeviceConnectionState['output'];
+  readiness: (null | { state: 'ready' }) &
+    MidiDeviceConnectionState['readiness'];
+  inputProfile: MidiProfile;
+  outputProfile: MidiFeedbackProfile;
+};
+
+export const isDeviceReady = (
+  device: MidiDeviceConnectionState,
+): device is MidiDeviceConnectionStateReady =>
+  device.input.status === 'connected' &&
+  device.output.status === 'connected' &&
+  (!device.readiness || device.readiness?.state === 'ready') &&
+  device.inputProfile !== null &&
+  device.outputProfile !== null;
 
 type Props = {
   uuid: string;
   midi: MidiNetworkContext;
   updateState: (
     uuid: string,
-    update: (current: MidiDeviceConnection) => MidiDeviceConnection | null,
+    update: (
+      current: MidiDeviceConnectionState,
+    ) => MidiDeviceConnectionState | null,
   ) => void;
   config: ArcadeDeviceConfig;
 };
@@ -43,7 +67,7 @@ type ConnectedOutput = {
   connected: boolean;
 };
 
-export const DEFAULT_CONNECTION: Omit<MidiDeviceConnection, 'config'> = {
+export const DEFAULT_CONNECTION: Omit<MidiDeviceConnectionState, 'config'> = {
   input: { status: 'disabled' },
   output: { status: 'disabled' },
   readiness: null,
