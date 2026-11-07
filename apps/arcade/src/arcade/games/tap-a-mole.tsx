@@ -11,7 +11,7 @@ import { RGB } from '@talisman-midi/talisman/color';
 import { ANY_LED_INTERACTIVE_ITEMS, selectItems } from '../item-selection';
 import { createRenderInterval } from '../rendering';
 import { gameGrid } from '../grid';
-import { RenderedText, renderText, ValidTextChar } from '../text/text';
+import { FONTS, RenderedText, renderText, ValidTextChar } from '../text/text';
 
 const MIN_TARGETS = 8;
 const COUNTDOWN_MS = 3000;
@@ -70,16 +70,19 @@ export const TapAMole: FC = () => {
         input: device.inputProfile,
         selection: [
           {
-            // Big enough space for 5x7 countdown text
             selectors: ANY_LED_INTERACTIVE_ITEMS,
-            minCols: 5,
-            minRows: 7,
+            minCols: FONTS['6x8'].cols,
+            minRows: FONTS['6x8'].rows,
           },
           {
-            // Big enough space for 4x5 countdown text
             selectors: ANY_LED_INTERACTIVE_ITEMS,
-            minCols: 4,
-            minRows: 5,
+            minCols: FONTS['5x7'].cols,
+            minRows: FONTS['5x7'].rows,
+          },
+          {
+            selectors: ANY_LED_INTERACTIVE_ITEMS,
+            minCols: FONTS['4x5'].cols,
+            minRows: FONTS['4x5'].rows,
           },
         ],
       });
@@ -162,21 +165,25 @@ export const TapAMole: FC = () => {
             }
             if (text) {
               if (textRenderCache.current?.text !== text) {
-                if (grid.cols >= 4 && grid.rows >= 5) {
-                  const offsetCols = Math.floor((grid.cols - 4) / 2);
-                  const offsetRows = Math.floor((grid.rows - 5) / 2);
-                  const render = renderText('4x5', [text]);
-                  textRenderCache.current = {
-                    text,
-                    render: {
-                      getValue: (col: number, row: number) => {
-                        return render.getValue(
-                          col - offsetCols,
-                          row - offsetRows,
-                        );
+                for (const f of ['6x8', '5x7', '4x5'] as const) {
+                  const font = FONTS[f];
+                  if (grid.cols >= font.cols && grid.rows >= font.rows) {
+                    const offsetCols = Math.floor((grid.cols - font.cols) / 2);
+                    const offsetRows = Math.floor((grid.rows - font.rows) / 2);
+                    const render = renderText(f, [text]);
+                    textRenderCache.current = {
+                      text,
+                      render: {
+                        getValue: (col: number, row: number) => {
+                          return render.getValue(
+                            col - offsetCols,
+                            row - offsetRows,
+                          );
+                        },
                       },
-                    },
-                  };
+                    };
+                    break;
+                  }
                 }
               }
               textRender = textRenderCache.current?.render ?? null;

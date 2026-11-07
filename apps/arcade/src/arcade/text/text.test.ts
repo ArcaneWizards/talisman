@@ -14,6 +14,35 @@ describe('getBitArrays', () => {
       1, 1, 1, 1,
     ]);
   });
+  it('test a single character for 5x7', () => {
+    const result = getBitArrays('5x7');
+
+    // prettier-ignore
+    expect(result['0']?.map((x) => x ? 1 : 0)).toEqual([
+      0, 1, 1, 1, 0,
+      1, 0, 0, 0, 1,
+      1, 0, 0, 1, 1,
+      1, 0, 1, 0, 1,
+      1, 1, 0, 0, 1,
+      1, 0, 0, 0, 1,
+      0, 1, 1, 1, 0,
+    ]);
+  });
+  it('test a single character for 6x8', () => {
+    const result = getBitArrays('6x8');
+
+    // prettier-ignore
+    expect(result['0']?.map((x) => x ? 1 : 0)).toEqual([
+      0, 1, 1, 1, 1, 0,
+      1, 0, 0, 0, 0, 1,
+      1, 0, 0, 0, 1, 1,
+      1, 0, 0, 1, 0, 1,
+      1, 0, 1, 0, 0, 1,
+      1, 1, 0, 0, 0, 1,
+      1, 0, 0, 0, 0, 1,
+      0, 1, 1, 1, 1, 0,
+    ]);
+  });
 });
 
 describe('renderText', () => {

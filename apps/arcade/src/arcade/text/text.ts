@@ -1,10 +1,22 @@
 import { TEXT_4_5 } from './4x5';
+import { TEXT_5_7 } from './5x7';
+import { TEXT_6_8 } from './6x8';
 
-const FONTS = Object.freeze({
+export const FONTS = Object.freeze({
   '4x5': {
     def: TEXT_4_5,
     cols: 4,
     rows: 5,
+  },
+  '5x7': {
+    def: TEXT_5_7,
+    cols: 5,
+    rows: 7,
+  },
+  '6x8': {
+    def: TEXT_6_8,
+    cols: 6,
+    rows: 8,
   },
 });
 
