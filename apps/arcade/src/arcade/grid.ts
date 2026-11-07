@@ -196,3 +196,5 @@ export const gameGrid = ({ input, selection }: GameGridArgs) => {
 
   return null;
 };
+
+export type GridData = Exclude<ReturnType<typeof gameGrid>, null>;
