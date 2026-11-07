@@ -14,11 +14,14 @@ import {
   rgbToLightness,
 } from '@talisman-midi/talisman/color';
 import { isDefined } from '../../shared/util';
+import { useMenuTimeout } from '../hooks';
 
 export const FxPlayground: FC = () => {
   const { devices, changeGame } = useContext(GameContext);
 
   const artifacts = useRef<Artifact[]>([]);
+
+  const resetMenuResetTimeout = useMenuTimeout(60_000);
 
   useEffect(() => {
     const unbind: Array<() => void> = [];
@@ -37,15 +40,6 @@ export const FxPlayground: FC = () => {
       const diameter = Math.sqrt(
         (maxRow - minRow) ** 2 + (maxCol - minCol) ** 2,
       );
-
-      let mainMenuTimeout: ReturnType<typeof setTimeout> | null = null;
-      const resetMainMenuTimeout = () => {
-        if (mainMenuTimeout) clearTimeout(mainMenuTimeout);
-        mainMenuTimeout = setTimeout(() => {
-          changeGame('menu');
-        }, 60_000);
-      };
-      resetMainMenuTimeout();
 
       let lastFrame = Date.now();
       const renderInterval = setInterval(() => {
@@ -87,7 +81,7 @@ export const FxPlayground: FC = () => {
         const center = getCenterPosition(item?.position, true);
         if (!center) return;
         if (event.action.action === 'button-press') {
-          resetMainMenuTimeout();
+          resetMenuResetTimeout();
           artifacts.current.push({
             type: 'wave',
             center,
@@ -105,7 +99,6 @@ export const FxPlayground: FC = () => {
       unbind.push(() => {
         input.removeEventListener('action', onMessage);
         clearInterval(renderInterval);
-        if (mainMenuTimeout) clearTimeout(mainMenuTimeout);
       });
     }
 
@@ -114,7 +107,7 @@ export const FxPlayground: FC = () => {
         u();
       }
     };
-  }, [devices, changeGame]);
+  }, [devices, changeGame, resetMenuResetTimeout]);
 
   return (
     <Group title="FX Playground">

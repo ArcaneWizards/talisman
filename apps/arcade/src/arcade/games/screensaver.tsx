@@ -1,7 +1,7 @@
-import { FC, useContext, useEffect, useRef } from 'react';
+import { FC, useContext, useEffect, useMemo, useRef } from 'react';
 import { GameContext } from './context';
 import { Button, Group } from '@arcanejs/react-toolkit';
-import { MidiActionEvent } from '@talisman-midi/talisman';
+import { MidiActionEvent, MidiControllerItem } from '@talisman-midi/talisman';
 import {
   getCenterPosition,
   getCoordinateRanges,
@@ -15,10 +15,52 @@ import {
 import { addArtifact, advanceArtifact, Artifact } from '../artifacts';
 import { isDefined } from '../../shared/util';
 
-export const GameSelector: FC = () => {
+export const ScreenSaver: FC = () => {
   const { devices, changeGame } = useContext(GameContext);
 
   const artifacts = useRef<Artifact[]>([]);
+
+  const dimensions = useMemo(() => {
+    const items: MidiControllerItem[] = [];
+
+    for (const d of devices) {
+      const input = d.inputProfile;
+      const output = d.outputProfile;
+      if (!input || !output) continue;
+
+      items.push(...input.getItems());
+    }
+
+    const { minRow, minCol, maxRow, maxCol } = getCoordinateRanges(items);
+
+    const diameter = Math.sqrt((maxRow - minRow) ** 2 + (maxCol - minCol) ** 2);
+    return { minRow, minCol, maxRow, maxCol, diameter };
+  }, [devices]);
+
+  useEffect(() => {
+    const { minRow, minCol, maxRow, maxCol, diameter } = dimensions;
+
+    const generateArtifact = () => {
+      artifacts.current.push({
+        type: 'wave',
+        center: {
+          row: Math.round((minRow + maxRow) * Math.random() + minRow),
+          col: Math.round((minCol + maxCol) * Math.random() + minCol),
+        },
+        speedPerSecond: diameter / 5,
+        leadingColor: COLORS.WHITE,
+        trailingColor: hslToRgb({ h: Math.random() * 360, s: 100, l: 50 }),
+        maxRadius: diameter * 2,
+        leadingEdge: diameter / 16,
+        trailingEdge: diameter / 4,
+        radius: 0,
+      });
+    };
+
+    const artifactGenerator = setInterval(generateArtifact, 2000);
+
+    return () => clearInterval(artifactGenerator);
+  }, [dimensions]);
 
   useEffect(() => {
     const unbind: Array<() => void> = [];
@@ -29,34 +71,6 @@ export const GameSelector: FC = () => {
       if (!input || !output) continue;
 
       output.clear();
-
-      const { minRow, minCol, maxRow, maxCol } = getCoordinateRanges(
-        input.getItems(),
-      );
-
-      const diameter = Math.sqrt(
-        (maxRow - minRow) ** 2 + (maxCol - minCol) ** 2,
-      );
-
-      const generateArtifact = () => {
-        artifacts.current.push({
-          type: 'wave',
-          center: {
-            row: Math.round((minRow + maxRow) * Math.random() + minRow),
-            col: Math.round((minCol + maxCol) * Math.random() + minCol),
-          },
-          speedPerSecond: diameter / 2,
-          leadingColor: COLORS.WHITE,
-          trailingColor: hslToRgb({ h: Math.random() * 360, s: 100, l: 50 }),
-          maxRadius: diameter * 2,
-          leadingEdge: diameter / 16,
-          trailingEdge: diameter / 4,
-          radius: 0,
-        });
-      };
-
-      const artifactGenerator = setInterval(generateArtifact, 2000);
-      generateArtifact();
 
       let lastFrame = Date.now();
       const renderInterval = setInterval(() => {
@@ -104,7 +118,6 @@ export const GameSelector: FC = () => {
       unbind.push(() => {
         input.removeEventListener('action', onMessage);
         clearInterval(renderInterval);
-        clearInterval(artifactGenerator);
       });
     }
 

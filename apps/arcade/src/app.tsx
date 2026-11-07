@@ -36,7 +36,7 @@ import { API_APP_ID } from './constants';
 import { EulaGate } from './eula';
 import { MidiDeviceConnection } from './arcade/midi-device-connection';
 import { useDeviceAutoSelection } from './arcade/device-auto-selection';
-import { GameSelector } from './arcade/games/game-selector';
+import { ScreenSaver } from './arcade/games/screensaver';
 import { Game, GameContext, GameContextData } from './arcade/games/context';
 import { FxPlayground } from './arcade/games/fx-playground';
 
@@ -145,7 +145,7 @@ const AppRoot: FC<AppRootProps> = ({ logger, license, updates }) => {
         state={status}
       >
         <GameContext.Provider value={gameContextValue}>
-          {game === 'menu' && <GameSelector />}
+          {game === 'menu' && <ScreenSaver />}
           {game === 'fx-playground' && <FxPlayground />}
         </GameContext.Provider>
       </C.TalismanArcadeRoot>
