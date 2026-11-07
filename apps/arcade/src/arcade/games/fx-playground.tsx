@@ -6,15 +6,15 @@ import {
   getCoordinateRanges,
 } from '@talisman-midi/talisman/util';
 import { Button, Group } from '@arcanejs/react-toolkit';
-import { addArtifact, advanceArtifact, Artifact } from '../artifacts';
+import { addArtifact, Artifact } from '../artifacts';
 import {
   COLORS,
   hslToRgb,
   RGB,
   rgbToLightness,
 } from '@talisman-midi/talisman/color';
-import { isDefined } from '../../shared/util';
 import { useMenuTimeout as useScreenSaverTimeout } from '../hooks';
+import { createArtifactInterval, createRenderInterval } from '../rendering';
 
 export const FxPlayground: FC = () => {
   const { devices, changeGame } = useContext(GameContext);
@@ -24,13 +24,18 @@ export const FxPlayground: FC = () => {
   const resetScreenSaverResetTimeout = useScreenSaverTimeout(60_000);
 
   useEffect(() => {
+    const artifactInterval = createArtifactInterval(devices, artifacts);
+    return () => {
+      clearInterval(artifactInterval);
+    };
+  }, [devices]);
+
+  useEffect(() => {
     const unbind: Array<() => void> = [];
 
     for (const d of devices) {
       const input = d.inputProfile;
       const output = d.outputProfile;
-      if (!input || !output) continue;
-
       output.clear();
 
       const { minRow, minCol, maxRow, maxCol } = getCoordinateRanges(
@@ -41,8 +46,7 @@ export const FxPlayground: FC = () => {
         (maxRow - minRow) ** 2 + (maxCol - minCol) ** 2,
       );
 
-      let lastFrame = Date.now();
-      const renderInterval = setInterval(() => {
+      const renderInterval = createRenderInterval(d, () => {
         for (const item of input.getItems()) {
           let rgb: RGB = [0, 0, 0];
           const center = getCenterPosition(item.position, true);
@@ -63,17 +67,8 @@ export const FxPlayground: FC = () => {
             mode: rgbToLightness(rgb) > 0.5 ? 'active' : 'empty',
             color: rgb,
           });
-
-          output.frameFinished();
         }
-
-        const deltaTime = Date.now() - lastFrame;
-        artifacts.current = artifacts.current
-          .map((a) => advanceArtifact(a, deltaTime))
-          .filter(isDefined);
-
-        lastFrame = Date.now();
-      }, 1000 / d.config.fps);
+      });
 
       const onMessage = (event: MidiActionEvent) => {
         if (!event.action.item) return;
@@ -85,7 +80,7 @@ export const FxPlayground: FC = () => {
           artifacts.current.push({
             type: 'wave',
             center,
-            speedPerSecond: diameter / 2,
+            speedPerSecond: diameter,
             leadingColor: COLORS.WHITE,
             trailingColor: hslToRgb({ h: Math.random() * 360, s: 100, l: 50 }),
             maxRadius: diameter * 2,

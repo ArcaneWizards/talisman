@@ -1,21 +1,29 @@
-import { createContext } from 'react';
-import { MidiDeviceConnection } from '../midi-device-connection';
+import { createContext, Ref } from 'react';
+import { MidiDeviceConnectionStateReady } from '../midi-device-connection';
 import { RGB } from '@talisman-midi/talisman/color';
 
 export const GAMES = Object.freeze({
   'main-menu': {
     color: [0, 0, 0],
+    name: 'Main Menu',
   },
   'screen-saver': {
     color: [100, 0, 0],
+    name: 'Screen Saver',
   },
   'fx-playground': {
     color: [0, 100, 0],
+    name: 'FX Playground',
+  },
+  'whack-a-mole': {
+    color: [0, 0, 100],
+    name: 'Whack A Mole',
   },
 } satisfies Record<
   string,
   {
     color: RGB;
+    name: string;
   }
 >);
 
@@ -25,9 +33,15 @@ export const GAMES_EXCLUDING_MAIN_MENU = (Object.keys(GAMES) as Game[]).filter(
   (key) => key !== 'main-menu',
 );
 
+export type GameColors = {
+  primary: RGB;
+  secondary: RGB;
+};
+
 export type GameContextData = {
-  devices: MidiDeviceConnection[];
+  devices: MidiDeviceConnectionStateReady[];
   changeGame: (game: Game) => void;
+  colors: Ref<GameColors>;
 };
 
 export const GameContext = createContext<GameContextData>(

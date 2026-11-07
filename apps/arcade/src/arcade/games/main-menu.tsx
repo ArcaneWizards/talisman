@@ -3,55 +3,12 @@ import { Game, GameContext, GAMES, GAMES_EXCLUDING_MAIN_MENU } from './context';
 import { Button, Group } from '@arcanejs/react-toolkit';
 import {
   MidiActionEvent,
-  MidiControllerItem,
   MidiFeedbackProfile,
   MidiProfile,
-  MidiProfileFeedbackCapabilities,
 } from '@talisman-midi/talisman';
 import { RGB, rgbToLightness } from '@talisman-midi/talisman/color';
-import { filter, isDefined } from '../../shared/util';
-
-const rgbGridItems =
-  (feedback: MidiProfileFeedbackCapabilities) =>
-  (item: MidiControllerItem): boolean =>
-    !!item.feedback &&
-    feedback[item.feedback]?.led?.type === 'rgb' &&
-    (!!item.note?.some((n) => n.nature?.nature === 'grid') ||
-      !!item.controlChange?.some((n) => n.nature?.nature === 'grid'));
-
-const colorGridItems =
-  (feedback: MidiProfileFeedbackCapabilities) =>
-  (item: MidiControllerItem): boolean =>
-    !!item.feedback &&
-    (feedback[item.feedback]?.led?.type === 'rgb' ||
-      feedback[item.feedback]?.led?.type === 'palette') &&
-    (!!item.note?.some((n) => n.nature?.nature === 'grid') ||
-      !!item.controlChange?.some((n) => n.nature?.nature === 'grid'));
-
-const rgbItems =
-  (feedback: MidiProfileFeedbackCapabilities) =>
-  (item: MidiControllerItem): boolean =>
-    !!item.feedback && feedback[item.feedback]?.led?.type === 'rgb';
-
-const colorItems =
-  (feedback: MidiProfileFeedbackCapabilities) =>
-  (item: MidiControllerItem): boolean =>
-    !!item.feedback &&
-    (feedback[item.feedback]?.led?.type === 'rgb' ||
-      feedback[item.feedback]?.led?.type === 'palette');
-
-const anyLedItems =
-  (feedback: MidiProfileFeedbackCapabilities) =>
-  (item: MidiControllerItem): boolean =>
-    !!item.feedback && !!feedback[item.feedback]?.led;
-
-const BUTTON_SELECTION_ORDER = [
-  rgbGridItems,
-  colorGridItems,
-  rgbItems,
-  colorItems,
-  anyLedItems,
-];
+import { isDefined } from '../../shared/util';
+import { ANY_LED_INTERACTIVE_ITEMS, selectItems } from '../item-selection';
 
 export const MainMenu: FC = () => {
   const { devices, changeGame } = useContext(GameContext);
@@ -66,29 +23,15 @@ export const MainMenu: FC = () => {
         .map((d) => {
           const input = d.inputProfile;
           const output = d.outputProfile;
-          if (!input || !output) return null;
 
           const feedback = input.getFeedbackCapabilities();
 
-          /**
-           * Find the most ideal selection of buttons to use for the available games
-           */
-          let items: MidiControllerItem[] = [];
-
-          for (const selector of BUTTON_SELECTION_ORDER) {
-            if (items.length < GAMES_EXCLUDING_MAIN_MENU.length) {
-              items = [
-                ...items,
-                ...filter(
-                  input.getItems(),
-                  selector(feedback),
-                  GAMES_EXCLUDING_MAIN_MENU.length - items.length,
-                ),
-              ];
-            } else {
-              break;
-            }
-          }
+          const items = selectItems(
+            input.getItems(),
+            feedback,
+            ANY_LED_INTERACTIVE_ITEMS,
+            GAMES_EXCLUDING_MAIN_MENU.length,
+          );
 
           const bindings: Record<string, Game> = {};
 
@@ -127,9 +70,8 @@ export const MainMenu: FC = () => {
           mode: rgbToLightness(rgb) > 0.5 ? 'active' : 'empty',
           color: rgb,
         });
-
-        output.frameFinished();
       }
+      output.frameFinished();
 
       const onMessage = (event: MidiActionEvent) => {
         if (!event.action.item) return;
@@ -156,18 +98,15 @@ export const MainMenu: FC = () => {
 
   return (
     <Group title="Main Menu">
-      <Button
-        onClick={() => {
-          changeGame('screen-saver');
-        }}
-        text="Screen Saver"
-      />
-      <Button
-        onClick={() => {
-          changeGame('fx-playground');
-        }}
-        text="FX Playground"
-      />
+      {GAMES_EXCLUDING_MAIN_MENU.map((game) => (
+        <Button
+          key={game}
+          onClick={() => {
+            changeGame(game);
+          }}
+          text={GAMES[game].name}
+        />
+      ))}
     </Group>
   );
 };
