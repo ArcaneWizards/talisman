@@ -15,9 +15,9 @@ export const GAMES = Object.freeze({
     color: [0, 100, 0],
     name: 'FX Playground',
   },
-  'whack-a-mole': {
+  'tap-a-mole': {
     color: [0, 0, 100],
-    name: 'Whack A Mole',
+    name: 'Tap A Mole',
   },
 } satisfies Record<
   string,

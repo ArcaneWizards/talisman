@@ -50,7 +50,7 @@ import {
 } from './arcade/games/context';
 import { FxPlayground } from './arcade/games/fx-playground';
 import { MainMenu } from './arcade/games/main-menu';
-import { WhackAMole } from './arcade/games/whack-a-mole';
+import { TapAMole } from './arcade/games/tap-a-mole';
 import { filter } from './shared/util';
 
 const DEFAULT_PORT: ListenerConfig['port'] = { from: 4120, to: 4200 };
@@ -77,8 +77,8 @@ const getGame = (game: Game): ReactNode => {
       return <ScreenSaver />;
     case 'fx-playground':
       return <FxPlayground />;
-    case 'whack-a-mole':
-      return <WhackAMole />;
+    case 'tap-a-mole':
+      return <TapAMole />;
   }
   const _exhaustiveCheck: never = game;
   return null;

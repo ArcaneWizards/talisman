@@ -11,8 +11,10 @@ import { RGB } from '@talisman-midi/talisman/color';
 import { ANY_LED_INTERACTIVE_ITEMS, selectItems } from '../item-selection';
 import { createRenderInterval } from '../rendering';
 import { gameGrid } from '../grid';
+import { RenderedText, renderText, ValidTextChar } from '../text/text';
 
 const MIN_TARGETS = 8;
+const COUNTDOWN_MS = 3000;
 
 type GameState =
   | {
@@ -26,7 +28,7 @@ type GameState =
       mode: 'playing';
     };
 
-export const WhackAMole: FC = () => {
+export const TapAMole: FC = () => {
   const { devices, changeGame } = useContext(GameContext);
 
   const artifacts = useRef<Artifact[]>([]);
@@ -34,6 +36,11 @@ export const WhackAMole: FC = () => {
   const [gameState, setGameState] = useState<GameState>({
     mode: 'ready',
   });
+
+  const textRenderCache = useRef<{
+    text: string;
+    render: RenderedText;
+  } | null>(null);
 
   /**
    * Use a ref in the rendering interval to always have the latest game state
@@ -63,7 +70,16 @@ export const WhackAMole: FC = () => {
         input: device.inputProfile,
         selection: [
           {
+            // Big enough space for 5x7 countdown text
             selectors: ANY_LED_INTERACTIVE_ITEMS,
+            minCols: 5,
+            minRows: 7,
+          },
+          {
+            // Big enough space for 4x5 countdown text
+            selectors: ANY_LED_INTERACTIVE_ITEMS,
+            minCols: 4,
+            minRows: 5,
           },
         ],
       });
@@ -117,18 +133,59 @@ export const WhackAMole: FC = () => {
 
       outputProfile.clear();
 
-      const { items } = deviceInfo;
+      const { items, grid } = deviceInfo;
 
       const selectedItemIDs = new Set(items.map((item) => item.id));
 
       const renderInterval = createRenderInterval(d, () => {
+        let textRender: RenderedText | null = null;
+        let flash = false;
+
+        if (gameStateRef.current.mode === 'countdown') {
+          let text: ValidTextChar | null = null;
+
+          const remaining =
+            COUNTDOWN_MS - (Date.now() - gameStateRef.current.startTime);
+          flash = Math.floor(remaining / 500) % 2 === 0;
+
+          if (remaining < 0) {
+            setGameState({
+              mode: 'playing',
+            });
+          } else if (grid) {
+            if (remaining > 2000) {
+              text = '3';
+            } else if (remaining > 1000) {
+              text = '2';
+            } else {
+              text = '1';
+            }
+            if (text) {
+              if (textRenderCache.current?.text !== text) {
+                if (grid.cols >= 4 && grid.rows >= 5) {
+                  const offsetCols = Math.floor((grid.cols - 4) / 2);
+                  const offsetRows = Math.floor((grid.rows - 5) / 2);
+                  const render = renderText('4x5', [text]);
+                  textRenderCache.current = {
+                    text,
+                    render: {
+                      getValue: (col: number, row: number) => {
+                        return render.getValue(
+                          col - offsetCols,
+                          row - offsetRows,
+                        );
+                      },
+                    },
+                  };
+                }
+              }
+              textRender = textRenderCache.current?.render ?? null;
+            }
+          }
+        }
+
         for (const item of inputProfile.getItems()) {
           let rgb: RGB = [0, 0, 0];
-
-          if (gameStateRef.current.mode === 'ready') {
-            // Make the screen green to indicate ready state
-            rgb = selectedItemIDs.has(item.id) ? [0, 255, 0] : [100, 100, 100];
-          }
 
           const center = getCenterPosition(item.position, true);
           if (!center) {
@@ -137,6 +194,21 @@ export const WhackAMole: FC = () => {
               color: rgb,
             });
             continue;
+          }
+
+          if (gameStateRef.current.mode === 'ready') {
+            // Make the screen green to indicate ready state
+            rgb = selectedItemIDs.has(item.id) ? [0, 255, 0] : [100, 100, 100];
+          } else if (gameStateRef.current.mode === 'countdown') {
+            if (textRender) {
+              rgb = textRender.getValue(center.col, center.row)
+                ? [255, 255, 255]
+                : flash
+                  ? [0, 0, 255]
+                  : [0, 0, 0];
+            }
+
+            // Make the screen red to indicate countdown state
           }
           for (const artifact of artifacts.current) {
             rgb = addArtifact(rgb, center, artifact);
@@ -180,7 +252,7 @@ export const WhackAMole: FC = () => {
   }, [devices, changeGame, deviceInfo]);
 
   return (
-    <Group title={GAMES['whack-a-mole'].name} direction="vertical">
+    <Group title={GAMES['tap-a-mole'].name} direction="vertical">
       <Button
         onClick={() => {
           changeGame('main-menu');
@@ -197,6 +269,7 @@ export const WhackAMole: FC = () => {
           {gameState.mode === 'ready' && (
             <>Press a green button on the pad to start the game</>
           )}
+          {gameState.mode === 'countdown' && <>Get ready...</>}
         </>
       )}
     </Group>

@@ -8,7 +8,7 @@ export const TEXT_4_5 = Object.freeze({
   `,
   1: `
     --*-
-    --*-
+    -**-
     --*-
     --*-
     --*-
