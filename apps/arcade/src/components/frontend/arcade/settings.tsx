@@ -13,7 +13,7 @@ import {
   ToolbarRow,
   ToolbarWrapper,
 } from '@arcanewizards/sigil/frontend/toolbars';
-import { ConfigContext, useApplicationState } from './context';
+import { RootContext, useApplicationState } from './context';
 import { STRINGS } from '../../../constants';
 
 type SettingsProps = {
@@ -26,7 +26,7 @@ const DATE_FORMATTER = new Intl.DateTimeFormat(undefined, {
 
 export const Settings: FC<SettingsProps> = ({ setWindowMode }) => {
   const { preferences, updateBrowserPrefs } = useBrowserPreferences();
-  const { config, updateConfig } = useContext(ConfigContext);
+  const { config, updateConfig } = useContext(RootContext);
   const { updates } = useApplicationState();
 
   return (

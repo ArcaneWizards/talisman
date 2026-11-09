@@ -13,7 +13,11 @@ import { C } from './components/backend';
 import { version } from '../package.json';
 import { AppEdition } from '@arcanewizards/apis';
 import { readFile } from 'fs/promises';
-import { LOGO_STATIC_URL_PATH, LOGO_URL_PATH } from './components/proto';
+import {
+  LOGO_STATIC_URL_PATH,
+  LOGO_URL_PATH,
+  TALISMAN_LOGO_URL_PATH,
+} from './components/proto';
 
 export type { AppApi };
 
@@ -49,6 +53,12 @@ export const runTalismanArcadeServer = ({
     additionalFiles: () =>
       ({
         ...getSigilServerAssets(),
+        [TALISMAN_LOGO_URL_PATH]: async () => ({
+          content: await readFile(
+            require.resolve('@talisman-midi/assets/logo-static.svg'),
+          ),
+          contentType: 'image/svg+xml',
+        }),
         [LOGO_URL_PATH]: async () => ({
           content: await readFile(
             require.resolve('@talisman-midi/assets/arcade-logo-animated.svg'),

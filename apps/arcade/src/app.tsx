@@ -26,6 +26,7 @@ import { useMidiNetworkState } from './arcade/network-state';
 import {
   ApplicationState,
   ArcadeConfig,
+  GameColors,
   MidiDeviceState,
 } from './components/proto';
 import { Diff } from '@arcanejs/diff/diff';
@@ -42,12 +43,7 @@ import { EulaGate } from './eula';
 import { MidiDeviceConnectionState } from './arcade/midi-device-connection';
 import { useDeviceAutoSelection } from './arcade/device-auto-selection';
 import { ScreenSaver } from './arcade/games/screensaver';
-import {
-  Game,
-  GameColors,
-  GameContext,
-  GameContextData,
-} from './arcade/games/context';
+import { Game, GameContext, GameContextData } from './arcade/games/context';
 import { FxPlayground } from './arcade/games/fx-playground';
 import { MainMenu } from './arcade/games/main-menu';
 import { TapAMole } from './arcade/games/tap-a-mole';
@@ -179,8 +175,10 @@ const AppRoot: FC<AppRootProps> = ({ logger, license, updates }) => {
         license={license}
         midi={midi.state}
         config={config}
-        onUpdateConfig={onUpdateConfig}
         state={status}
+        colors={colors.current}
+        onUpdateConfig={onUpdateConfig}
+        onChangeGame={changeGame}
       >
         <GameContext.Provider value={gameContextValue}>
           {getGame(game)}

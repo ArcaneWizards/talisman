@@ -12,6 +12,10 @@ export const useScreenSaverTimeout = (timeoutMs: number) => {
     }, timeoutMs);
   }, [changeGame, timeoutMs]);
 
+  const clearMenuResetTimeout = useCallback(() => {
+    if (menuResetTimeout.current) clearTimeout(menuResetTimeout.current);
+  }, []);
+
   useEffect(() => {
     resetMenuResetTimeout();
     return () => {
@@ -19,5 +23,5 @@ export const useScreenSaverTimeout = (timeoutMs: number) => {
     };
   }, [resetMenuResetTimeout]);
 
-  return resetMenuResetTimeout;
+  return { resetMenuResetTimeout, clearMenuResetTimeout };
 };

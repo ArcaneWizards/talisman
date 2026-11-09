@@ -5,23 +5,18 @@ import {
   getCenterPosition,
   getCoordinateRanges,
 } from '@talisman-midi/talisman/util';
-import { Button, Group } from '@arcanejs/react-toolkit';
-import { addArtifact, Artifact } from '../artifacts';
-import {
-  COLORS,
-  hslToRgb,
-  RGB,
-  rgbToLightness,
-} from '@talisman-midi/talisman/color';
+import { addArtifact, Artifact, generateFXArtifact } from '../artifacts';
+import { COLORS, RGB, rgbToLightness } from '@talisman-midi/talisman/color';
 import { useScreenSaverTimeout } from '../hooks';
 import { createArtifactInterval, createRenderInterval } from '../rendering';
+import { C } from '../../components/backend';
 
 export const FxPlayground: FC = () => {
   const { devices, changeGame } = useContext(GameContext);
 
   const artifacts = useRef<Artifact[]>([]);
 
-  const resetScreenSaverResetTimeout = useScreenSaverTimeout(60_000);
+  const { resetMenuResetTimeout } = useScreenSaverTimeout(60_000);
 
   useEffect(() => {
     const artifactInterval = createArtifactInterval(devices, artifacts);
@@ -76,18 +71,8 @@ export const FxPlayground: FC = () => {
         const center = getCenterPosition(item?.position, true);
         if (!center) return;
         if (event.action.action === 'button-press') {
-          resetScreenSaverResetTimeout();
-          artifacts.current.push({
-            type: 'wave',
-            center,
-            speedPerSecond: diameter,
-            leadingColor: COLORS.WHITE,
-            trailingColor: hslToRgb({ h: Math.random() * 360, s: 100, l: 50 }),
-            maxRadius: diameter * 2,
-            leadingEdge: diameter / 16,
-            trailingEdge: diameter / 4,
-            radius: 0,
-          });
+          resetMenuResetTimeout();
+          artifacts.current.push(generateFXArtifact(center, diameter));
         }
       };
       input.addEventListener('action', onMessage);
@@ -102,16 +87,7 @@ export const FxPlayground: FC = () => {
         u();
       }
     };
-  }, [devices, changeGame, resetScreenSaverResetTimeout]);
+  }, [devices, changeGame, resetMenuResetTimeout]);
 
-  return (
-    <Group title="FX Playground">
-      <Button
-        onClick={() => {
-          changeGame('main-menu');
-        }}
-        text="Main Menu"
-      />
-    </Group>
-  );
+  return <C.FxPlayground />;
 };

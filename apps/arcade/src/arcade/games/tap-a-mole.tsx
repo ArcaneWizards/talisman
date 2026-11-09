@@ -7,7 +7,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { GameContext, GAMES } from './context';
+import { GameContext } from './context';
 import { MidiActionEvent } from '@talisman-midi/talisman';
 import {
   getCenterPosition,
@@ -17,8 +17,7 @@ import {
   MidiControllerItemWithPointPosition,
   MidiCoordinatePoint,
 } from '@talisman-midi/talisman/util';
-import { Button, Group } from '@arcanejs/react-toolkit';
-import { addArtifact, Artifact } from '../artifacts';
+import { addArtifact, Artifact, generateMoleHitArtifact } from '../artifacts';
 import { RGB } from '@talisman-midi/talisman/color';
 import { ANY_LED_INTERACTIVE_ITEMS, selectItems } from '../item-selection';
 import { createArtifactInterval, createRenderInterval } from '../rendering';
@@ -26,10 +25,13 @@ import { gameGrid } from '../grid';
 import { FONTS, RenderedText, renderText, ValidTextChar } from '../text/text';
 import { filter } from '../../shared/util';
 import isEqual from 'lodash/isEqual';
+import { TapAMoleGameState } from '../../components/proto';
+import { C } from '../../components/backend';
+import { useScreenSaverTimeout } from '../hooks';
 
 const MIN_TARGETS = 8;
 const COUNTDOWN_MS = 3_000;
-const GAME_LENGTH_MS = 60_000;
+const GAME_LENGTH_MS = 30_000;
 /**
  * After missing a mole, how long should it stay visible before disappearing
  */
@@ -72,27 +74,6 @@ const calculateScore = (diffMs: number) => {
   );
 };
 
-type GameState =
-  | {
-      mode: 'ready';
-    }
-  | {
-      mode: 'countdown';
-      startTime: number;
-    }
-  | {
-      mode: 'playing';
-      gameStartMs: number;
-      score: number;
-      hit: number;
-      miss: number;
-    }
-  | {
-      mode: 'finished';
-      gameFinishMs: number;
-      score: number;
-    };
-
 export const TapAMole: FC = () => {
   const { devices, changeGame, colors } = useContext(GameContext);
 
@@ -105,9 +86,22 @@ export const TapAMole: FC = () => {
     };
   }, [devices]);
 
-  const [gameState, setGameState] = useState<GameState>({
+  const [gameState, setGameState] = useState<TapAMoleGameState>({
     mode: 'ready',
   });
+
+  const { resetMenuResetTimeout, clearMenuResetTimeout } =
+    useScreenSaverTimeout(10_000);
+
+  useEffect(() => {
+    if (gameState.mode === 'ready') {
+      // Timeout to screen-saver when user stays on the ready screen too long
+      resetMenuResetTimeout();
+    } else {
+      // Disable screensaver timeout when actively in use / viewing score
+      clearMenuResetTimeout();
+    }
+  }, [gameState.mode, resetMenuResetTimeout, clearMenuResetTimeout]);
 
   const gameData = useRef<{
     moles: Map<
@@ -116,6 +110,7 @@ export const TapAMole: FC = () => {
         position: MidiCoordinatePoint;
         appearanceMs: number;
         expiresMs: number;
+        missRecorded: boolean;
       }
     >;
     nextMoleAppearanceMs: number;
@@ -243,38 +238,37 @@ export const TapAMole: FC = () => {
       const fingerprint = getMidiCoordinatePointFingerprint(center);
       const mole = gameData.current.moles.get(fingerprint);
       let score = 0;
-      let highlight: RGB | null = null;
-      let speed = 2;
+      let hit: boolean;
       if (!mole) {
         score = -MISS_PENALTY;
-        speed = 0.5;
-        highlight = colors.current.error;
+        hit = false;
       } else {
         if (mole.expiresMs <= now)
           // Return with no penalty
           return;
         score = calculateScore(now - mole.appearanceMs);
-        highlight = colors.current.secondary;
+        hit = true;
       }
       setGameState((current) =>
         current.mode === 'playing'
-          ? { ...current, score: current.score + score }
+          ? {
+              ...current,
+              score: current.score + score,
+              hit: current.hit + (hit ? 1 : 0),
+            }
           : current,
       );
       gameData.current.moles.delete(fingerprint);
       if (deviceInfo) {
         const diameter = deviceInfo.diameter;
-        artifacts.current.push({
-          type: 'wave',
-          center,
-          speedPerSecond: diameter * speed,
-          leadingColor: highlight,
-          trailingColor: highlight,
-          maxRadius: diameter * 2,
-          leadingEdge: diameter / 16,
-          trailingEdge: diameter / 16,
-          radius: 0,
-        });
+        artifacts.current.push(
+          generateMoleHitArtifact(
+            center,
+            diameter,
+            colors.current,
+            hit ? 'hit' : 'miss',
+          ),
+        );
       }
     },
     [colors, deviceInfo],
@@ -364,15 +358,14 @@ export const TapAMole: FC = () => {
         if (gameStateRef.current.mode === 'countdown') {
           let text: ValidTextChar | null = null;
 
-          const remaining =
-            COUNTDOWN_MS - (now - gameStateRef.current.startTime);
+          const remaining = gameStateRef.current.gameStartTimeMs - now;
           flash = Math.floor(remaining / 500) % 2 === 0;
 
           if (remaining < 0) {
             setGameState({
               mode: 'playing',
               score: 0,
-              gameStartMs: now,
+              gameEndTimeMs: now + GAME_LENGTH_MS,
               hit: 0,
               miss: 0,
             });
@@ -395,13 +388,12 @@ export const TapAMole: FC = () => {
             }
           }
         } else if (gameStateRef.current.mode === 'playing') {
-          if (now - gameStateRef.current.gameStartMs >= GAME_LENGTH_MS) {
+          if (now >= gameStateRef.current.gameEndTimeMs) {
             setGameState((current) =>
               current.mode === 'playing'
                 ? {
                     ...current,
                     mode: 'finished',
-                    score: current.score,
                     gameFinishMs: now,
                   }
                 : current,
@@ -434,6 +426,7 @@ export const TapAMole: FC = () => {
                 position: moleLocation[1],
                 appearanceMs: now,
                 expiresMs: now + nextMoleWaitMs,
+                missRecorded: false,
               });
 
               // Update values for next mole
@@ -464,6 +457,17 @@ export const TapAMole: FC = () => {
             }
 
             for (const [key, mole] of gameData.current.moles.entries()) {
+              if (now >= mole.expiresMs && !mole.missRecorded) {
+                mole.missRecorded = true;
+                setGameState((current) =>
+                  current.mode === 'playing'
+                    ? {
+                        ...current,
+                        miss: current.miss + 1,
+                      }
+                    : current,
+                );
+              }
               if (now >= mole.expiresMs + MOLE_REMAIN_MS) {
                 gameData.current.moles.delete(key);
               }
@@ -540,7 +544,7 @@ export const TapAMole: FC = () => {
           if (gameStateRef.current.mode === 'ready') {
             setGameState({
               mode: 'countdown',
-              startTime: Date.now(),
+              gameStartTimeMs: Date.now() + COUNTDOWN_MS,
             });
           } else if (gameStateRef.current.mode === 'playing') {
             hitMole(center);
@@ -568,33 +572,5 @@ export const TapAMole: FC = () => {
     };
   }, [colors, devices, changeGame, hitMole, prepareRenderedText, deviceInfo]);
 
-  return (
-    <Group title={GAMES['tap-a-mole'].name} direction="vertical">
-      <Button
-        onClick={() => {
-          changeGame('main-menu');
-        }}
-        text="Main Menu"
-      />
-      {!deviceInfo ? (
-        <>
-          Please connect a device with at least {MIN_TARGETS} interactive items
-          with LED feedback
-        </>
-      ) : (
-        <>
-          {gameState.mode === 'ready' && (
-            <>Press a green button on the pad to start the game</>
-          )}
-          {gameState.mode === 'countdown' && <>Get ready...</>}
-          {gameState.mode === 'playing' && (
-            <>Tap the moles! {`Score: ${gameState.score}`}</>
-          )}
-          {gameState.mode === 'finished' && (
-            <>{`Final Score: ${gameState.score}`}</>
-          )}
-        </>
-      )}
-    </Group>
-  );
+  return <C.TapAMole state={gameState} />;
 };
