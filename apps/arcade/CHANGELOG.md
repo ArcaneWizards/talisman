@@ -1,5 +1,17 @@
 # @talisman-midi/arcade
 
+## 0.0.5
+
+### Patch Changes
+
+- 5dc5222: Introduce Tap-a-Mole Game, Screensaver & FX-Sandbox
+
+  First release with actual games and interactivity.
+
+- 62621b4: Update logo URL in README
+- Updated dependencies [8006439]
+  - @talisman-midi/assets@0.1.1
+
 ## 0.0.4
 
 ### Patch Changes

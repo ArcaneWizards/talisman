@@ -1,5 +1,14 @@
 # @talisman-midi/lab
 
+## 0.1.2
+
+### Patch Changes
+
+- 8006439: Improve connection lifecycle management
+- 62621b4: Update logo URL in README
+- Updated dependencies [8006439]
+  - @talisman-midi/assets@0.1.1
+
 ## 0.1.1
 
 ### Patch Changes
