@@ -1,3 +1,4 @@
+import { filter } from '../../shared/util';
 import { TEXT_4_5 } from './4x5';
 import { TEXT_5_7 } from './5x7';
 import { TEXT_6_8 } from './6x8';
@@ -21,6 +22,9 @@ export const FONTS = Object.freeze({
 });
 
 export type ValidTextChar = `${keyof typeof TEXT_4_5}`;
+
+export const isValidTextChar = (char: string): char is ValidTextChar =>
+  char in TEXT_4_5;
 
 export type FontDefinition = keyof typeof FONTS;
 
@@ -77,9 +81,11 @@ export const getBitArrays = (
 
 export const renderText = (
   font: FontDefinition,
-  chars: ValidTextChar[],
+  string: string,
   padding: number = 2,
 ) => {
+  const chars = Array.from(filter(string, isValidTextChar));
+
   const charWidth = FONTS[font].cols;
   const charHeight = FONTS[font].rows;
   const bitArrays = getBitArrays(font);
@@ -109,6 +115,7 @@ export const renderText = (
   };
 
   return {
+    textWidth,
     getValue,
   };
 };

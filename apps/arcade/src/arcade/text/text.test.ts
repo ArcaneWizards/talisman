@@ -47,7 +47,7 @@ describe('getBitArrays', () => {
 
 describe('renderText', () => {
   it('test a single character for 4x5', () => {
-    const render = renderText('4x5', ['9']).getValue;
+    const render = renderText('4x5', '9').getValue;
     const result = Array.from({ length: 5 }).map((_, r) =>
       Array.from({ length: 4 }).map((_, c) => (render(c, 4 - r) ? 1 : 0)),
     );
@@ -61,7 +61,7 @@ describe('renderText', () => {
     ]);
   });
   it('multiple characters at default padding 4x5', () => {
-    const render = renderText('4x5', ['1', '2', '3']).getValue;
+    const render = renderText('4x5', '123').getValue;
     const result = Array.from({ length: 5 }).map((_, r) =>
       Array.from({ length: 16 }).map((_, c) => (render(c, 4 - r) ? 1 : 0)),
     );

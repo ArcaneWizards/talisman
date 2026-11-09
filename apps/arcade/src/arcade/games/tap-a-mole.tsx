@@ -25,6 +25,7 @@ import { createArtifactInterval, createRenderInterval } from '../rendering';
 import { gameGrid } from '../grid';
 import { FONTS, RenderedText, renderText, ValidTextChar } from '../text/text';
 import { filter } from '../../shared/util';
+import isEqual from 'lodash/isEqual';
 
 const MIN_TARGETS = 8;
 const COUNTDOWN_MS = 3_000;
@@ -88,6 +89,7 @@ type GameState =
     }
   | {
       mode: 'finished';
+      gameFinishMs: number;
       score: number;
     };
 
@@ -121,9 +123,11 @@ export const TapAMole: FC = () => {
     moleAppearanceInterval: number;
   } | null>(null);
 
-  const textRenderCache = useRef<{
+  const textRendering = useRef<{
     text: string;
-    render: RenderedText;
+    width: number;
+    scrollPosition: number;
+    render: RenderedText['getValue'];
   } | null>(null);
 
   /**
@@ -212,6 +216,26 @@ export const TapAMole: FC = () => {
     return null;
   }, [devices]);
 
+  useEffect(() => {
+    const grid = deviceInfo?.grid;
+    if (!grid) return;
+    const gridWidth = grid.cols;
+    const scrollInterval = setInterval(() => {
+      if (textRendering.current) {
+        if (
+          textRendering.current.scrollPosition <= -textRendering.current.width
+        ) {
+          textRendering.current.scrollPosition = gridWidth;
+        } else {
+          textRendering.current.scrollPosition -= 1;
+        }
+      }
+    }, 100);
+    return () => {
+      clearInterval(scrollInterval);
+    };
+  }, [deviceInfo]);
+
   const hitMole = useCallback(
     (center: MidiCoordinatePoint) => {
       const now = Date.now();
@@ -256,6 +280,50 @@ export const TapAMole: FC = () => {
     [colors, deviceInfo],
   );
 
+  const prepareRenderedText = useCallback(
+    (text: string) => {
+      const grid = deviceInfo?.grid;
+      if (!grid) return;
+      if (!isEqual(textRendering.current?.text, text)) {
+        for (const f of ['6x8', '5x7', '4x5'] as const) {
+          const font = FONTS[f];
+          if (grid.cols >= font.cols && grid.rows >= font.rows) {
+            const render = renderText(f, text);
+            const offsetRows =
+              grid.minRow + Math.floor((grid.rows - font.rows) / 2);
+            if (render.textWidth <= grid.cols) {
+              const offsetCols =
+                grid.minCol + Math.floor((grid.cols - font.cols) / 2);
+              textRendering.current = {
+                text,
+                width: render.textWidth,
+                scrollPosition: 0, // ignored
+                render: (col: number, row: number) => {
+                  return render.getValue(col - offsetCols, row - offsetRows);
+                },
+              };
+            } else {
+              // Scroll text
+              textRendering.current = {
+                text,
+                width: render.textWidth,
+                scrollPosition: grid.cols, // start right of grid and scroll-in
+                render: (col: number, row: number) => {
+                  return render.getValue(
+                    col - (textRendering.current?.scrollPosition ?? 0),
+                    row - offsetRows,
+                  );
+                },
+              };
+            }
+            break;
+          }
+        }
+      }
+    },
+    [deviceInfo],
+  );
+
   useEffect(() => {
     const unbind: Array<() => void> = [];
 
@@ -288,7 +356,6 @@ export const TapAMole: FC = () => {
        * to ensure scoring is not affected by frame-rate.
        */
       const renderInterval = createRenderInterval(d, () => {
-        let textRender: RenderedText | null = null;
         let flash = false;
 
         // Game logic & pre-rendering calculations
@@ -324,29 +391,7 @@ export const TapAMole: FC = () => {
               text = '1';
             }
             if (text) {
-              if (textRenderCache.current?.text !== text) {
-                for (const f of ['6x8', '5x7', '4x5'] as const) {
-                  const font = FONTS[f];
-                  if (grid.cols >= font.cols && grid.rows >= font.rows) {
-                    const offsetCols = Math.floor((grid.cols - font.cols) / 2);
-                    const offsetRows = Math.floor((grid.rows - font.rows) / 2);
-                    const render = renderText(f, [text]);
-                    textRenderCache.current = {
-                      text,
-                      render: {
-                        getValue: (col: number, row: number) => {
-                          return render.getValue(
-                            col - offsetCols,
-                            row - offsetRows,
-                          );
-                        },
-                      },
-                    };
-                    break;
-                  }
-                }
-              }
-              textRender = textRenderCache.current?.render ?? null;
+              prepareRenderedText(text);
             }
           }
         } else if (gameStateRef.current.mode === 'playing') {
@@ -357,6 +402,7 @@ export const TapAMole: FC = () => {
                     ...current,
                     mode: 'finished',
                     score: current.score,
+                    gameFinishMs: now,
                   }
                 : current,
             );
@@ -423,6 +469,8 @@ export const TapAMole: FC = () => {
               }
             }
           }
+        } else if (gameStateRef.current.mode === 'finished') {
+          prepareRenderedText(gameStateRef.current.score.toString());
         }
 
         // Rendering
@@ -445,8 +493,8 @@ export const TapAMole: FC = () => {
               ? colors.current.ready
               : colors.current.primary;
           } else if (gameStateRef.current.mode === 'countdown') {
-            if (textRender) {
-              rgb = textRender.getValue(center.col, center.row)
+            if (textRendering.current) {
+              rgb = textRendering.current.render(center.col, center.row)
                 ? colors.current.primary
                 : flash
                   ? colors.current.secondary
@@ -461,6 +509,12 @@ export const TapAMole: FC = () => {
                 mole.expiresMs > now
                   ? colors.current.primary
                   : colors.current.error;
+            }
+          } else if (gameStateRef.current.mode === 'finished') {
+            if (textRendering.current) {
+              rgb = textRendering.current.render(center.col, center.row)
+                ? colors.current.secondary
+                : [0, 0, 0];
             }
           }
 
@@ -482,17 +536,22 @@ export const TapAMole: FC = () => {
         const center = getCenterPosition(item?.position, true);
         if (!center || !item) return;
         if (event.action.action === 'button-press') {
+          if (!selectedItemIDs.has(item.id)) return;
           if (gameStateRef.current.mode === 'ready') {
-            if (!selectedItemIDs.has(item.id)) return;
             setGameState({
               mode: 'countdown',
               startTime: Date.now(),
             });
           } else if (gameStateRef.current.mode === 'playing') {
             hitMole(center);
+          } else if (gameStateRef.current.mode === 'finished') {
+            // Reset the game if it's finished and a button is pressed
+            // after 1 second (we wait to avoid accidentally resetting immediately)
+            if (Date.now() < gameStateRef.current.gameFinishMs + 1_000) return;
+            setGameState({
+              mode: 'ready',
+            });
           }
-
-          // TODO
         }
       };
       inputProfile.addEventListener('action', onMessage);
@@ -507,7 +566,7 @@ export const TapAMole: FC = () => {
         u();
       }
     };
-  }, [colors, devices, changeGame, hitMole, deviceInfo]);
+  }, [colors, devices, changeGame, hitMole, prepareRenderedText, deviceInfo]);
 
   return (
     <Group title={GAMES['tap-a-mole'].name} direction="vertical">
