@@ -205,7 +205,44 @@ export const midiNumberToValues = (
   return values;
 };
 
+/**
+ * A "point" coordinate,
+ * meaning that an item's position represents a specific location,
+ * and does not span a range of columns or rows.
+ */
 export type MidiCoordinatePoint = { row: number; col: number };
+
+/**
+ * Type-Guard for {@link MidiCoordinatePoint}
+ */
+export const isMidiCoordinatePoint = (
+  coordinate: MidiCoordinateInfo | undefined,
+): coordinate is MidiCoordinatePoint =>
+  typeof coordinate?.row === 'number' && typeof coordinate?.col === 'number';
+
+export const getMidiCoordinatePointFingerprint = (
+  point: MidiCoordinatePoint,
+): string => {
+  return `${point.col}:${point.row}`;
+};
+
+/**
+ * A stricter version of {@link MidiControllerItem}
+ * where the position is guaranteed to exist and be a {@link MidiCoordinatePoint}
+ */
+export type MidiControllerItemWithPointPosition = MidiControllerItem & {
+  position: MidiCoordinatePoint;
+};
+
+/**
+ * Type-Guard that checks whether a particular {@link MidiControllerItem} has a
+ * {@link MidiCoordinatePoint} position (i.e. does not span multiple rows / cols)
+ */
+export const hasMidiCoordinatePointPosition = (
+  item: MidiControllerItem,
+): item is MidiControllerItemWithPointPosition =>
+  isMidiCoordinatePoint(item.position);
+
 export type MidiCoordinatePartialPoint = {
   row: number | null;
   col: number | null;

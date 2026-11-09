@@ -150,8 +150,10 @@ const AppRoot: FC<AppRootProps> = ({ logger, license, updates }) => {
   const [game, changeGame] = useState<Game>('main-menu');
 
   const colors = useRef<GameColors>({
-    primary: [255, 255, 255],
-    secondary: [0, 255, 0],
+    primary: [255, 0, 255],
+    secondary: [0, 255, 255],
+    error: [100, 0, 0],
+    ready: [0, 255, 0],
   });
 
   const gameContextValue: GameContextData = useMemo(() => {
