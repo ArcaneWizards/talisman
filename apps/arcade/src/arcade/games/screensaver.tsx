@@ -14,6 +14,9 @@ import {
 import { createArtifactInterval, createRenderInterval } from '../rendering';
 import { C } from '../../components/backend';
 
+const SCREENSAVER_MIN_WAIT_MS = 500;
+const SCREENSAVER_MAX_WAIT_MS = 5000;
+
 export const ScreenSaver: FC = () => {
   const { devices, changeGame } = useContext(GameContext);
 
@@ -52,11 +55,19 @@ export const ScreenSaver: FC = () => {
           diameter,
         ),
       );
+      artifactGenerator = setTimeout(
+        generateArtifact,
+        SCREENSAVER_MIN_WAIT_MS +
+          Math.random() * (SCREENSAVER_MAX_WAIT_MS - SCREENSAVER_MIN_WAIT_MS),
+      );
     };
 
-    const artifactGenerator = setInterval(generateArtifact, 2000);
+    let artifactGenerator = setTimeout(
+      generateArtifact,
+      SCREENSAVER_MIN_WAIT_MS,
+    );
 
-    return () => clearInterval(artifactGenerator);
+    return () => clearTimeout(artifactGenerator);
   }, [dimensions]);
 
   useEffect(() => {
