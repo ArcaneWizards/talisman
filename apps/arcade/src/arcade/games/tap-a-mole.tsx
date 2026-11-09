@@ -31,7 +31,7 @@ import { useScreenSaverTimeout } from '../hooks';
 
 const MIN_TARGETS = 8;
 const COUNTDOWN_MS = 3_000;
-const GAME_LENGTH_MS = 60_000;
+const GAME_LENGTH_MS = 30_000;
 /**
  * After missing a mole, how long should it stay visible before disappearing
  */
@@ -358,15 +358,14 @@ export const TapAMole: FC = () => {
         if (gameStateRef.current.mode === 'countdown') {
           let text: ValidTextChar | null = null;
 
-          const remaining =
-            COUNTDOWN_MS - (now - gameStateRef.current.startTime);
+          const remaining = gameStateRef.current.gameStartTimeMs - now;
           flash = Math.floor(remaining / 500) % 2 === 0;
 
           if (remaining < 0) {
             setGameState({
               mode: 'playing',
               score: 0,
-              gameStartMs: now,
+              gameEndTimeMs: now + GAME_LENGTH_MS,
               hit: 0,
               miss: 0,
             });
@@ -389,7 +388,7 @@ export const TapAMole: FC = () => {
             }
           }
         } else if (gameStateRef.current.mode === 'playing') {
-          if (now - gameStateRef.current.gameStartMs >= GAME_LENGTH_MS) {
+          if (now >= gameStateRef.current.gameEndTimeMs) {
             setGameState((current) =>
               current.mode === 'playing'
                 ? {
@@ -545,7 +544,7 @@ export const TapAMole: FC = () => {
           if (gameStateRef.current.mode === 'ready') {
             setGameState({
               mode: 'countdown',
-              startTime: Date.now(),
+              gameStartTimeMs: Date.now() + COUNTDOWN_MS,
             });
           } else if (gameStateRef.current.mode === 'playing') {
             hitMole(center);

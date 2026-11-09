@@ -151,14 +151,14 @@ export type TapAMoleGameState =
     }
   | {
       mode: 'countdown';
-      startTime: number;
+      gameStartTimeMs: number;
     }
   | {
       mode: 'playing';
-      gameStartMs: number;
       score: number;
       hit: number;
       miss: number;
+      gameEndTimeMs: number;
     }
   | {
       mode: 'finished';
