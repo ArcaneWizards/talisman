@@ -5,6 +5,11 @@
   "bin": {
     "talisman-lab": "./dist/start.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ArcaneWizards/talisman.git",
+    "directory": "apps/lab"
+  },
   "exports": {
     ".": {
       "@talisman-midi/source": "./src/index.ts",
