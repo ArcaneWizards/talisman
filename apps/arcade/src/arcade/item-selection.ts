@@ -107,23 +107,39 @@ export const ANY_LED_POTENTIALLY_INTERACTIVE_ITEMS = Object.freeze([
   anyLedItems,
 ] satisfies ItemSelector[]);
 
-export const selectItems = (
+export function selectItems(
   deviceItems: Iterable<MidiControllerItem>,
   feedback: MidiProfileFeedbackCapabilities,
   selectors: Iterable<ItemSelector>,
   minItems?: number,
-) => {
-  let items: MidiControllerItem[] = [];
+): MidiControllerItem[];
+export function selectItems<T extends MidiControllerItem>(
+  deviceItems: Iterable<MidiControllerItem>,
+  feedback: MidiProfileFeedbackCapabilities,
+  selectors: Iterable<ItemSelector>,
+  minItems: number | undefined,
+  strictFilter: (item: MidiControllerItem) => item is T,
+): T[];
+export function selectItems<T extends MidiControllerItem>(
+  deviceItems: Iterable<MidiControllerItem>,
+  feedback: MidiProfileFeedbackCapabilities,
+  selectors: Iterable<ItemSelector>,
+  minItems?: number,
+  strictFilter?: (item: MidiControllerItem) => item is T,
+): T[] {
+  let items: T[] = [];
 
   for (const selector of selectors) {
     if (
       items.length === 0 ||
       (minItems !== undefined && items.length < minItems)
     ) {
+      const typeGuard = (item: MidiControllerItem): item is T =>
+        selector(feedback)(item) && (!strictFilter || strictFilter(item));
       items = Array.from(
-        filter(
+        filter<MidiControllerItem, T>(
           deviceItems,
-          selector(feedback),
+          typeGuard,
           minItems !== undefined ? minItems - items.length : undefined,
         ),
       );
@@ -132,4 +148,4 @@ export const selectItems = (
     }
   }
   return items;
-};
+}

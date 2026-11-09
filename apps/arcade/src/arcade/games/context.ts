@@ -1,4 +1,4 @@
-import { createContext, Ref } from 'react';
+import { createContext, RefObject } from 'react';
 import { MidiDeviceConnectionStateReady } from '../midi-device-connection';
 import { RGB } from '@talisman-midi/talisman/color';
 
@@ -36,12 +36,14 @@ export const GAMES_EXCLUDING_MAIN_MENU = (Object.keys(GAMES) as Game[]).filter(
 export type GameColors = {
   primary: RGB;
   secondary: RGB;
+  ready: RGB;
+  error: RGB;
 };
 
 export type GameContextData = {
   devices: MidiDeviceConnectionStateReady[];
   changeGame: (game: Game) => void;
-  colors: Ref<GameColors>;
+  colors: RefObject<GameColors>;
 };
 
 export const GameContext = createContext<GameContextData>(

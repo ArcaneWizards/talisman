@@ -1,7 +1,9 @@
-import { MidiCoordinateInfo, MidiProfile } from '@talisman-midi/talisman';
+import { MidiProfile } from '@talisman-midi/talisman';
 import {
   getCenterPosition,
   getCoordinateRanges,
+  hasMidiCoordinatePointPosition,
+  MidiControllerItemWithPointPosition,
   MidiCoordinatePoint,
   MidiGridArea,
 } from '@talisman-midi/talisman/util';
@@ -15,11 +17,6 @@ type GameGridArgs = {
     minRows?: number;
   }>;
 };
-
-const isExplicitCoordinate = (
-  coordinate: MidiCoordinateInfo | undefined,
-): coordinate is MidiCoordinatePoint =>
-  typeof coordinate?.row === 'number' && typeof coordinate?.col === 'number';
 
 /**
  * Get the largest unbroken area within the given maximum area and cell presence matrix
@@ -125,7 +122,13 @@ export const gameGrid = ({ input, selection }: GameGridArgs) => {
   const feedback = input.getFeedbackCapabilities();
 
   for (const { selectors, minCols, minRows } of selection) {
-    const usableItems = selectItems(input.getItems(), feedback, selectors);
+    const usableItems: MidiControllerItemWithPointPosition[] = selectItems(
+      input.getItems(),
+      feedback,
+      selectors,
+      undefined,
+      hasMidiCoordinatePointPosition,
+    );
 
     /**
      * Max boundaries of elements from {@link usableItems}
@@ -142,18 +145,16 @@ export const gameGrid = ({ input, selection }: GameGridArgs) => {
     );
 
     for (const item of usableItems) {
-      if (isExplicitCoordinate(item.position)) {
-        const row = item.position.row - usableRange.minRow;
-        const col = item.position.col - usableRange.minCol;
-        if (col < 0) {
-          continue;
-        }
-        const colArray = cellPresence[col];
-        if (!colArray || row < 0 || row >= colArray.length) {
-          continue;
-        }
-        colArray[row] = true;
+      const row = item.position.row - usableRange.minRow;
+      const col = item.position.col - usableRange.minCol;
+      if (col < 0) {
+        continue;
       }
+      const colArray = cellPresence[col];
+      if (!colArray || row < 0 || row >= colArray.length) {
+        continue;
+      }
+      colArray[row] = true;
     }
 
     const { maxCol, maxRow, minCol, minRow } = getMaxContiguousArea(
@@ -190,7 +191,7 @@ export const gameGrid = ({ input, selection }: GameGridArgs) => {
       cols,
       getCenterPosition: (itemId: string) =>
         centerPositions.get(itemId) ?? null,
-      selectedItems: () => usableItems,
+      selectedItems: (): MidiControllerItemWithPointPosition[] => usableItems,
     };
   }
 
