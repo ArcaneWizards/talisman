@@ -1,6 +1,7 @@
 import { FC, useCallback, useContext, useMemo } from 'react';
 import {
   ArcadeConfig,
+  Game,
   TalismanArcadeRootComponent,
   TalismanArcadeUpdateConfig,
 } from '../../proto';
@@ -15,7 +16,7 @@ import { License } from './license';
 import { UpdateDetails } from '@arcanewizards/sigil/frontend/updates';
 import {
   ApplicationStateContext,
-  ConfigContext,
+  RootContext,
   ConfigContextData,
 } from './context';
 import { Settings } from './settings';
@@ -27,7 +28,7 @@ type Props = {
 };
 
 export const TalismanArcadeRoot: FC<Props> = ({ info }) => {
-  const { config, state, midi, child } = info;
+  const { config, state, midi, child, colors } = info;
 
   const { sendMessage, renderComponent } = useContext(StageContext);
 
@@ -46,15 +47,31 @@ export const TalismanArcadeRoot: FC<Props> = ({ info }) => {
     [sendMessage, info.key, config],
   );
 
-  const configValue: ConfigContextData = useMemo(() => {
+  const changeGame = useCallback(
+    (game: Game) => {
+      sendMessage?.({
+        type: 'component-message',
+        namespace: 'talisman-arcade',
+        component: 'talisman-arcade-root',
+        componentKey: info.key,
+        action: 'change-game',
+        game,
+      });
+    },
+    [sendMessage, info.key],
+  );
+
+  const rootValue: ConfigContextData = useMemo(() => {
     return {
       config,
+      colors,
       updateConfig,
+      changeGame,
     };
-  }, [config, updateConfig]);
+  }, [config, updateConfig, colors, changeGame]);
 
   return (
-    <ConfigContext.Provider value={configValue}>
+    <RootContext.Provider value={rootValue}>
       <ApplicationStateContext.Provider value={state}>
         <Layout<
           'debug' | 'license' | 'settings' | typeof UPDATE_DETAILS_WINDOW_MODE
@@ -144,6 +161,6 @@ export const TalismanArcadeRoot: FC<Props> = ({ info }) => {
           </div>
         </Layout>
       </ApplicationStateContext.Provider>
-    </ConfigContext.Provider>
+    </RootContext.Provider>
   );
 };

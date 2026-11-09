@@ -7,6 +7,10 @@ import {
 import { isTalismanArcadeComponent, NAMESPACE } from '../proto';
 import { TalismanArcadeRoot } from './arcade/root';
 import { LicenseGate } from './arcade/license';
+import { MainMenu } from './arcade/games/main-menu';
+import { FXPlayground } from './arcade/games/fx-playground';
+import { TapAMole } from './arcade/games/tap-a-mole';
+import { ScreenSaver } from './arcade/games/screensaver';
 
 export type TalismanArcadeBrowserContext = BaseBrowserContext;
 
@@ -23,6 +27,14 @@ export const talismanArcadeFrontendComponents =
           return <TalismanArcadeRoot info={info} />;
         case 'license-gate':
           return <LicenseGate info={info} />;
+        case 'main-menu':
+          return <MainMenu />;
+        case 'fx-playground':
+          return <FXPlayground />;
+        case 'tap-a-mole':
+          return <TapAMole info={info} />;
+        case 'screensaver':
+          return <ScreenSaver />;
       }
     },
   });

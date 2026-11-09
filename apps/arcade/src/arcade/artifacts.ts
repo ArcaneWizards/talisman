@@ -1,22 +1,31 @@
-import { addRGB, RGB } from '@talisman-midi/talisman/color';
+import { addRGB, COLORS, hslToRgb, RGB } from '@talisman-midi/talisman/color';
 import { MidiCoordinatePoint } from '@talisman-midi/talisman/util';
+import { GameColors } from '../components/proto';
 
-export type Artifact = {
-  // Static Values
-  type: 'wave';
-  center: MidiCoordinatePoint;
-  speedPerSecond: number;
-  /**
-   * The radius after which point the artifact will be deleted
-   */
-  maxRadius: number;
-  leadingColor: RGB;
-  trailingColor: RGB;
-  leadingEdge: number;
-  trailingEdge: number;
-  // Dynamic Values
-  radius: number;
-};
+export type Artifact =
+  | {
+      // Static Values
+      type: 'wave';
+      center: MidiCoordinatePoint;
+      speedPerSecond: number;
+      /**
+       * The radius after which point the artifact will be deleted
+       */
+      maxRadius: number;
+      leadingColor: RGB;
+      trailingColor: RGB;
+      leadingEdge: number;
+      trailingEdge: number;
+      // Dynamic Values
+      radius: number;
+    }
+  | {
+      // Static Values
+      type: 'dot';
+      position: MidiCoordinatePoint;
+      color: RGB;
+      expiresMs: number;
+    };
 
 export const advanceArtifact = (
   artifact: Artifact,
@@ -33,6 +42,12 @@ export const advanceArtifact = (
         ...artifact,
         radius: newRadius,
       };
+    }
+    case 'dot': {
+      if (artifact.expiresMs <= Date.now()) {
+        return null;
+      }
+      return artifact;
     }
   }
 };
@@ -82,10 +97,77 @@ export const addArtifact = (
           );
         }
       }
-      break;
+      return background;
+    }
+    case 'dot': {
+      if (
+        position.col !== artifact.position.col ||
+        position.row !== artifact.position.row
+      ) {
+        return background;
+      }
+      return addRGB(background, artifact.color, 1);
     }
   }
 
-  // For now, just return the background color unchanged.
+  const _exhaustiveCheck: never = artifact;
   return background;
+};
+
+export const generateScreenSaverArtifact = (
+  center: MidiCoordinatePoint,
+  diameter: number,
+): Artifact => ({
+  type: 'wave',
+  center,
+  speedPerSecond: diameter / 2,
+  leadingColor: COLORS.WHITE,
+  trailingColor: hslToRgb({
+    h: Math.random() * 360,
+    s: Math.random() * 50 + 50,
+    l: 50,
+  }),
+  maxRadius: diameter * 2,
+  leadingEdge: diameter / 16,
+  trailingEdge: diameter / 4,
+  radius: 0,
+});
+
+export const generateFXArtifact = (
+  center: MidiCoordinatePoint,
+  diameter: number,
+): Artifact => ({
+  type: 'wave',
+  center,
+  speedPerSecond: diameter,
+  leadingColor: COLORS.WHITE,
+  trailingColor: hslToRgb({
+    h: Math.random() * 360,
+    s: Math.random() * 50 + 50,
+    l: 50,
+  }),
+  maxRadius: diameter * 2,
+  leadingEdge: diameter / 16,
+  trailingEdge: diameter / 4,
+  radius: 0,
+});
+
+export const generateMoleHitArtifact = (
+  center: MidiCoordinatePoint,
+  diameter: number,
+  colors: GameColors,
+  type: 'hit' | 'miss',
+): Artifact => {
+  const highlight = type === 'hit' ? colors.secondary : colors.error;
+  return {
+    type: 'wave',
+    center,
+    speedPerSecond: diameter * (type === 'hit' ? 2 : 0.5),
+    leadingColor: highlight,
+    trailingColor: highlight,
+    maxRadius: diameter * 2,
+    leadingEdge: diameter / 16,
+    trailingEdge: diameter / 16,
+    radius: 0,
+  };
 };

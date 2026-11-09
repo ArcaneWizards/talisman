@@ -12,6 +12,8 @@ import { UserActionState } from '@arcanewizards/sigil/frontend/user-actions';
 import { UpdateCheckResult } from '@arcanewizards/sigil/frontend/updates';
 import { MidiDeviceReadiness } from '@talisman-midi/talisman';
 import { v4 as uuidv4 } from 'uuid';
+import type { Game } from '../arcade/games/context';
+import { RGB } from '@talisman-midi/talisman/color';
 
 export const LOGO_URL_PATH = 'logo-animated.svg';
 export const LOGO_STATIC_URL_PATH = 'logo-static.svg';
@@ -108,6 +110,13 @@ export type ApplicationState = {
   devices: Record<string, MidiDeviceState>;
 };
 
+export type GameColors = {
+  primary: RGB;
+  secondary: RGB;
+  ready: RGB;
+  error: RGB;
+};
+
 export type TalismanArcadeRootComponent = BaseComponentProto<
   Namespace,
   'talisman-arcade-root'
@@ -117,6 +126,7 @@ export type TalismanArcadeRootComponent = BaseComponentProto<
   config: ArcadeConfig;
   state: ApplicationState;
   child: AnyComponentProto | null;
+  colors: GameColors;
 };
 
 export type LicenseGateComponent = BaseComponentProto<
@@ -126,8 +136,49 @@ export type LicenseGateComponent = BaseComponentProto<
   eula: UserActionState<GetEulaResponse>;
 };
 
+export type MainMenuComponent = BaseComponentProto<Namespace, 'main-menu'>;
+
+export type ScreensaverComponent = BaseComponentProto<Namespace, 'screensaver'>;
+
+export type FxPlaygroundComponent = BaseComponentProto<
+  Namespace,
+  'fx-playground'
+>;
+
+export type TapAMoleGameState =
+  | {
+      mode: 'ready';
+    }
+  | {
+      mode: 'countdown';
+      startTime: number;
+    }
+  | {
+      mode: 'playing';
+      gameStartMs: number;
+      score: number;
+      hit: number;
+      miss: number;
+    }
+  | {
+      mode: 'finished';
+      gameFinishMs: number;
+      score: number;
+      hit: number;
+      miss: number;
+    };
+
+export type TapAMoleComponent = BaseComponentProto<Namespace, 'tap-a-mole'> & {
+  state: TapAMoleGameState;
+};
+
 export type TalismanArcadeComponent =
-  TalismanArcadeRootComponent | LicenseGateComponent;
+  | TalismanArcadeRootComponent
+  | LicenseGateComponent
+  | MainMenuComponent
+  | ScreensaverComponent
+  | FxPlaygroundComponent
+  | TapAMoleComponent;
 
 export const isTalismanArcadeComponent = (
   component: AnyComponentProto,
@@ -140,13 +191,23 @@ export type TalismanArcadeUpdateConfig =
     diff: Diff<ArcadeConfig>;
   };
 
+export type { Game };
+
+export type TalismanArcadeChangeGame = BaseClientComponentMessage<Namespace> & {
+  component: 'talisman-arcade-root';
+  action: 'change-game';
+  game: Game;
+};
+
 export type LicenseGateAcceptLicense = BaseClientComponentMessage<Namespace> & {
   component: 'license-gate';
   action: 'accept-license';
 };
 
 export type TalismanArcadeComponentMessage =
-  TalismanArcadeUpdateConfig | LicenseGateAcceptLicense;
+  | TalismanArcadeUpdateConfig
+  | TalismanArcadeChangeGame
+  | LicenseGateAcceptLicense;
 
 export const isTalismanArcadeComponentMessage = <
   C extends TalismanArcadeComponentMessage['component'],

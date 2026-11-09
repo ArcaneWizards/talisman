@@ -1,6 +1,5 @@
 import { FC, useContext, useEffect, useMemo } from 'react';
 import { Game, GameContext, GAMES, GAMES_EXCLUDING_MAIN_MENU } from './context';
-import { Button, Group } from '@arcanejs/react-toolkit';
 import {
   MidiActionEvent,
   MidiFeedbackProfile,
@@ -10,11 +9,12 @@ import { RGB, rgbToLightness } from '@talisman-midi/talisman/color';
 import { isDefined } from '../../shared/util';
 import { ANY_LED_INTERACTIVE_ITEMS, selectItems } from '../item-selection';
 import { useScreenSaverTimeout } from '../hooks';
+import { C } from '../../components/backend';
 
 export const MainMenu: FC = () => {
   const { devices, changeGame } = useContext(GameContext);
 
-  useScreenSaverTimeout(10_000);
+  useScreenSaverTimeout(30_000);
 
   const deviceInfo: Array<{
     output: MidiFeedbackProfile;
@@ -99,17 +99,5 @@ export const MainMenu: FC = () => {
     };
   }, [deviceInfo, changeGame]);
 
-  return (
-    <Group title="Main Menu">
-      {GAMES_EXCLUDING_MAIN_MENU.map((game) => (
-        <Button
-          key={game}
-          onClick={() => {
-            changeGame(game);
-          }}
-          text={GAMES[game].name}
-        />
-      ))}
-    </Group>
-  );
+  return <C.MainMenu />;
 };

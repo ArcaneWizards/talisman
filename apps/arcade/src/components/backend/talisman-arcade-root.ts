@@ -19,16 +19,19 @@ import {
 } from '@arcanejs/protocol';
 import { Diff } from '@arcanejs/diff';
 import { ToolkitRenderContext } from '@arcanejs/toolkit';
+import type { Game } from '../../arcade/games/context';
 
 export type Events = {
   updateConfig: (diff: Diff<ArcadeConfig>) => void;
+  changeGame: (game: Game) => void;
 };
 
 export type AppRootProps = Pick<
   TalismanArcadeRootComponent,
-  'midi' | 'config' | 'state' | 'license'
+  'midi' | 'config' | 'state' | 'license' | 'colors'
 > & {
   onUpdateConfig?: Events['updateConfig'];
+  onChangeGame?: Events['changeGame'];
 };
 
 const DEFAULT_PROPS: AppRootProps = {
@@ -46,6 +49,12 @@ const DEFAULT_PROPS: AppRootProps = {
     devices: {},
   },
   license: null,
+  colors: {
+    primary: [0, 0, 0],
+    secondary: [0, 0, 0],
+    ready: [0, 0, 0],
+    error: [0, 0, 0],
+  },
 };
 
 type SupportedCalls = never;
@@ -69,6 +78,7 @@ export class TalismanArcadeRoot
         this.events.processPropChanges(
           {
             onUpdateConfig: 'updateConfig',
+            onChangeGame: 'changeGame',
           },
           oldProps,
           this.props,
@@ -91,6 +101,8 @@ export class TalismanArcadeRoot
     if (isTalismanArcadeComponentMessage(message, 'talisman-arcade-root')) {
       if (message.action === 'update-config') {
         this.events.emit('updateConfig', message.diff);
+      } else if (message.action === 'change-game') {
+        this.events.emit('changeGame', message.game);
       }
     }
   };
@@ -113,6 +125,7 @@ export class TalismanArcadeRoot
       midi: this.props.midi,
       config: this.props.config,
       state: this.props.state,
+      colors: this.props.colors,
       child:
         this.getChildren()
           .slice(0, 1)

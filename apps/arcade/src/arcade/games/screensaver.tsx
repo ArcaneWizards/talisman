@@ -1,19 +1,18 @@
 import { FC, useContext, useEffect, useMemo, useRef } from 'react';
 import { GameContext } from './context';
-import { Button, Group } from '@arcanejs/react-toolkit';
 import { MidiActionEvent, MidiControllerItem } from '@talisman-midi/talisman';
 import {
   getCenterPosition,
   getCoordinateRanges,
 } from '@talisman-midi/talisman/util';
+import { COLORS, RGB, rgbToLightness } from '@talisman-midi/talisman/color';
 import {
-  COLORS,
-  hslToRgb,
-  RGB,
-  rgbToLightness,
-} from '@talisman-midi/talisman/color';
-import { addArtifact, Artifact } from '../artifacts';
+  addArtifact,
+  Artifact,
+  generateScreenSaverArtifact,
+} from '../artifacts';
 import { createArtifactInterval, createRenderInterval } from '../rendering';
+import { C } from '../../components/backend';
 
 export const ScreenSaver: FC = () => {
   const { devices, changeGame } = useContext(GameContext);
@@ -44,20 +43,15 @@ export const ScreenSaver: FC = () => {
     const { minRow, minCol, maxRow, maxCol, diameter } = dimensions;
 
     const generateArtifact = () => {
-      artifacts.current.push({
-        type: 'wave',
-        center: {
-          row: Math.round((minRow + maxRow) * Math.random() + minRow),
-          col: Math.round((minCol + maxCol) * Math.random() + minCol),
-        },
-        speedPerSecond: diameter / 2,
-        leadingColor: COLORS.WHITE,
-        trailingColor: hslToRgb({ h: Math.random() * 360, s: 100, l: 50 }),
-        maxRadius: diameter * 2,
-        leadingEdge: diameter / 16,
-        trailingEdge: diameter / 4,
-        radius: 0,
-      });
+      artifacts.current.push(
+        generateScreenSaverArtifact(
+          {
+            row: Math.round((minRow + maxRow) * Math.random() + minRow),
+            col: Math.round((minCol + maxCol) * Math.random() + minCol),
+          },
+          diameter,
+        ),
+      );
     };
 
     const artifactGenerator = setInterval(generateArtifact, 2000);
@@ -121,14 +115,5 @@ export const ScreenSaver: FC = () => {
     };
   }, [devices, changeGame]);
 
-  return (
-    <Group title="Screen Saver">
-      <Button
-        onClick={() => {
-          changeGame('main-menu');
-        }}
-        text="Main Menu"
-      />
-    </Group>
-  );
+  return <C.ScreenSaver />;
 };
