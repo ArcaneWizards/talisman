@@ -45,6 +45,8 @@ type Props = {
   info: TalismanLabRootComponent;
 };
 
+const CONTRIBUTE_LINK = SOURCE_CODE_URL + '/blob/main/CONTRIBUTING.md';
+
 export const TalismanLabRoot: FC<Props> = ({ info }) => {
   const { config, state, midi } = info;
 
@@ -208,11 +210,9 @@ export const TalismanLabRoot: FC<Props> = ({ info }) => {
     openNewWidow(url.href);
   }, [openNewWidow]);
 
-  const contributeLink = SOURCE_CODE_URL + '/blob/main/CONTRIBUTING.md';
-
   const openContribute = useCallback(() => {
-    openExternalLink(contributeLink);
-  }, [openExternalLink, contributeLink]);
+    openExternalLink(CONTRIBUTE_LINK);
+  }, [openExternalLink]);
 
   let children: ReactNode = null;
 
@@ -357,7 +357,7 @@ export const TalismanLabRoot: FC<Props> = ({ info }) => {
                 <p className="m-0">
                   If you'd like to contribute by building your own profiles or
                   by helping to test existing profiles, please read our{' '}
-                  <ExternalLink href={contributeLink}>
+                  <ExternalLink href={CONTRIBUTE_LINK}>
                     contribution guidelines
                   </ExternalLink>
                   .

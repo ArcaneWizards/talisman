@@ -15,6 +15,7 @@ import { v4 as uuidv4 } from 'uuid';
 import type { Game } from '../arcade/games/context';
 import { RGB } from '@talisman-midi/talisman/color';
 
+export const TALISMAN_LOGO_URL_PATH = 'talisman-logo-animated.svg';
 export const LOGO_URL_PATH = 'logo-animated.svg';
 export const LOGO_STATIC_URL_PATH = 'logo-static.svg';
 
