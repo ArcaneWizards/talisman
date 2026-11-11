@@ -19,7 +19,11 @@ import {
 } from '@talisman-midi/talisman/util';
 import { addArtifact, Artifact, generateMoleHitArtifact } from '../artifacts';
 import { RGB } from '@talisman-midi/talisman/color';
-import { ANY_LED_INTERACTIVE_ITEMS, selectItems } from '../item-selection';
+import {
+  ANY_LED_INTERACTIVE_ITEMS,
+  selectItems,
+  TAP_A_MOLE_GRID_SELECTION,
+} from '../item-selection';
 import { createArtifactInterval, createRenderInterval } from '../rendering';
 import { gameGrid } from '../grid';
 import { FONTS, RenderedText, renderText, ValidTextChar } from '../text/text';
@@ -151,23 +155,7 @@ export const TapAMole: FC = () => {
 
       const grid = gameGrid({
         input: device.inputProfile,
-        selection: [
-          {
-            selectors: ANY_LED_INTERACTIVE_ITEMS,
-            minCols: FONTS['6x8'].cols,
-            minRows: FONTS['6x8'].rows,
-          },
-          {
-            selectors: ANY_LED_INTERACTIVE_ITEMS,
-            minCols: FONTS['5x7'].cols,
-            minRows: FONTS['5x7'].rows,
-          },
-          {
-            selectors: ANY_LED_INTERACTIVE_ITEMS,
-            minCols: FONTS['4x5'].cols,
-            minRows: FONTS['4x5'].rows,
-          },
-        ],
+        selection: TAP_A_MOLE_GRID_SELECTION,
       });
 
       let items: MidiControllerItemWithPointPosition[];

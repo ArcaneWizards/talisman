@@ -11,7 +11,7 @@ import { ItemSelector, selectItems } from './item-selection';
 
 type GameGridArgs = {
   input: MidiProfile;
-  selection: Array<{
+  selection: Iterable<{
     selectors: Iterable<ItemSelector>;
     minCols?: number;
     minRows?: number;

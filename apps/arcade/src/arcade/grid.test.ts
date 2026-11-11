@@ -5,8 +5,12 @@ import {
   type MidiGridArea,
 } from '@talisman-midi/talisman/util';
 
-import { buildCellPresence, getMaxContiguousArea } from './grid';
-import { ANY_LED_INTERACTIVE_ITEMS, selectItems } from './item-selection';
+import { buildCellPresence, gameGrid, getMaxContiguousArea } from './grid';
+import {
+  ANY_LED_INTERACTIVE_ITEMS,
+  selectItems,
+  TAP_A_MOLE_GRID_SELECTION,
+} from './item-selection';
 import { KNOWN_MIDI_PROFILES } from '@talisman-midi/profiles';
 
 /**
@@ -397,15 +401,16 @@ describe('getMaxContiguousArea', () => {
       }
     });
   });
+});
 
-  describe('real profiles', () => {
-    it('bitchboy', () => {
-      const profile = KNOWN_MIDI_PROFILES.bitchboy.subProfiles.default.input({
-        connection: {
-          inputDeviceName: 'Bitchboy',
-        },
-      });
-
+describe('real profiles', () => {
+  describe('bitchboy', () => {
+    const profile = KNOWN_MIDI_PROFILES.bitchboy.subProfiles.default.input({
+      connection: {
+        inputDeviceName: 'Bitchboy',
+      },
+    });
+    it('getMaxContiguousArea', () => {
       const usableItems: MidiControllerItemWithPointPosition[] = selectItems(
         profile.getItems(),
         profile.getFeedbackCapabilities(),
@@ -419,6 +424,22 @@ describe('getMaxContiguousArea', () => {
       const result = getMaxContiguousArea(usableRange, cellPresence);
       // 2x8 vertical, 6x2 horizontal along the bottom
       expect(result).toEqual(rect(0, 3, 7, 7));
+    });
+
+    it('gameGrid', () => {
+      const grid = gameGrid({
+        input: profile,
+        selection: TAP_A_MOLE_GRID_SELECTION,
+      });
+
+      // Should select main grid area
+      expect(grid).toEqual({
+        ...rect(0, 3, 7, 7),
+        cols: 8,
+        rows: 5,
+        getCenterPosition: expect.any(Function),
+        selectedItems: expect.any(Function),
+      });
     });
   });
 });

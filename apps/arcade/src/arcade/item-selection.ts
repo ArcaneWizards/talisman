@@ -3,6 +3,7 @@ import {
   MidiProfileFeedbackCapabilities,
 } from '@talisman-midi/talisman';
 import { filter } from '../shared/util';
+import { FONTS } from './text/text';
 
 export type ItemSelector = (
   feedback: MidiProfileFeedbackCapabilities,
@@ -144,3 +145,21 @@ export function selectItems<T extends MidiControllerItem>(
 
   return items;
 }
+
+export const TAP_A_MOLE_GRID_SELECTION = Object.freeze([
+  {
+    selectors: ANY_LED_INTERACTIVE_ITEMS,
+    minCols: FONTS['6x8'].cols,
+    minRows: FONTS['6x8'].rows,
+  },
+  {
+    selectors: ANY_LED_INTERACTIVE_ITEMS,
+    minCols: FONTS['5x7'].cols,
+    minRows: FONTS['5x7'].rows,
+  },
+  {
+    selectors: ANY_LED_INTERACTIVE_ITEMS,
+    minCols: FONTS['4x5'].cols,
+    minRows: FONTS['4x5'].rows,
+  },
+]);
