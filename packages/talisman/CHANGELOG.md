@@ -1,4 +1,4 @@
-# @arcanewizards/talisman
+# @talisman-midi/talisman
 
 ## 0.1.1
 
