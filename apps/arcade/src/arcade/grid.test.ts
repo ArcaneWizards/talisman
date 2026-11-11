@@ -1,7 +1,13 @@
 import { describe, it, expect } from '@jest/globals';
-import type { MidiGridArea } from '@talisman-midi/talisman/util';
+import {
+  hasMidiCoordinatePointPosition,
+  type MidiControllerItemWithPointPosition,
+  type MidiGridArea,
+} from '@talisman-midi/talisman/util';
 
-import { getMaxContiguousArea } from './grid';
+import { buildCellPresence, getMaxContiguousArea } from './grid';
+import { ANY_LED_INTERACTIVE_ITEMS, selectItems } from './item-selection';
+import { KNOWN_MIDI_PROFILES } from '@talisman-midi/profiles';
 
 /**
  * Shorthand for an inclusive rectangle in absolute coordinates
@@ -389,6 +395,30 @@ describe('getMaxContiguousArea', () => {
         }
         run({ area, presence });
       }
+    });
+  });
+
+  describe('real profiles', () => {
+    it('bitchboy', () => {
+      const profile = KNOWN_MIDI_PROFILES.bitchboy.subProfiles.default.input({
+        connection: {
+          inputDeviceName: 'Bitchboy',
+        },
+      });
+
+      const usableItems: MidiControllerItemWithPointPosition[] = selectItems(
+        profile.getItems(),
+        profile.getFeedbackCapabilities(),
+        ANY_LED_INTERACTIVE_ITEMS,
+        undefined,
+        hasMidiCoordinatePointPosition,
+      );
+
+      const { usableRange, cellPresence } = buildCellPresence(usableItems);
+
+      const result = getMaxContiguousArea(usableRange, cellPresence);
+      // 2x8 vertical, 6x2 horizontal along the bottom
+      expect(result).toEqual(rect(0, 3, 7, 7));
     });
   });
 });

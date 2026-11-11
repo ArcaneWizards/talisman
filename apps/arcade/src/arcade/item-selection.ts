@@ -111,20 +111,20 @@ export function selectItems(
   deviceItems: Iterable<MidiControllerItem>,
   feedback: MidiProfileFeedbackCapabilities,
   selectors: Iterable<ItemSelector>,
-  minItems?: number,
+  maxItems?: number,
 ): MidiControllerItem[];
 export function selectItems<T extends MidiControllerItem>(
   deviceItems: Iterable<MidiControllerItem>,
   feedback: MidiProfileFeedbackCapabilities,
   selectors: Iterable<ItemSelector>,
-  minItems: number | undefined,
+  maxItems: number | undefined,
   strictFilter: (item: MidiControllerItem) => item is T,
 ): T[];
 export function selectItems<T extends MidiControllerItem>(
   deviceItems: Iterable<MidiControllerItem>,
   feedback: MidiProfileFeedbackCapabilities,
   selectors: Iterable<ItemSelector>,
-  minItems?: number,
+  maxItems?: number,
   strictFilter?: (item: MidiControllerItem) => item is T,
 ): T[] {
   let items: T[] = [];
@@ -132,20 +132,15 @@ export function selectItems<T extends MidiControllerItem>(
   for (const selector of selectors) {
     if (
       items.length === 0 ||
-      (minItems !== undefined && items.length < minItems)
+      (maxItems !== undefined && items.length < maxItems)
     ) {
       const typeGuard = (item: MidiControllerItem): item is T =>
         selector(feedback)(item) && (!strictFilter || strictFilter(item));
-      items = Array.from(
-        filter<MidiControllerItem, T>(
-          deviceItems,
-          typeGuard,
-          minItems !== undefined ? minItems - items.length : undefined,
-        ),
-      );
+      items = Array.from(filter<MidiControllerItem, T>(deviceItems, typeGuard));
     } else {
       break;
     }
   }
+
   return items;
 }

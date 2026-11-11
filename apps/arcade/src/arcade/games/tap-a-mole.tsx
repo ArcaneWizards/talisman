@@ -180,7 +180,7 @@ export const TapAMole: FC = () => {
           device.inputProfile.getItems(),
           feedback,
           ANY_LED_INTERACTIVE_ITEMS,
-          MIN_TARGETS,
+          undefined,
           hasMidiCoordinatePointPosition,
         );
 
