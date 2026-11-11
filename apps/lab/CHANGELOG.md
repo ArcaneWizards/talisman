@@ -1,5 +1,15 @@
 # @talisman-midi/lab
 
+## 0.1.3
+
+### Patch Changes
+
+- 17ed721: Update README
+- Updated dependencies [201344b]
+- Updated dependencies [17ed721]
+  - @talisman-midi/profiles@0.0.5
+  - @talisman-midi/talisman@0.1.2
+
 ## 0.1.2
 
 ### Patch Changes
