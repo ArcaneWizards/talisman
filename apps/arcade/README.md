@@ -4,11 +4,19 @@
   <img src="https://raw.githubusercontent.com/ArcaneWizards/talisman/refs/heads/main/packages/assets/assets/arcade-logo-animated.svg" alt="Talisman Arcade Logo" height="200">
 </p>
 
-This application open-source and is part of the
+This application is open-source and is part of the
 [Talisman MIDI Project](https://github.com/ArcaneWizards/talisman).
 
 It contains a number of arcade-like games that can be played on compatible
 MIDI controllers.
+
+<p align="center">
+  <a href="https://arcanewizards.com/download/file/talisman-arcade/latest/macos-arm64"><img src="https://arcanewizards.com/download/file/talisman-arcade/latest/macos-arm64/button?cb=1" height="50" alt="Download MacOS (Apple Silicon / ARM) Desktop App"/></a>
+  &nbsp;&nbsp;
+  <a href="https://arcanewizards.com/download/file/talisman-arcade/latest/macos-x64"><img src="https://arcanewizards.com/download/file/talisman-arcade/latest/macos-x64/button?cb=1" height="50" alt="Download MacOS (Intel / x64) Desktop App"/></a>
+  &nbsp;&nbsp;
+  <a href="https://arcanewizards.com/download/file/talisman-arcade/latest/windows-x64"><img src="https://arcanewizards.com/download/file/talisman-arcade/latest/windows-x64/button?cb=1" height="50" alt="Download Windows (x64) Desktop App"/></a>
+</p>
 
 ## Headless / CLI Version
 
