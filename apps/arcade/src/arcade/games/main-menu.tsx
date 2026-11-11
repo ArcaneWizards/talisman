@@ -33,7 +33,10 @@ export const MainMenu: FC = () => {
             input.getItems(),
             feedback,
             ANY_LED_INTERACTIVE_ITEMS,
-            GAMES_EXCLUDING_MAIN_MENU.length,
+            {
+              minItems: GAMES_EXCLUDING_MAIN_MENU.length,
+              maxItems: GAMES_EXCLUDING_MAIN_MENU.length,
+            },
           );
 
           const bindings: Record<string, Game> = {};

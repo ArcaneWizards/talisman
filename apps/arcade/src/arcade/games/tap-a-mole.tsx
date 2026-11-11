@@ -18,8 +18,12 @@ import {
   MidiCoordinatePoint,
 } from '@talisman-midi/talisman/util';
 import { addArtifact, Artifact, generateMoleHitArtifact } from '../artifacts';
-import { RGB } from '@talisman-midi/talisman/color';
-import { ANY_LED_INTERACTIVE_ITEMS, selectItems } from '../item-selection';
+import { RGB, rgbToLightness } from '@talisman-midi/talisman/color';
+import {
+  ANY_LED_INTERACTIVE_ITEMS,
+  selectItems,
+  TAP_A_MOLE_GRID_SELECTION,
+} from '../item-selection';
 import { createArtifactInterval, createRenderInterval } from '../rendering';
 import { gameGrid } from '../grid';
 import { FONTS, RenderedText, renderText, ValidTextChar } from '../text/text';
@@ -93,16 +97,6 @@ export const TapAMole: FC = () => {
   const { resetMenuResetTimeout, clearMenuResetTimeout } =
     useScreenSaverTimeout(10_000);
 
-  useEffect(() => {
-    if (gameState.mode === 'ready') {
-      // Timeout to screen-saver when user stays on the ready screen too long
-      resetMenuResetTimeout();
-    } else {
-      // Disable screensaver timeout when actively in use / viewing score
-      clearMenuResetTimeout();
-    }
-  }, [gameState.mode, resetMenuResetTimeout, clearMenuResetTimeout]);
-
   const gameData = useRef<{
     moles: Map<
       string,
@@ -151,23 +145,7 @@ export const TapAMole: FC = () => {
 
       const grid = gameGrid({
         input: device.inputProfile,
-        selection: [
-          {
-            selectors: ANY_LED_INTERACTIVE_ITEMS,
-            minCols: FONTS['6x8'].cols,
-            minRows: FONTS['6x8'].rows,
-          },
-          {
-            selectors: ANY_LED_INTERACTIVE_ITEMS,
-            minCols: FONTS['5x7'].cols,
-            minRows: FONTS['5x7'].rows,
-          },
-          {
-            selectors: ANY_LED_INTERACTIVE_ITEMS,
-            minCols: FONTS['4x5'].cols,
-            minRows: FONTS['4x5'].rows,
-          },
-        ],
+        selection: TAP_A_MOLE_GRID_SELECTION,
       });
 
       let items: MidiControllerItemWithPointPosition[];
@@ -180,7 +158,10 @@ export const TapAMole: FC = () => {
           device.inputProfile.getItems(),
           feedback,
           ANY_LED_INTERACTIVE_ITEMS,
-          MIN_TARGETS,
+          {
+            minItems: MIN_TARGETS,
+            maxItems: MIN_TARGETS,
+          },
           hasMidiCoordinatePointPosition,
         );
 
@@ -201,6 +182,7 @@ export const TapAMole: FC = () => {
       }
 
       return {
+        feedback,
         device,
         diameter,
         items,
@@ -210,6 +192,22 @@ export const TapAMole: FC = () => {
     }
     return null;
   }, [devices]);
+
+  useEffect(() => {
+    if (gameState.mode === 'ready' && deviceInfo) {
+      // Timeout to screen-saver when user stays on the ready screen too long
+      // and there is a compatible connected device.
+      resetMenuResetTimeout();
+    } else {
+      // Disable screensaver timeout when actively in use / viewing score
+      clearMenuResetTimeout();
+    }
+  }, [
+    gameState.mode,
+    deviceInfo,
+    resetMenuResetTimeout,
+    clearMenuResetTimeout,
+  ]);
 
   useEffect(() => {
     const grid = deviceInfo?.grid;
@@ -338,7 +336,7 @@ export const TapAMole: FC = () => {
 
       outputProfile.clear();
 
-      const { items, grid } = deviceInfo;
+      const { items, grid, feedback } = deviceInfo;
 
       const selectedItemIDs = new Set(items.map((item) => item.id));
 
@@ -481,6 +479,8 @@ export const TapAMole: FC = () => {
 
         for (const item of inputProfile.getItems()) {
           let rgb: RGB = [0, 0, 0];
+          const isSingleLed =
+            item.feedback && feedback[item.feedback]?.led?.type === 'single';
 
           const center = getCenterPosition(item.position, true);
           if (!center) {
@@ -523,14 +523,22 @@ export const TapAMole: FC = () => {
           }
 
           // Draw artifacts before other elements / moles
-          for (const artifact of artifacts.current) {
-            rgb = addArtifact(rgb, center, artifact);
-          }
+          if (isSingleLed) {
+            // Set LED based on whether there is any colour
+            outputProfile.setItemColor(item.id, {
+              mode: rgbToLightness(rgb) > 0.2 ? 'active' : 'empty',
+              color: rgb,
+            });
+          } else {
+            for (const artifact of artifacts.current) {
+              rgb = addArtifact(rgb, center, artifact);
+            }
 
-          outputProfile.setItemColor(item.id, {
-            mode: selectedItemIDs.has(item.id) ? 'active' : 'empty',
-            color: rgb,
-          });
+            outputProfile.setItemColor(item.id, {
+              mode: selectedItemIDs.has(item.id) ? 'active' : 'empty',
+              color: rgb,
+            });
+          }
         }
       });
 
@@ -572,5 +580,13 @@ export const TapAMole: FC = () => {
     };
   }, [colors, devices, changeGame, hitMole, prepareRenderedText, deviceInfo]);
 
-  return <C.TapAMole state={gameState} />;
+  const finalGameState: TapAMoleGameState =
+    devices.length === 0 || !deviceInfo
+      ? {
+          mode: 'error',
+          error: `Please connect a device with at least ${MIN_TARGETS} LED buttons`,
+        }
+      : gameState;
+
+  return <C.TapAMole state={finalGameState} />;
 };

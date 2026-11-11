@@ -3,6 +3,7 @@ import {
   MidiProfileFeedbackCapabilities,
 } from '@talisman-midi/talisman';
 import { filter } from '../shared/util';
+import { FONTS } from './text/text';
 
 export type ItemSelector = (
   feedback: MidiProfileFeedbackCapabilities,
@@ -107,24 +108,29 @@ export const ANY_LED_POTENTIALLY_INTERACTIVE_ITEMS = Object.freeze([
   anyLedItems,
 ] satisfies ItemSelector[]);
 
+export type SelectItemOptions = {
+  maxItems?: number;
+  minItems?: number;
+};
+
 export function selectItems(
   deviceItems: Iterable<MidiControllerItem>,
   feedback: MidiProfileFeedbackCapabilities,
   selectors: Iterable<ItemSelector>,
-  minItems?: number,
+  options?: SelectItemOptions | null,
 ): MidiControllerItem[];
 export function selectItems<T extends MidiControllerItem>(
   deviceItems: Iterable<MidiControllerItem>,
   feedback: MidiProfileFeedbackCapabilities,
   selectors: Iterable<ItemSelector>,
-  minItems: number | undefined,
+  options: SelectItemOptions | null | undefined,
   strictFilter: (item: MidiControllerItem) => item is T,
 ): T[];
 export function selectItems<T extends MidiControllerItem>(
   deviceItems: Iterable<MidiControllerItem>,
   feedback: MidiProfileFeedbackCapabilities,
   selectors: Iterable<ItemSelector>,
-  minItems?: number,
+  options?: SelectItemOptions | null,
   strictFilter?: (item: MidiControllerItem) => item is T,
 ): T[] {
   let items: T[] = [];
@@ -132,7 +138,7 @@ export function selectItems<T extends MidiControllerItem>(
   for (const selector of selectors) {
     if (
       items.length === 0 ||
-      (minItems !== undefined && items.length < minItems)
+      (options?.minItems !== undefined && items.length < options.minItems)
     ) {
       const typeGuard = (item: MidiControllerItem): item is T =>
         selector(feedback)(item) && (!strictFilter || strictFilter(item));
@@ -140,12 +146,31 @@ export function selectItems<T extends MidiControllerItem>(
         filter<MidiControllerItem, T>(
           deviceItems,
           typeGuard,
-          minItems !== undefined ? minItems - items.length : undefined,
+          options?.maxItems,
         ),
       );
     } else {
       break;
     }
   }
+
   return items;
 }
+
+export const TAP_A_MOLE_GRID_SELECTION = Object.freeze([
+  {
+    selectors: ANY_LED_INTERACTIVE_ITEMS,
+    minCols: FONTS['6x8'].cols,
+    minRows: FONTS['6x8'].rows,
+  },
+  {
+    selectors: ANY_LED_INTERACTIVE_ITEMS,
+    minCols: FONTS['5x7'].cols,
+    minRows: FONTS['5x7'].rows,
+  },
+  {
+    selectors: ANY_LED_INTERACTIVE_ITEMS,
+    minCols: FONTS['4x5'].cols,
+    minRows: FONTS['4x5'].rows,
+  },
+]);

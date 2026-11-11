@@ -62,9 +62,7 @@ export const createBitchboyProfile: MidiProfileInit = () => {
       const row = 3;
       const id = itemId('note', note);
       const nature: MidiButtonNature = {
-        nature: 'channel',
-        action: 'select',
-        channel: col,
+        nature: 'grid',
       };
       items[id] = {
         id,
@@ -106,9 +104,7 @@ export const createBitchboyProfile: MidiProfileInit = () => {
       const row = 3;
       const id = itemId('note', note);
       const nature: MidiButtonNature = {
-        nature: 'channel',
-        action: 'select',
-        channel: col,
+        nature: 'grid',
       };
       items[id] = {
         id,

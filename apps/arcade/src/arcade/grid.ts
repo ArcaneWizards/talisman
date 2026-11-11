@@ -11,7 +11,7 @@ import { ItemSelector, selectItems } from './item-selection';
 
 type GameGridArgs = {
   input: MidiProfile;
-  selection: Array<{
+  selection: Iterable<{
     selectors: Iterable<ItemSelector>;
     minCols?: number;
     minRows?: number;
@@ -118,6 +118,39 @@ export const getMaxContiguousArea = (
   };
 };
 
+export const buildCellPresence = (
+  usableItems: MidiControllerItemWithPointPosition[],
+) => {
+  /**
+   * Max boundaries of elements from {@link usableItems}
+   */
+  const usableRange = getCoordinateRanges(usableItems);
+
+  const cellPresence: boolean[][] = Array.from(
+    { length: usableRange.maxCol - usableRange.minCol + 1 },
+    () =>
+      Array.from(
+        { length: usableRange.maxRow - usableRange.minRow + 1 },
+        () => false,
+      ),
+  );
+
+  for (const item of usableItems) {
+    const row = item.position.row - usableRange.minRow;
+    const col = item.position.col - usableRange.minCol;
+    if (col < 0) {
+      continue;
+    }
+    const colArray = cellPresence[col];
+    if (!colArray || row < 0 || row >= colArray.length) {
+      continue;
+    }
+    colArray[row] = true;
+  }
+
+  return { usableRange, cellPresence };
+};
+
 export const gameGrid = ({ input, selection }: GameGridArgs) => {
   const feedback = input.getFeedbackCapabilities();
 
@@ -130,45 +163,20 @@ export const gameGrid = ({ input, selection }: GameGridArgs) => {
       hasMidiCoordinatePointPosition,
     );
 
-    /**
-     * Max boundaries of elements from {@link usableItems}
-     */
-    const usableRange = getCoordinateRanges(usableItems);
-
-    const cellPresence: boolean[][] = Array.from(
-      { length: usableRange.maxCol - usableRange.minCol + 1 },
-      () =>
-        Array.from(
-          { length: usableRange.maxRow - usableRange.minRow + 1 },
-          () => false,
-        ),
-    );
-
-    for (const item of usableItems) {
-      const row = item.position.row - usableRange.minRow;
-      const col = item.position.col - usableRange.minCol;
-      if (col < 0) {
-        continue;
-      }
-      const colArray = cellPresence[col];
-      if (!colArray || row < 0 || row >= colArray.length) {
-        continue;
-      }
-      colArray[row] = true;
-    }
+    const { usableRange, cellPresence } = buildCellPresence(usableItems);
 
     const { maxCol, maxRow, minCol, minRow } = getMaxContiguousArea(
       usableRange,
       cellPresence,
     );
-    const rows = maxCol - minCol + 1;
-    const cols = maxRow - minRow + 1;
+    const rows = maxRow - minRow + 1;
+    const cols = maxCol - minCol + 1;
 
     if (minRows && rows < minRows) {
-      return null;
+      continue;
     }
     if (minCols && cols < minCols) {
-      return null;
+      continue;
     }
 
     /**
