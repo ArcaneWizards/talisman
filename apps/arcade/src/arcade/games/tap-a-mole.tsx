@@ -18,7 +18,7 @@ import {
   MidiCoordinatePoint,
 } from '@talisman-midi/talisman/util';
 import { addArtifact, Artifact, generateMoleHitArtifact } from '../artifacts';
-import { RGB } from '@talisman-midi/talisman/color';
+import { RGB, rgbToLightness } from '@talisman-midi/talisman/color';
 import {
   ANY_LED_INTERACTIVE_ITEMS,
   selectItems,
@@ -158,7 +158,10 @@ export const TapAMole: FC = () => {
           device.inputProfile.getItems(),
           feedback,
           ANY_LED_INTERACTIVE_ITEMS,
-          undefined,
+          {
+            minItems: MIN_TARGETS,
+            maxItems: MIN_TARGETS,
+          },
           hasMidiCoordinatePointPosition,
         );
 
@@ -179,6 +182,7 @@ export const TapAMole: FC = () => {
       }
 
       return {
+        feedback,
         device,
         diameter,
         items,
@@ -332,7 +336,7 @@ export const TapAMole: FC = () => {
 
       outputProfile.clear();
 
-      const { items, grid } = deviceInfo;
+      const { items, grid, feedback } = deviceInfo;
 
       const selectedItemIDs = new Set(items.map((item) => item.id));
 
@@ -475,6 +479,8 @@ export const TapAMole: FC = () => {
 
         for (const item of inputProfile.getItems()) {
           let rgb: RGB = [0, 0, 0];
+          const isSingleLed =
+            item.feedback && feedback[item.feedback]?.led?.type === 'single';
 
           const center = getCenterPosition(item.position, true);
           if (!center) {
@@ -517,14 +523,22 @@ export const TapAMole: FC = () => {
           }
 
           // Draw artifacts before other elements / moles
-          for (const artifact of artifacts.current) {
-            rgb = addArtifact(rgb, center, artifact);
-          }
+          if (isSingleLed) {
+            // Set LED based on whether there is any colour
+            outputProfile.setItemColor(item.id, {
+              mode: rgbToLightness(rgb) > 0.2 ? 'active' : 'empty',
+              color: rgb,
+            });
+          } else {
+            for (const artifact of artifacts.current) {
+              rgb = addArtifact(rgb, center, artifact);
+            }
 
-          outputProfile.setItemColor(item.id, {
-            mode: selectedItemIDs.has(item.id) ? 'active' : 'empty',
-            color: rgb,
-          });
+            outputProfile.setItemColor(item.id, {
+              mode: selectedItemIDs.has(item.id) ? 'active' : 'empty',
+              color: rgb,
+            });
+          }
         }
       });
 

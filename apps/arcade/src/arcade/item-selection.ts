@@ -108,24 +108,29 @@ export const ANY_LED_POTENTIALLY_INTERACTIVE_ITEMS = Object.freeze([
   anyLedItems,
 ] satisfies ItemSelector[]);
 
+export type SelectItemOptions = {
+  maxItems?: number;
+  minItems?: number;
+};
+
 export function selectItems(
   deviceItems: Iterable<MidiControllerItem>,
   feedback: MidiProfileFeedbackCapabilities,
   selectors: Iterable<ItemSelector>,
-  maxItems?: number,
+  options?: SelectItemOptions | null,
 ): MidiControllerItem[];
 export function selectItems<T extends MidiControllerItem>(
   deviceItems: Iterable<MidiControllerItem>,
   feedback: MidiProfileFeedbackCapabilities,
   selectors: Iterable<ItemSelector>,
-  maxItems: number | undefined,
+  options: SelectItemOptions | null | undefined,
   strictFilter: (item: MidiControllerItem) => item is T,
 ): T[];
 export function selectItems<T extends MidiControllerItem>(
   deviceItems: Iterable<MidiControllerItem>,
   feedback: MidiProfileFeedbackCapabilities,
   selectors: Iterable<ItemSelector>,
-  maxItems?: number,
+  options?: SelectItemOptions | null,
   strictFilter?: (item: MidiControllerItem) => item is T,
 ): T[] {
   let items: T[] = [];
@@ -133,11 +138,17 @@ export function selectItems<T extends MidiControllerItem>(
   for (const selector of selectors) {
     if (
       items.length === 0 ||
-      (maxItems !== undefined && items.length < maxItems)
+      (options?.minItems !== undefined && items.length < options.minItems)
     ) {
       const typeGuard = (item: MidiControllerItem): item is T =>
         selector(feedback)(item) && (!strictFilter || strictFilter(item));
-      items = Array.from(filter<MidiControllerItem, T>(deviceItems, typeGuard));
+      items = Array.from(
+        filter<MidiControllerItem, T>(
+          deviceItems,
+          typeGuard,
+          options?.maxItems,
+        ),
+      );
     } else {
       break;
     }
