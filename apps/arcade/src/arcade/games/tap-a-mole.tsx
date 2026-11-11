@@ -97,16 +97,6 @@ export const TapAMole: FC = () => {
   const { resetMenuResetTimeout, clearMenuResetTimeout } =
     useScreenSaverTimeout(10_000);
 
-  useEffect(() => {
-    if (gameState.mode === 'ready') {
-      // Timeout to screen-saver when user stays on the ready screen too long
-      resetMenuResetTimeout();
-    } else {
-      // Disable screensaver timeout when actively in use / viewing score
-      clearMenuResetTimeout();
-    }
-  }, [gameState.mode, resetMenuResetTimeout, clearMenuResetTimeout]);
-
   const gameData = useRef<{
     moles: Map<
       string,
@@ -198,6 +188,22 @@ export const TapAMole: FC = () => {
     }
     return null;
   }, [devices]);
+
+  useEffect(() => {
+    if (gameState.mode === 'ready' && deviceInfo) {
+      // Timeout to screen-saver when user stays on the ready screen too long
+      // and there is a compatible connected device.
+      resetMenuResetTimeout();
+    } else {
+      // Disable screensaver timeout when actively in use / viewing score
+      clearMenuResetTimeout();
+    }
+  }, [
+    gameState.mode,
+    deviceInfo,
+    resetMenuResetTimeout,
+    clearMenuResetTimeout,
+  ]);
 
   useEffect(() => {
     const grid = deviceInfo?.grid;
@@ -560,5 +566,13 @@ export const TapAMole: FC = () => {
     };
   }, [colors, devices, changeGame, hitMole, prepareRenderedText, deviceInfo]);
 
-  return <C.TapAMole state={gameState} />;
+  const finalGameState: TapAMoleGameState =
+    devices.length === 0 || !deviceInfo
+      ? {
+          mode: 'error',
+          error: `Please connect a device with at least ${MIN_TARGETS} LED buttons`,
+        }
+      : gameState;
+
+  return <C.TapAMole state={finalGameState} />;
 };

@@ -151,6 +151,10 @@ export type TapAMoleGameState =
       mode: 'ready';
     }
   | {
+      mode: 'error';
+      error: string;
+    }
+  | {
       mode: 'countdown';
       gameStartTimeMs: number;
     }

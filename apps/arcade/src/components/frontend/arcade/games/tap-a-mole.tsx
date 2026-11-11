@@ -65,6 +65,11 @@ export const TapAMole: FC<TapAMoleProps> = ({ info }) => {
           Press a green button to start the game
         </div>
       )}
+      {info.state.mode === 'error' && (
+        <div className="text-center text-[2rem] text-sigil-usage-hint-foreground">
+          {info.state.error}
+        </div>
+      )}
       {info.state.mode === 'countdown' && (
         <>
           <Countdown timeMs={info.state.gameStartTimeMs} />
