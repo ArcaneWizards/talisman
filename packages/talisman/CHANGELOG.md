@@ -1,5 +1,11 @@
 # @talisman-midi/talisman
 
+## 0.1.2
+
+### Patch Changes
+
+- 17ed721: Update README
+
 ## 0.1.1
 
 ### Patch Changes

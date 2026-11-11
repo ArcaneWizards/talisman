@@ -1,5 +1,18 @@
 # @talisman-midi/profiles
 
+## 0.0.5
+
+### Patch Changes
+
+- 201344b: Adjust bitchboy profile
+
+  Make the first row of keys nature: grid,
+  so apps that require a minimum grid of 5 rows can use this area.
+
+- 17ed721: Update README
+- Updated dependencies [17ed721]
+  - @talisman-midi/talisman@0.1.2
+
 ## 0.0.4
 
 ### Patch Changes

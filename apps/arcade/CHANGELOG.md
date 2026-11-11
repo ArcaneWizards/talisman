@@ -1,5 +1,37 @@
 # @talisman-midi/arcade
 
+## 0.1.0
+
+### Minor Changes
+
+- 4bfe55f: Prepare first public beta release
+
+### Patch Changes
+
+- 17ed721: Update README
+- 201344b: Fix grid selection logic for tap-a-mole
+
+  There were a couple of logical errors when selecting the minimum grid area
+  for controllers that do not have a rectangular / square grid.
+
+- 4bfe55f: Implement GUI for different games,
+  including an animated thumbnail for each game,
+  and instructions on how to use each game.
+- 201344b: Allow tap-a-mole to be used with single LED
+
+  Adjust the game rendering & item selection logic so that when single LEDs are
+  selected, the light is on based on whether there is a mole present only,
+  and avoid rendering wave artifacts.
+
+- 17ed721: Modify timing of screensaver slightly
+
+  Introduce some randomness to how frequently the artifacts are generated.
+
+- Updated dependencies [201344b]
+- Updated dependencies [17ed721]
+  - @talisman-midi/profiles@0.0.5
+  - @talisman-midi/talisman@0.1.2
+
 ## 0.0.5
 
 ### Patch Changes
