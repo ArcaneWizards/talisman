@@ -11,6 +11,7 @@ import { MainMenu } from './arcade/games/main-menu';
 import { FXPlayground } from './arcade/games/fx-playground';
 import { TapAMole } from './arcade/games/tap-a-mole';
 import { ScreenSaver } from './arcade/games/screensaver';
+import { FourInARow } from './arcade/games/four-in-a-row';
 
 export type TalismanArcadeBrowserContext = BaseBrowserContext;
 
@@ -29,6 +30,8 @@ export const talismanArcadeFrontendComponents =
           return <LicenseGate info={info} />;
         case 'main-menu':
           return <MainMenu />;
+        case 'four-in-a-row':
+          return <FourInARow info={info} />;
         case 'fx-playground':
           return <FXPlayground />;
         case 'tap-a-mole':
