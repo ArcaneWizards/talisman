@@ -1,5 +1,11 @@
 # @talisman-midi/arcade
 
+## 0.1.1
+
+### Patch Changes
+
+- aa1cd35: Add Four-in-a-Row game
+
 ## 0.1.0
 
 ### Minor Changes
