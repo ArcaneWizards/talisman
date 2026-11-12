@@ -1,6 +1,6 @@
 {
   "name": "@talisman-midi/lab",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "private": false,
   "bin": {
     "talisman-lab": "./dist/start.js"

@@ -1,5 +1,20 @@
 # @talisman-midi/profiles
 
+## 0.0.6
+
+### Patch Changes
+
+- 099cd26: Improve the interface / constants exported from talisman profiles for easier use
+- 099cd26: [breaking] Correct typo in APC MINI profile ID
+- 099cd26: [breaking] change name properties for inputs / outputs
+
+  To simplify usage with MIDI libraries that expose inputs & outputs as an object
+  with a `name` string property (such as `@arcanewizards/midi`),
+  introduce some generics, and simplify the property name to match.
+
+- Updated dependencies [099cd26]
+  - @talisman-midi/talisman@0.1.3
+
 ## 0.0.5
 
 ### Patch Changes

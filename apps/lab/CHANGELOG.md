@@ -1,5 +1,15 @@
 # @talisman-midi/lab
 
+## 0.1.4
+
+### Patch Changes
+
+- Updated dependencies [099cd26]
+- Updated dependencies [099cd26]
+- Updated dependencies [099cd26]
+  - @talisman-midi/profiles@0.0.6
+  - @talisman-midi/talisman@0.1.3
+
 ## 0.1.3
 
 ### Patch Changes
