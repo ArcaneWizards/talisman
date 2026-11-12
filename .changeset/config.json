@@ -11,6 +11,7 @@
     "@talisman-midi/arcade-desktop",
     "@talisman-midi/lab-desktop",
     "@talisman-midi/eslint-config",
-    "@talisman-midi/typescript-config"
+    "@talisman-midi/typescript-config",
+    "@talisman-midi/examples-*"
   ]
 }
