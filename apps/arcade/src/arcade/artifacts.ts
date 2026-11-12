@@ -25,6 +25,7 @@ export type Artifact =
       position: MidiCoordinatePoint;
       color: RGB;
       expiresMs: number;
+      pulseMs?: number;
     }
   | {
       type: 'drop';
@@ -120,7 +121,14 @@ export const addArtifact = (
       ) {
         return background;
       }
-      return addRGB(background, artifact.color, 1);
+      let opacity = 1;
+      if (artifact.pulseMs) {
+        const phase =
+          ((artifact.expiresMs - Date.now()) % artifact.pulseMs) /
+          artifact.pulseMs;
+        opacity = 0.5 + 0.5 * Math.sin(phase * 2 * Math.PI);
+      }
+      return addRGB(background, artifact.color, opacity);
     }
     case 'drop': {
       if (position.col !== artifact.target.col) {
@@ -132,7 +140,7 @@ export const addArtifact = (
         (position.row - artifact.target.row) / artifact.rowsPerMs;
       const timeDiff = Date.now() - passTime;
       let opacity: number;
-      if (timeDiff < 0) {
+      if (timeDiff < 0 || position.row < artifact.target.row) {
         opacity = 0;
       } else {
         // Trail

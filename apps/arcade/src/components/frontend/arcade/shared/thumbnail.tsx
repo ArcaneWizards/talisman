@@ -1,6 +1,7 @@
 import {
   ComponentPropsWithoutRef,
   FC,
+  useCallback,
   useContext,
   useEffect,
   useState,
@@ -16,7 +17,7 @@ import {
   generateScreenSaverArtifact,
 } from '../../../../arcade/artifacts';
 import { isDefined } from '../../../../shared/util';
-import { RGB } from '@talisman-midi/talisman/color';
+import { COLORS, RGB } from '@talisman-midi/talisman/color';
 import { MidiCoordinatePoint } from '@talisman-midi/talisman/util';
 import { RootContext } from '../context';
 
@@ -58,11 +59,14 @@ export const Thumbnail: FC<ThumbnailProps> = ({ game, ...props }) => {
     return () => cancelAnimationFrame(frame);
   }, []);
 
+  const appendArtifacts = useCallback((...artifacts: Artifact[]) => {
+    setArtifacts((prev) => [...prev, ...artifacts]);
+  }, []);
+
   useEffect(() => {
     if (game === 'screen-saver' || game === 'fx-playground') {
       const generateArtifact = () => {
-        setArtifacts((prev) => [
-          ...prev,
+        appendArtifacts(
           (game === 'screen-saver'
             ? generateScreenSaverArtifact
             : generateFXArtifact)(
@@ -72,7 +76,7 @@ export const Thumbnail: FC<ThumbnailProps> = ({ game, ...props }) => {
             },
             DIAMETER,
           ),
-        ]);
+        );
       };
 
       const artifactGenerator = setInterval(
@@ -90,25 +94,21 @@ export const Thumbnail: FC<ThumbnailProps> = ({ game, ...props }) => {
           row: Math.round((ROWS - 1) * Math.random()),
           col: Math.round((COLS - 1) * Math.random()),
         };
-        setArtifacts((prev) => [
-          ...prev,
-          {
-            type: 'dot',
-            position,
-            color: colors.primary,
-            expiresMs: Date.now() + 500,
-          },
-        ]);
+        appendArtifacts({
+          type: 'dot',
+          position,
+          color: colors.primary,
+          expiresMs: Date.now() + 500,
+        });
         setTimeout(() => {
-          setArtifacts((prev) => [
-            ...prev,
+          appendArtifacts(
             generateMoleHitArtifact(
               position,
               DIAMETER,
               colors,
               Math.random() > 0.5 ? 'hit' : 'miss',
             ),
-          ]);
+          );
         }, 500);
       };
       const moleGenerator = setInterval(generateMole, 800);
@@ -117,7 +117,125 @@ export const Thumbnail: FC<ThumbnailProps> = ({ game, ...props }) => {
 
       return () => clearInterval(moleGenerator);
     }
-  }, [colors, game]);
+    if (game === 'four-in-a-row') {
+      const ANIMATION_LOOP_INTERVAL = 2500;
+      const DROP_TIME_MS = 300;
+
+      const startGameAnimation = () => {
+        const now = Date.now();
+        const expiresMs = now + ANIMATION_LOOP_INTERVAL;
+        appendArtifacts(
+          {
+            type: 'dot',
+            position: { col: 1, row: 0 },
+            color: colors.secondary,
+            expiresMs,
+          },
+          {
+            type: 'dot',
+            position: { col: 2, row: 0 },
+            color: colors.primary,
+            expiresMs,
+          },
+          {
+            type: 'dot',
+            position: { col: 3, row: 0 },
+            color: colors.secondary,
+            expiresMs,
+          },
+          {
+            type: 'dot',
+            position: { col: 4, row: 0 },
+            color: colors.primary,
+            expiresMs,
+          },
+          {
+            type: 'dot',
+            position: { col: 5, row: 0 },
+            color: colors.secondary,
+            expiresMs,
+          },
+          {
+            type: 'dot',
+            position: { col: 3, row: 1 },
+            color: colors.primary,
+            expiresMs,
+          },
+          {
+            type: 'dot',
+            position: { col: 4, row: 1 },
+            color: colors.secondary,
+            expiresMs,
+          },
+          {
+            type: 'dot',
+            position: { col: 4, row: 1 },
+            color: colors.primary,
+            expiresMs,
+          },
+          {
+            type: 'dot',
+            position: { col: 4, row: 1 },
+            color: colors.secondary,
+            expiresMs,
+          },
+          {
+            type: 'dot',
+            position: { col: 5, row: 1 },
+            color: colors.primary,
+            expiresMs,
+          },
+          {
+            type: 'dot',
+            position: { col: 5, row: 2 },
+            color: colors.secondary,
+            expiresMs,
+          },
+          {
+            type: 'dot',
+            position: { col: 5, row: 3 },
+            color: colors.primary,
+            expiresMs,
+          },
+          {
+            type: 'drop',
+            target: { col: 4, row: 2 },
+            color: colors.primary,
+            endTimeMs: now + DROP_TIME_MS,
+            rowsPerMs: ROWS / DROP_TIME_MS,
+            trailFadeMs: 500,
+          },
+        );
+
+        setTimeout(() => {
+          appendArtifacts(
+            {
+              type: 'dot',
+              position: { col: 4, row: 2 },
+              color: colors.primary,
+              expiresMs,
+            },
+            ...Array.from({ length: 4 }).map((_, i) => ({
+              type: 'dot' as const,
+              position: { col: i + 2, row: i },
+              color: COLORS.WHITE,
+              expiresMs,
+              pulseMs: 500,
+            })),
+          );
+        }, DROP_TIME_MS);
+      };
+
+      const gameAnimationGenerator = setInterval(
+        startGameAnimation,
+        ANIMATION_LOOP_INTERVAL,
+      );
+
+      startGameAnimation();
+
+      return () => clearInterval(gameAnimationGenerator);
+    }
+  }, [colors, game, appendArtifacts]);
 
   return (
     <svg viewBox={`0 0 ${width} ${height}`} {...props}>
@@ -130,7 +248,8 @@ export const Thumbnail: FC<ThumbnailProps> = ({ game, ...props }) => {
           }
 
           const x = BORDER_WIDTH + GAP_RATIO + col * (1 + GAP_RATIO);
-          const y = BORDER_WIDTH + GAP_RATIO + row * (1 + GAP_RATIO);
+          const y =
+            BORDER_WIDTH + GAP_RATIO + (ROWS - row - 1) * (1 + GAP_RATIO);
           return (
             <rect
               key={`${row}-${col}`}
