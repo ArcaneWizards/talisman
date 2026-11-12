@@ -45,7 +45,11 @@ export const FourInARow: FC<FourInARowProps> = ({ info }) => {
       )}
       {info.state.mode === 'finished' && (
         <>
-          <div className="text-center text-[2rem] text-sigil-usage-hint-foreground">{`Player ${info.state.winner + 1} wins`}</div>
+          <div className="text-center text-[2rem] text-sigil-usage-hint-foreground">
+            {info.state.winner === null
+              ? `It's a draw!`
+              : `Player ${info.state.winner + 1} wins!`}
+          </div>
           <div className="text-center">
             Press a button on the controller to restart the game
           </div>

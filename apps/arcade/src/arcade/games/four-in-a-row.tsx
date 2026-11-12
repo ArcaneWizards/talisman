@@ -15,7 +15,7 @@ import {
   MidiCoordinatePoint,
 } from '@talisman-midi/talisman/util';
 import { addArtifact, Artifact, generateFourInARowImpact } from '../artifacts';
-import { addRGB, RGB } from '@talisman-midi/talisman/color';
+import { addRGB, COLORS, RGB } from '@talisman-midi/talisman/color';
 import { FOUR_IN_A_ROW_GRID_SELECTION } from '../item-selection';
 import { createArtifactInterval, createRenderInterval } from '../rendering';
 import { gameGrid } from '../grid';
@@ -28,7 +28,6 @@ const PULSE_RATE_MS = 1000;
  * How quickly should a marker drop the whole height of the grid area
  */
 const DROP_TIME_MS = 300;
-const TRAIL_FADE_MS = 500;
 
 type CellState = {
   type: 'placed' | 'won';
@@ -115,15 +114,6 @@ export const FourInARow: FC = () => {
   }, [devices]);
 
   useEffect(() => {
-    if (deviceInfo) {
-      gameData.current.grid = Array.from({ length: deviceInfo.grid.cols }, () =>
-        Array.from({ length: deviceInfo.grid.rows }, () => null),
-      );
-      gameData.current.allowInputAfter = Date.now();
-    }
-  }, [deviceInfo]);
-
-  useEffect(() => {
     if (gameState.mode === 'ready' && deviceInfo) {
       // Timeout to screen-saver when user stays on the ready screen too long
       // and there is a compatible connected device.
@@ -139,6 +129,100 @@ export const FourInARow: FC = () => {
     clearMenuResetTimeout,
   ]);
 
+  const checkForEndGame = useCallback(() => {
+    const checkCells = (
+      cells: [
+        CellState | undefined,
+        CellState | undefined,
+        CellState | undefined,
+        CellState | undefined,
+      ],
+    ) => {
+      const player = cells[0]?.player;
+      if (
+        player !== undefined &&
+        cells.every(
+          (cell) => cell && cell.type === 'placed' && cell.player === player,
+        )
+      ) {
+        cells.forEach((cell) => {
+          if (cell) {
+            // Mark as won
+            cell.type = 'won';
+          }
+        });
+        setGameState({
+          mode: 'finished',
+          winner: player,
+        });
+        return true;
+      }
+      return false;
+    };
+
+    for (let c = 0; c < gameData.current.grid.length; c++) {
+      const column = gameData.current.grid[c];
+      if (!column) continue;
+
+      // Check Vertical / NE Diagonal
+      for (let r = 0; r < column.length - 3; r++) {
+        if (
+          checkCells([column[r], column[r + 1], column[r + 2], column[r + 3]])
+        ) {
+          return;
+        }
+        if (
+          checkCells([
+            column[r],
+            gameData.current.grid[c + 1]?.[r + 1],
+            gameData.current.grid[c + 2]?.[r + 2],
+            gameData.current.grid[c + 3]?.[r + 3],
+          ])
+        ) {
+          return;
+        }
+      }
+
+      // Check Horizontal / SE Diagonal
+      for (let r = 0; r < column.length; r++) {
+        if (
+          checkCells([
+            gameData.current.grid[c]?.[r],
+            gameData.current.grid[c + 1]?.[r],
+            gameData.current.grid[c + 2]?.[r],
+            gameData.current.grid[c + 3]?.[r],
+          ])
+        ) {
+          return;
+        }
+        if (r >= 3) {
+          if (
+            checkCells([
+              gameData.current.grid[c]?.[r],
+              gameData.current.grid[c + 1]?.[r - 1],
+              gameData.current.grid[c + 2]?.[r - 2],
+              gameData.current.grid[c + 3]?.[r - 3],
+            ])
+          ) {
+            return;
+          }
+        }
+      }
+    }
+
+    // Check if top row is full (draw condition)
+    const topRowFull = gameData.current.grid.every(
+      (column) => column[0] !== null,
+    );
+    if (topRowFull) {
+      setGameState({
+        mode: 'finished',
+        winner: null,
+      });
+      return;
+    }
+  }, []);
+
   const touchButton = useCallback(
     (center: MidiCoordinatePoint) => {
       if (!deviceInfo) return;
@@ -147,6 +231,11 @@ export const FourInARow: FC = () => {
           mode: 'playing',
           player: Math.round(Math.random()),
         });
+        gameData.current.grid = Array.from(
+          { length: deviceInfo.grid.cols },
+          () => Array.from({ length: deviceInfo.grid.rows }, () => null),
+        );
+        gameData.current.allowInputAfter = Date.now();
       } else if (gameStateRef.current.mode === 'playing') {
         // Ignore blocked Inputs
         if (Date.now() < gameData.current.allowInputAfter) return;
@@ -176,14 +265,14 @@ export const FourInARow: FC = () => {
           const rowsToDrop = deviceInfo.grid.rows - row;
           const dropDurationMs = rowsToDrop / rowsPerMs;
           const endTimeMs = Date.now() + dropDurationMs;
-          gameData.current.allowInputAfter = endTimeMs + TRAIL_FADE_MS;
+          gameData.current.allowInputAfter = endTimeMs + 250;
           // Add drop artifact
           artifacts.current.push({
             type: 'drop',
             target: { row, col: deviceInfo.grid.minCol + center.col },
             endTimeMs,
             rowsPerMs,
-            trailFadeMs: TRAIL_FADE_MS,
+            trailFadeMs: 500,
             color: getPlayerColor(player),
           });
 
@@ -204,6 +293,7 @@ export const FourInARow: FC = () => {
                 getPlayerColor(player),
               ),
             );
+            checkForEndGame();
           }, dropDurationMs);
         }
       } else if (gameStateRef.current.mode === 'finished') {
@@ -212,7 +302,7 @@ export const FourInARow: FC = () => {
         });
       }
     },
-    [deviceInfo, getPlayerColor],
+    [deviceInfo, getPlayerColor, checkForEndGame],
   );
 
   useEffect(() => {
@@ -290,7 +380,10 @@ export const FourInARow: FC = () => {
             rgb = selectedItemIDs.has(item.id)
               ? colors.current.ready
               : colors.current.primary;
-          } else if (gameStateRef.current.mode === 'playing') {
+          } else if (
+            gameStateRef.current.mode === 'playing' ||
+            gameStateRef.current.mode === 'finished'
+          ) {
             if (selectedItemIDs.has(item.id)) {
               const spotData =
                 gameData.current.grid[grid.minCol + center.col]?.[
@@ -299,8 +392,15 @@ export const FourInARow: FC = () => {
               if (spotData) {
                 if (spotData.type === 'placed') {
                   rgb = getPlayerColor(spotData.player);
+                } else if (spotData.type === 'won') {
+                  rgb = addRGB(
+                    getPlayerColor(spotData.player),
+                    COLORS.WHITE,
+                    faceOpacity,
+                  );
                 }
               } else if (
+                gameStateRef.current.mode === 'playing' &&
                 now > gameData.current.allowInputAfter &&
                 center.row === grid.maxRow
               ) {
@@ -311,8 +411,6 @@ export const FourInARow: FC = () => {
                 rgb = addRGB(rgb, color, opacity);
               }
             }
-          } else if (gameStateRef.current.mode === 'finished') {
-            // TODO
           }
 
           for (const artifact of artifacts.current) {

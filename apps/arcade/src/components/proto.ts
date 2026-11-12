@@ -155,7 +155,10 @@ export type FourInARowState =
     }
   | {
       mode: 'finished';
-      winner: number;
+      /**
+       * Null if there is a draw (no winner)
+       */
+      winner: number | null;
     };
 
 export type FourInARowComponent = BaseComponentProto<
