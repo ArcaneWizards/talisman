@@ -26,11 +26,13 @@ export * from './core.js';
  * @returns either null, or a pair of strings representing the keys for the main
  * profile and sub-profile.
  */
-export const autoSelectProfileAndSubprofile = (
+export const autoSelectProfileAndSubprofile = <
+  Profiles extends Record<string, MidiProfileDefinition>,
+>(
   connection: MidiInputConnectionInfo,
-  profiles: Record<string, MidiProfileDefinition>,
+  profiles: Profiles,
   mainProfile?: string,
-): null | [string, string] => {
+): null | [keyof Profiles, string] => {
   if (!mainProfile) {
     for (const [key, profile] of Object.entries(profiles)) {
       if (profile.autoSelect(connection)) {

@@ -18,7 +18,7 @@ import { MIDI_FIGHTER_3D } from './devices/midi-fighter-3d.js';
  */
 export const KNOWN_MIDI_PROFILES = Object.freeze({
   generic: GENERIC,
-  'akai-apimini-mk2': AKAI_APC_MINI_MK_2,
+  'akai-apcmini-mk2': AKAI_APC_MINI_MK_2,
   bitchboy: BITCHBOY,
   'hercules-djcontrol-inpulse-300': HERCULES_DJCONTROL_INPULSE_300,
   'midi-fighter-twister': MIDI_FIGHTER_TWISTER,

@@ -5,10 +5,7 @@ import {
   parseMidiMessages,
   MidiFeedbackProfile,
 } from '@talisman-midi/talisman';
-import {
-  KNOWN_MIDI_PROFILES,
-  isKnownMidiProfile,
-} from '@talisman-midi/profiles';
+import { KNOWN_MIDI_PROFILES } from '@talisman-midi/profiles';
 
 const inputConnections: MIDIInput[] = [];
 const outputConnections: MIDIOutput[] = [];
@@ -25,7 +22,7 @@ const run = async () => {
         input,
         KNOWN_MIDI_PROFILES,
       );
-      if (!profileIdPair || !isKnownMidiProfile(profileIdPair[0])) {
+      if (!profileIdPair) {
         return null;
       }
       const profile = KNOWN_MIDI_PROFILES[profileIdPair[0]];
