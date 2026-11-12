@@ -14,7 +14,7 @@ import {
   getCoordinateRanges,
   MidiCoordinatePoint,
 } from '@talisman-midi/talisman/util';
-import { addArtifact, Artifact } from '../artifacts';
+import { addArtifact, Artifact, generateFourInARowImpact } from '../artifacts';
 import { addRGB, RGB } from '@talisman-midi/talisman/color';
 import { FOUR_IN_A_ROW_GRID_SELECTION } from '../item-selection';
 import { createArtifactInterval, createRenderInterval } from '../rendering';
@@ -24,6 +24,11 @@ import { C } from '../../components/backend';
 import { useScreenSaverTimeout } from '../hooks';
 
 const PULSE_RATE_MS = 1000;
+/**
+ * How quickly should a marker drop the whole height of the grid area
+ */
+const DROP_TIME_MS = 300;
+const TRAIL_FADE_MS = 500;
 
 type CellState = {
   type: 'placed' | 'won';
@@ -41,6 +46,11 @@ export const FourInARow: FC = () => {
       clearInterval(artifactInterval);
     };
   }, [devices]);
+
+  const getPlayerColor = useCallback(
+    (player: number) => colors.current[player === 0 ? 'primary' : 'secondary'],
+    [colors],
+  );
 
   const [gameState, setGameState] = useState<FourInARowState>({
     mode: 'ready',
@@ -138,6 +148,11 @@ export const FourInARow: FC = () => {
           player: Math.round(Math.random()),
         });
       } else if (gameStateRef.current.mode === 'playing') {
+        // Ignore blocked Inputs
+        if (Date.now() < gameData.current.allowInputAfter) return;
+
+        const { player } = gameStateRef.current;
+
         const column =
           gameData.current.grid[deviceInfo.grid.minCol + center.col];
 
@@ -155,11 +170,41 @@ export const FourInARow: FC = () => {
 
         if (row < deviceInfo.grid.rows) {
           // Successfully found available position
-          column[row] = { type: 'placed', player: gameStateRef.current.player };
-          setGameState({
-            mode: 'playing',
-            player: 1 - gameStateRef.current.player,
+
+          // Play drop animation
+          const rowsPerMs = deviceInfo.grid.rows / DROP_TIME_MS;
+          const rowsToDrop = deviceInfo.grid.rows - row;
+          const dropDurationMs = rowsToDrop / rowsPerMs;
+          const endTimeMs = Date.now() + dropDurationMs;
+          gameData.current.allowInputAfter = endTimeMs + TRAIL_FADE_MS;
+          // Add drop artifact
+          artifacts.current.push({
+            type: 'drop',
+            target: { row, col: deviceInfo.grid.minCol + center.col },
+            endTimeMs,
+            rowsPerMs,
+            trailFadeMs: TRAIL_FADE_MS,
+            color: getPlayerColor(player),
           });
+
+          setTimeout(() => {
+            if (gameStateRef.current.mode !== 'playing') return;
+            column[row] = { type: 'placed', player };
+            setGameState({
+              mode: 'playing',
+              player: 1 - player,
+            });
+            artifacts.current.push(
+              generateFourInARowImpact(
+                {
+                  row: row + deviceInfo.grid.minRow,
+                  col: center.col,
+                },
+                deviceInfo.diameter,
+                getPlayerColor(player),
+              ),
+            );
+          }, dropDurationMs);
         }
       } else if (gameStateRef.current.mode === 'finished') {
         setGameState({
@@ -167,7 +212,7 @@ export const FourInARow: FC = () => {
         });
       }
     },
-    [deviceInfo],
+    [deviceInfo, getPlayerColor],
   );
 
   useEffect(() => {
@@ -253,19 +298,13 @@ export const FourInARow: FC = () => {
                 ];
               if (spotData) {
                 if (spotData.type === 'placed') {
-                  rgb =
-                    spotData.player === 0
-                      ? colors.current.primary
-                      : colors.current.secondary;
+                  rgb = getPlayerColor(spotData.player);
                 }
               } else if (
                 now > gameData.current.allowInputAfter &&
                 center.row === grid.maxRow
               ) {
-                const color =
-                  gameStateRef.current.player === 0
-                    ? colors.current.primary
-                    : colors.current.secondary;
+                const color = getPlayerColor(gameStateRef.current.player);
                 const opacity = isSmallPallete
                   ? Math.round(faceOpacity)
                   : faceOpacity;
@@ -309,7 +348,7 @@ export const FourInARow: FC = () => {
         u();
       }
     };
-  }, [colors, devices, changeGame, touchButton, deviceInfo]);
+  }, [colors, devices, changeGame, touchButton, getPlayerColor, deviceInfo]);
 
   const finalGameState: FourInARowState =
     devices.length === 0 || !deviceInfo
