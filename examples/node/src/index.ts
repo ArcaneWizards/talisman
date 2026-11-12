@@ -89,7 +89,7 @@ const run = async () => {
 
     // Add listeners to profiles
     inputProfile.addEventListener('readiness', ({ readiness }) => {
-      // SOme devices require switching into a different mode
+      // Some devices require switching into a different mode
       // such as the Novation Launchpad devices
       // remember to call outputProfile.close() when you close a connection
       // to revert a device back to its original state
