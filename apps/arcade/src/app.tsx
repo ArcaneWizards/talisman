@@ -48,6 +48,7 @@ import { FxPlayground } from './arcade/games/fx-playground';
 import { MainMenu } from './arcade/games/main-menu';
 import { TapAMole } from './arcade/games/tap-a-mole';
 import { filter } from './shared/util';
+import { FourInARow } from './arcade/games/four-in-a-row';
 
 const DEFAULT_PORT: ListenerConfig['port'] = { from: 4120, to: 4200 };
 
@@ -71,6 +72,8 @@ const getGame = (game: Game): ReactNode => {
       return <MainMenu />;
     case 'screen-saver':
       return <ScreenSaver />;
+    case 'four-in-a-row':
+      return <FourInARow />;
     case 'fx-playground':
       return <FxPlayground />;
     case 'tap-a-mole':

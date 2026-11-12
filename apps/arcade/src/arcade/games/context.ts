@@ -20,6 +20,10 @@ export const GAMES = Object.freeze({
     color: [0, 0, 255],
     name: 'Tap-A-Mole',
   },
+  'four-in-a-row': {
+    color: [255, 255, 0],
+    name: 'Four In A Row',
+  },
 } satisfies Record<
   string,
   {

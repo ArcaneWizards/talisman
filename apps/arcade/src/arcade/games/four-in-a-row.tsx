@@ -1,0 +1,460 @@
+import {
+  FC,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { GameContext } from './context';
+import { MidiActionEvent } from '@talisman-midi/talisman';
+import {
+  getCenterPosition,
+  getCoordinateRanges,
+  MidiCoordinatePoint,
+} from '@talisman-midi/talisman/util';
+import { addArtifact, Artifact, generateFourInARowImpact } from '../artifacts';
+import { addRGB, COLORS, RGB } from '@talisman-midi/talisman/color';
+import { FOUR_IN_A_ROW_GRID_SELECTION } from '../item-selection';
+import { createArtifactInterval, createRenderInterval } from '../rendering';
+import { gameGrid } from '../grid';
+import { FourInARowState } from '../../components/proto';
+import { C } from '../../components/backend';
+import { useScreenSaverTimeout } from '../hooks';
+
+const PULSE_RATE_MS = 1000;
+/**
+ * How quickly should a marker drop the whole height of the grid area
+ */
+const DROP_TIME_MS = 300;
+
+type CellState = {
+  type: 'placed' | 'won';
+  player: number;
+} | null;
+
+export const FourInARow: FC = () => {
+  const { devices, changeGame, colors } = useContext(GameContext);
+
+  const artifacts = useRef<Artifact[]>([]);
+
+  useEffect(() => {
+    const artifactInterval = createArtifactInterval(devices, artifacts);
+    return () => {
+      clearInterval(artifactInterval);
+    };
+  }, [devices]);
+
+  const getPlayerColor = useCallback(
+    (player: number) => colors.current[player === 0 ? 'primary' : 'secondary'],
+    [colors],
+  );
+
+  const [gameState, setGameState] = useState<FourInARowState>({
+    mode: 'ready',
+  });
+
+  const { resetMenuResetTimeout, clearMenuResetTimeout } =
+    useScreenSaverTimeout(10_000);
+
+  const gameData = useRef<{
+    /**
+     * [column, row] representation of the game grid -> current cell state
+     */
+    grid: CellState[][];
+    allowInputAfter: number;
+  }>({
+    grid: [],
+    allowInputAfter: 0,
+  });
+
+  /**
+   * Use a ref in the rendering interval to always have the latest game state
+   */
+  const gameStateRef = useRef(gameState);
+  useEffect(() => {
+    gameStateRef.current = gameState;
+  }, [gameState]);
+
+  /**
+   * Select a single appropriate device to play this game
+   */
+  const deviceInfo = useMemo(() => {
+    for (const device of devices) {
+      const feedback = device.inputProfile.getFeedbackCapabilities();
+
+      // Get dimensions of entire device for effects
+      const { minRow, minCol, maxRow, maxCol } = getCoordinateRanges(
+        device.inputProfile.getItems(),
+      );
+
+      const diameter = Math.sqrt(
+        (maxRow - minRow) ** 2 + (maxCol - minCol) ** 2,
+      );
+
+      const grid = gameGrid({
+        input: device.inputProfile,
+        selection: FOUR_IN_A_ROW_GRID_SELECTION,
+      });
+
+      const items = grid?.selectedItems();
+
+      if (!items || !grid) continue;
+
+      return {
+        feedback,
+        device,
+        diameter,
+        items,
+        grid,
+      };
+    }
+    return null;
+  }, [devices]);
+
+  useEffect(() => {
+    if (gameState.mode === 'ready' && deviceInfo) {
+      // Timeout to screen-saver when user stays on the ready screen too long
+      // and there is a compatible connected device.
+      resetMenuResetTimeout();
+    } else {
+      // Disable screensaver timeout when actively in use / viewing score
+      clearMenuResetTimeout();
+    }
+  }, [
+    gameState.mode,
+    deviceInfo,
+    resetMenuResetTimeout,
+    clearMenuResetTimeout,
+  ]);
+
+  const checkForEndGame = useCallback(() => {
+    const checkCells = (
+      cells: [
+        CellState | undefined,
+        CellState | undefined,
+        CellState | undefined,
+        CellState | undefined,
+      ],
+    ) => {
+      const player = cells[0]?.player;
+      if (
+        player !== undefined &&
+        cells.every(
+          (cell) => cell && cell.type === 'placed' && cell.player === player,
+        )
+      ) {
+        cells.forEach((cell) => {
+          if (cell) {
+            // Mark as won
+            cell.type = 'won';
+          }
+        });
+        setGameState({
+          mode: 'finished',
+          winner: player,
+        });
+        return true;
+      }
+      return false;
+    };
+
+    for (let c = 0; c < gameData.current.grid.length; c++) {
+      const column = gameData.current.grid[c];
+      if (!column) continue;
+
+      // Check Vertical / NE Diagonal
+      for (let r = 0; r < column.length - 3; r++) {
+        if (
+          checkCells([column[r], column[r + 1], column[r + 2], column[r + 3]])
+        ) {
+          return;
+        }
+        if (
+          checkCells([
+            column[r],
+            gameData.current.grid[c + 1]?.[r + 1],
+            gameData.current.grid[c + 2]?.[r + 2],
+            gameData.current.grid[c + 3]?.[r + 3],
+          ])
+        ) {
+          return;
+        }
+      }
+
+      // Check Horizontal / SE Diagonal
+      for (let r = 0; r < column.length; r++) {
+        if (
+          checkCells([
+            gameData.current.grid[c]?.[r],
+            gameData.current.grid[c + 1]?.[r],
+            gameData.current.grid[c + 2]?.[r],
+            gameData.current.grid[c + 3]?.[r],
+          ])
+        ) {
+          return;
+        }
+        if (r >= 3) {
+          if (
+            checkCells([
+              gameData.current.grid[c]?.[r],
+              gameData.current.grid[c + 1]?.[r - 1],
+              gameData.current.grid[c + 2]?.[r - 2],
+              gameData.current.grid[c + 3]?.[r - 3],
+            ])
+          ) {
+            return;
+          }
+        }
+      }
+    }
+
+    // Check if top row is full (draw condition)
+    const topRowFull = gameData.current.grid.every(
+      (column) => column[0] !== null,
+    );
+    if (topRowFull) {
+      setGameState({
+        mode: 'finished',
+        winner: null,
+      });
+      return;
+    }
+  }, []);
+
+  const touchButton = useCallback(
+    (center: MidiCoordinatePoint) => {
+      if (!deviceInfo) return;
+      if (gameStateRef.current.mode === 'ready') {
+        setGameState({
+          mode: 'playing',
+          player: Math.round(Math.random()),
+        });
+        gameData.current.grid = Array.from(
+          { length: deviceInfo.grid.cols },
+          () => Array.from({ length: deviceInfo.grid.rows }, () => null),
+        );
+        gameData.current.allowInputAfter = Date.now();
+      } else if (gameStateRef.current.mode === 'playing') {
+        // Ignore blocked Inputs
+        if (Date.now() < gameData.current.allowInputAfter) return;
+
+        const { player } = gameStateRef.current;
+
+        const column =
+          gameData.current.grid[deviceInfo.grid.minCol + center.col];
+
+        if (!column) {
+          throw new Error('Invalid column');
+        }
+
+        let row = deviceInfo.grid.rows;
+        while (row === null || row > 0) {
+          if (column[row - 1] !== null) {
+            break;
+          }
+          row--;
+        }
+
+        if (row < deviceInfo.grid.rows) {
+          // Successfully found available position
+
+          // Play drop animation
+          const rowsPerMs = deviceInfo.grid.rows / DROP_TIME_MS;
+          const rowsToDrop = deviceInfo.grid.rows - row;
+          const dropDurationMs = rowsToDrop / rowsPerMs;
+          const endTimeMs = Date.now() + dropDurationMs;
+          gameData.current.allowInputAfter = endTimeMs + 250;
+          // Add drop artifact
+          artifacts.current.push({
+            type: 'drop',
+            target: { row, col: deviceInfo.grid.minCol + center.col },
+            endTimeMs,
+            rowsPerMs,
+            trailFadeMs: 500,
+            color: getPlayerColor(player),
+          });
+
+          setTimeout(() => {
+            if (gameStateRef.current.mode !== 'playing') return;
+            column[row] = { type: 'placed', player };
+            setGameState({
+              mode: 'playing',
+              player: 1 - player,
+            });
+            artifacts.current.push(
+              generateFourInARowImpact(
+                {
+                  row: row + deviceInfo.grid.minRow,
+                  col: center.col,
+                },
+                deviceInfo.diameter,
+                getPlayerColor(player),
+              ),
+            );
+            checkForEndGame();
+          }, dropDurationMs);
+        }
+      } else if (gameStateRef.current.mode === 'finished') {
+        setGameState({
+          mode: 'ready',
+        });
+      }
+    },
+    [deviceInfo, getPlayerColor, checkForEndGame],
+  );
+
+  useEffect(() => {
+    const unbind: Array<() => void> = [];
+
+    for (const d of devices) {
+      const { inputProfile, outputProfile } = d;
+      const isSelectedDevice = deviceInfo && deviceInfo.device === d;
+
+      if (!isSelectedDevice || !deviceInfo) {
+        for (const item of d.inputProfile.getItems()) {
+          d.outputProfile.setItemColor(item.id, {
+            mode: 'empty',
+            color: colors.current.error,
+          });
+        }
+        d.outputProfile.frameFinished();
+        continue;
+      }
+
+      outputProfile.clear();
+
+      const { items, grid, feedback } = deviceInfo;
+
+      const selectedItemIDs = new Set(items.map((item) => item.id));
+      /**
+       * Render interval handles both game logic & rendering.
+       *
+       * We do this here rather than separate intervals so that time-sensitive
+       * countdowns (e.g. mole appearance) start precisely with a frame render,
+       * to ensure scoring is not affected by frame-rate.
+       */
+      const renderInterval = createRenderInterval(d, () => {
+        if (!gameData.current) {
+          throw new Error('Game data is not initialized');
+        }
+
+        const now = Date.now();
+        const phase =
+          Math.sin(
+            ((now - gameData.current.allowInputAfter) / PULSE_RATE_MS) *
+              Math.PI *
+              2,
+          ) *
+            0.5 +
+          0.5;
+        const faceOpacity = phase * 0.75 + 0.25;
+
+        for (const item of inputProfile.getItems()) {
+          let rgb: RGB = [0, 0, 0];
+          const fdbk = !!item.feedback && feedback[item.feedback]?.led;
+          const isSingleLed = fdbk && fdbk?.type === 'single';
+
+          if (isSingleLed) {
+            // Don't render single LEDs at all for this game
+            continue;
+          }
+
+          // Palette is not making full use of MIDI notes
+          // Limit animations
+          const isSmallPallete =
+            fdbk && fdbk?.type === 'palette' && fdbk.palette.length <= 100;
+
+          const center = getCenterPosition(item.position, true);
+          if (!center) {
+            outputProfile.setItemColor(item.id, {
+              mode: 'empty',
+              color: rgb,
+            });
+            continue;
+          }
+
+          if (gameStateRef.current.mode === 'ready') {
+            // Make the screen green to indicate ready state
+            rgb = selectedItemIDs.has(item.id)
+              ? colors.current.ready
+              : colors.current.primary;
+          } else if (
+            gameStateRef.current.mode === 'playing' ||
+            gameStateRef.current.mode === 'finished'
+          ) {
+            if (selectedItemIDs.has(item.id)) {
+              const spotData =
+                gameData.current.grid[grid.minCol + center.col]?.[
+                  center.row - grid.minRow
+                ];
+              if (spotData) {
+                if (spotData.type === 'placed') {
+                  rgb = getPlayerColor(spotData.player);
+                } else if (spotData.type === 'won') {
+                  rgb = addRGB(
+                    getPlayerColor(spotData.player),
+                    COLORS.WHITE,
+                    faceOpacity,
+                  );
+                }
+              } else if (
+                gameStateRef.current.mode === 'playing' &&
+                now > gameData.current.allowInputAfter &&
+                center.row === grid.maxRow
+              ) {
+                const color = getPlayerColor(gameStateRef.current.player);
+                const opacity = isSmallPallete
+                  ? Math.round(faceOpacity)
+                  : faceOpacity;
+                rgb = addRGB(rgb, color, opacity);
+              }
+            }
+          }
+
+          for (const artifact of artifacts.current) {
+            rgb = addArtifact(rgb, center, artifact);
+          }
+
+          outputProfile.setItemColor(item.id, {
+            mode: selectedItemIDs.has(item.id) ? 'active' : 'empty',
+            color: rgb,
+          });
+        }
+      });
+
+      const onMessage = (event: MidiActionEvent) => {
+        if (!event.action.item) return;
+        const item = inputProfile.getItem(event.action.item);
+        const center = getCenterPosition(item?.position, true);
+        if (!center || !item) return;
+        if (event.action.action === 'button-press') {
+          if (!selectedItemIDs.has(item.id)) return;
+          touchButton(center);
+        }
+      };
+      inputProfile.addEventListener('action', onMessage);
+      unbind.push(() => {
+        inputProfile.removeEventListener('action', onMessage);
+        clearInterval(renderInterval);
+      });
+    }
+
+    return () => {
+      for (const u of unbind) {
+        u();
+      }
+    };
+  }, [colors, devices, changeGame, touchButton, getPlayerColor, deviceInfo]);
+
+  const finalGameState: FourInARowState =
+    devices.length === 0 || !deviceInfo
+      ? {
+          mode: 'error',
+          error: `Please connect a device with at least a 4x4 grid`,
+        }
+      : gameState;
+
+  return <C.FourInARow state={finalGameState} />;
+};

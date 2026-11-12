@@ -141,6 +141,33 @@ export type MainMenuComponent = BaseComponentProto<Namespace, 'main-menu'>;
 
 export type ScreensaverComponent = BaseComponentProto<Namespace, 'screensaver'>;
 
+export type FourInARowState =
+  | {
+      mode: 'ready';
+    }
+  | {
+      mode: 'error';
+      error: string;
+    }
+  | {
+      mode: 'playing';
+      player: number;
+    }
+  | {
+      mode: 'finished';
+      /**
+       * Null if there is a draw (no winner)
+       */
+      winner: number | null;
+    };
+
+export type FourInARowComponent = BaseComponentProto<
+  Namespace,
+  'four-in-a-row'
+> & {
+  state: FourInARowState;
+};
+
 export type FxPlaygroundComponent = BaseComponentProto<
   Namespace,
   'fx-playground'
@@ -182,6 +209,7 @@ export type TalismanArcadeComponent =
   | LicenseGateComponent
   | MainMenuComponent
   | ScreensaverComponent
+  | FourInARowComponent
   | FxPlaygroundComponent
   | TapAMoleComponent;
 

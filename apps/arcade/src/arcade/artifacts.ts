@@ -25,6 +25,15 @@ export type Artifact =
       position: MidiCoordinatePoint;
       color: RGB;
       expiresMs: number;
+      pulseMs?: number;
+    }
+  | {
+      type: 'drop';
+      target: MidiCoordinatePoint;
+      endTimeMs: number;
+      rowsPerMs: number;
+      trailFadeMs: number;
+      color: RGB;
     };
 
 export const advanceArtifact = (
@@ -45,6 +54,12 @@ export const advanceArtifact = (
     }
     case 'dot': {
       if (artifact.expiresMs <= Date.now()) {
+        return null;
+      }
+      return artifact;
+    }
+    case 'drop': {
+      if (artifact.endTimeMs + artifact.trailFadeMs <= Date.now()) {
         return null;
       }
       return artifact;
@@ -106,7 +121,32 @@ export const addArtifact = (
       ) {
         return background;
       }
-      return addRGB(background, artifact.color, 1);
+      let opacity = 1;
+      if (artifact.pulseMs) {
+        const phase =
+          ((artifact.expiresMs - Date.now()) % artifact.pulseMs) /
+          artifact.pulseMs;
+        opacity = 0.5 + 0.5 * Math.sin(phase * 2 * Math.PI);
+      }
+      return addRGB(background, artifact.color, opacity);
+    }
+    case 'drop': {
+      if (position.col !== artifact.target.col) {
+        return background;
+      }
+      /** The time at which the drop is exactly at the current row */
+      const passTime =
+        artifact.endTimeMs -
+        (position.row - artifact.target.row) / artifact.rowsPerMs;
+      const timeDiff = Date.now() - passTime;
+      let opacity: number;
+      if (timeDiff < 0 || position.row < artifact.target.row) {
+        opacity = 0;
+      } else {
+        // Trail
+        opacity = Math.max(0, 1 - timeDiff / artifact.trailFadeMs);
+      }
+      return addRGB(background, artifact.color, opacity);
     }
   }
 
@@ -168,6 +208,24 @@ export const generateMoleHitArtifact = (
     maxRadius: diameter * 2,
     leadingEdge: diameter / 16,
     trailingEdge: diameter / 16,
+    radius: 0,
+  };
+};
+
+export const generateFourInARowImpact = (
+  center: MidiCoordinatePoint,
+  diameter: number,
+  color: RGB,
+): Artifact => {
+  return {
+    type: 'wave',
+    center,
+    speedPerSecond: diameter * 2,
+    leadingColor: COLORS.WHITE,
+    trailingColor: color,
+    maxRadius: diameter * 2,
+    leadingEdge: diameter / 16,
+    trailingEdge: diameter / 8,
     radius: 0,
   };
 };

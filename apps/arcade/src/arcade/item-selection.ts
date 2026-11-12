@@ -174,3 +174,11 @@ export const TAP_A_MOLE_GRID_SELECTION = Object.freeze([
     minRows: FONTS['4x5'].rows,
   },
 ]);
+
+export const FOUR_IN_A_ROW_GRID_SELECTION = Object.freeze([
+  {
+    selectors: ANY_LED_INTERACTIVE_ITEMS,
+    minCols: 4,
+    minRows: 4,
+  },
+]);
