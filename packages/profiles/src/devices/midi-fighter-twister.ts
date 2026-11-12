@@ -391,7 +391,7 @@ export const MIDI_FIGHTER_TWISTER: MidiProfileDefinition = {
     ],
   },
   autoSelect: (connection: MidiInputConnectionInfo) =>
-    connection.inputDeviceName === 'Midi Fighter Twister',
+    connection.name === 'Midi Fighter Twister',
   subProfiles: {
     default: {
       name: 'Color Map: Classic',

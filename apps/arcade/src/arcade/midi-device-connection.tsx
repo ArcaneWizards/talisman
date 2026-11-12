@@ -106,7 +106,7 @@ export const MidiDeviceConnection: FC<Props> = ({
       return null;
     }
     return {
-      inputDeviceName: input.input.getInfo().name,
+      name: input.input.getInfo().name,
     };
   }, [input]);
 

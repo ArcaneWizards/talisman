@@ -294,7 +294,7 @@ export const MIDI_FIGHTER_3D: MidiProfileDefinition = {
     ],
   },
   autoSelect: (connection: MidiInputConnectionInfo) =>
-    connection.inputDeviceName === 'Midi Fighter 3D',
+    connection.name === 'Midi Fighter 3D',
   subProfiles: {
     default: {
       name: 'Default',

@@ -673,7 +673,7 @@ export const createApcMiniMk2Profile =
       },
     });
 
-    if (connection.inputDeviceName.includes('Notes')) {
+    if (connection.name.includes('Notes')) {
       profile.setReadiness({
         readiness: {
           state: 'unusable',
@@ -682,7 +682,7 @@ export const createApcMiniMk2Profile =
       });
     }
 
-    if (connection.inputDeviceName.includes('MIDIIN2')) {
+    if (connection.name.includes('MIDIIN2')) {
       profile.setReadiness({
         readiness: {
           state: 'unusable',
@@ -1121,7 +1121,7 @@ export const AKAI_APC_MINI_MK_2: MidiProfileDefinition = {
     ],
   },
   autoSelect: (connection: MidiInputConnectionInfo) =>
-    connection.inputDeviceName.includes('APC mini mk2'),
+    connection.name.includes('APC mini mk2'),
   subProfiles: {
     default: {
       name: 'Default (Full RGB SysEx)',

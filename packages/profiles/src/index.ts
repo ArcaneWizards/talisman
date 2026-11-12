@@ -11,6 +11,11 @@ import { NOVATION_LAUNCHPAD_MK3_MINI } from './devices/novation-launchpad-mk3-mi
 import { MIDI_FIGHTER_TWISTER } from './devices/midi-fighter-twister.js';
 import { MIDI_FIGHTER_3D } from './devices/midi-fighter-3d.js';
 
+/**
+ * Stricter version of {@link MIDI_PROFILES},
+ * where the key type is only allowed to be strings of known
+ * MIDI profile identifiers.
+ */
 export const KNOWN_MIDI_PROFILES = Object.freeze({
   generic: GENERIC,
   'akai-apimini-mk2': AKAI_APC_MINI_MK_2,
@@ -25,4 +30,22 @@ export const KNOWN_MIDI_PROFILES = Object.freeze({
   'novation-launchpad-mk3-mini': NOVATION_LAUNCHPAD_MK3_MINI,
 } satisfies Record<string, MidiProfileDefinition>);
 
+/**
+ * String union-type of all known MIDI profile identifiers.
+ */
 export type KnownMidiProfile = keyof typeof KNOWN_MIDI_PROFILES;
+
+/**
+ * Type-guard function returning true if a given string is a known MIDI profile identifier.
+ */
+export const isKnownMidiProfile = (
+  profileId: string,
+): profileId is KnownMidiProfile => profileId in KNOWN_MIDI_PROFILES;
+
+/**
+ * Object containing all MIDI profiles,
+ * where each key is a string representing a MIDI profile identifier.
+ */
+export const MIDI_PROFILES: Readonly<
+  Partial<Record<string, MidiProfileDefinition>>
+> = KNOWN_MIDI_PROFILES;

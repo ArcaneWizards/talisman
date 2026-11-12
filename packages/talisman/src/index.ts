@@ -55,18 +55,16 @@ export const autoSelectProfileAndSubprofile = (
   return [mainProfile, 'default' satisfies MidiProfileSubprofileDefaultKey];
 };
 
-export const autoSelectOutputForInput = (
+export const autoSelectOutputForInput = <O extends MidiOutputConnectionInfo>(
   input: MidiInputConnectionInfo,
-  outputs: MidiOutputConnectionInfo[],
+  outputs: O[],
   profile: MidiProfileDefinition,
-): MidiOutputConnectionInfo | null => {
+): O | null => {
   if (profile.autoSelectOutput) {
     return profile.autoSelectOutput(input, outputs);
   }
   // Fall-back to exact name match
-  const exactMatch = outputs.find(
-    (o) => o.outputDeviceName === input.inputDeviceName,
-  );
+  const exactMatch = outputs.find((o) => o.name === input.name);
   if (exactMatch) {
     return exactMatch;
   }

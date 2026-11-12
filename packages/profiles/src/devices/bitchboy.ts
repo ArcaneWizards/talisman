@@ -454,7 +454,7 @@ export const BITCHBOY: MidiProfileDefinition = {
     ],
   },
   autoSelect: (connection: MidiInputConnectionInfo) =>
-    connection.inputDeviceName.includes('BitchBoy'),
+    connection.name.includes('BitchBoy'),
   subProfiles: {
     default: {
       name: 'Default',

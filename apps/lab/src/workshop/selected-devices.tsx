@@ -92,7 +92,7 @@ export const useSelectedDevices = (
     updateConfig((current) => {
       let selectedProfile = autoSelectProfileAndSubprofile(
         {
-          inputDeviceName,
+          name: inputDeviceName,
         },
         MIDI_PROFILES,
       );
@@ -108,12 +108,10 @@ export const useSelectedDevices = (
       if (profile) {
         selectedOutput =
           autoSelectOutputForInput(
-            { inputDeviceName },
-            midi.state.endpoints.outputs.map((o) => ({
-              outputDeviceName: o.name,
-            })),
+            { name: inputDeviceName },
+            midi.state.endpoints.outputs,
             profile,
-          )?.outputDeviceName ?? selectedOutput;
+          )?.name ?? selectedOutput;
       }
       if (
         current.selectedProfile === selectedProfile &&
@@ -197,7 +195,7 @@ export const useSelectedDevices = (
       return null;
     }
     return {
-      inputDeviceName: input.input.getInfo().name,
+      name: input.input.getInfo().name,
     };
   }, [input]);
 

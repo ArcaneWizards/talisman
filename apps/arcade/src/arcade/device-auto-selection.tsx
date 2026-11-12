@@ -27,7 +27,7 @@ export const useDeviceAutoSelection = (
           deviceConfig.selectedProfile ??
           autoSelectProfileAndSubprofile(
             {
-              inputDeviceName: deviceConfig.input,
+              name: deviceConfig.input,
             },
             ENABLED_MIDI_PROFILES,
           );
@@ -36,12 +36,10 @@ export const useDeviceAutoSelection = (
           deviceConfig.output ||
           (profile &&
             autoSelectOutputForInput(
-              { inputDeviceName: deviceConfig.input },
-              midi.endpoints.outputs.map((o) => ({
-                outputDeviceName: o.name,
-              })),
+              { name: deviceConfig.input },
+              midi.endpoints.outputs,
               profile,
-            )?.outputDeviceName) ||
+            )?.name) ||
           null;
         if (
           !isEqual(deviceConfig.selectedProfile, selectedProfile) ||
