@@ -26,11 +26,13 @@ export * from './core.js';
  * @returns either null, or a pair of strings representing the keys for the main
  * profile and sub-profile.
  */
-export const autoSelectProfileAndSubprofile = (
+export const autoSelectProfileAndSubprofile = <
+  Profiles extends Record<string, MidiProfileDefinition>,
+>(
   connection: MidiInputConnectionInfo,
-  profiles: Record<string, MidiProfileDefinition>,
+  profiles: Profiles,
   mainProfile?: string,
-): null | [string, string] => {
+): null | [keyof Profiles & string, string] => {
   if (!mainProfile) {
     for (const [key, profile] of Object.entries(profiles)) {
       if (profile.autoSelect(connection)) {
@@ -55,18 +57,16 @@ export const autoSelectProfileAndSubprofile = (
   return [mainProfile, 'default' satisfies MidiProfileSubprofileDefaultKey];
 };
 
-export const autoSelectOutputForInput = (
+export const autoSelectOutputForInput = <O extends MidiOutputConnectionInfo>(
   input: MidiInputConnectionInfo,
-  outputs: MidiOutputConnectionInfo[],
+  outputs: O[],
   profile: MidiProfileDefinition,
-): MidiOutputConnectionInfo | null => {
+): O | null => {
   if (profile.autoSelectOutput) {
     return profile.autoSelectOutput(input, outputs);
   }
   // Fall-back to exact name match
-  const exactMatch = outputs.find(
-    (o) => o.outputDeviceName === input.inputDeviceName,
-  );
+  const exactMatch = outputs.find((o) => o.name === input.name);
   if (exactMatch) {
     return exactMatch;
   }

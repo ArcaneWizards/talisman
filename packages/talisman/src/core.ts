@@ -468,11 +468,11 @@ export type MidiParsedMessage = {
 );
 
 export type MidiInputConnectionInfo = {
-  inputDeviceName: string;
+  name: string;
 };
 
 export type MidiOutputConnectionInfo = {
-  outputDeviceName: string;
+  name: string;
 };
 /**
  * Optional positional information about a {@link MidiControllerItem}:
@@ -1177,10 +1177,10 @@ export type MidiProfileDefinition = {
    * this function allows the profile to specify which output device should be
    * used for a given input device.
    */
-  autoSelectOutput?: (
+  autoSelectOutput?: <O extends MidiOutputConnectionInfo>(
     input: MidiInputConnectionInfo,
-    outputs: MidiOutputConnectionInfo[],
-  ) => MidiOutputConnectionInfo | null;
+    outputs: O[],
+  ) => O | null;
   subProfiles: Record<string, ProfilePair> &
     Record<MidiProfileSubprofileDefaultKey, ProfilePair>;
 };

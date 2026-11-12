@@ -133,7 +133,7 @@ const AppRoot: FC<AppRootProps> = ({ logger, license, updates }) => {
       if (!subProfile) {
         throw new Error(`Sub-profile not found: ${subProfileName}`);
       }
-      const p = subProfile.input({ connection: { inputDeviceName: '' } });
+      const p = subProfile.input({ connection: { name: '' } });
       return {
         items: [...p.getItems()],
         feedbackCapabilities: p.getFeedbackCapabilities(),

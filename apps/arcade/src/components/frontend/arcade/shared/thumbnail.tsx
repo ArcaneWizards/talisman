@@ -198,6 +198,12 @@ export const Thumbnail: FC<ThumbnailProps> = ({ game, ...props }) => {
             expiresMs,
           },
           {
+            type: 'dot',
+            position: { col: 6, row: 0 },
+            color: colors.secondary,
+            expiresMs,
+          },
+          {
             type: 'drop',
             target: { col: 4, row: 2 },
             color: colors.primary,

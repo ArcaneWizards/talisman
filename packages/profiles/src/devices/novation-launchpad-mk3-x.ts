@@ -241,14 +241,14 @@ class NovationLaunchpadMk3XProfileProgrammerMode extends NovationButtonOnlyProfi
       validatePort: () => {
         const isIncorrectPort =
           // MacOS
-          connection.inputDeviceName.includes('LPX DAW') ||
+          connection.name.includes('LPX DAW') ||
           // Windows
-          connection.inputDeviceName === 'LPX MIDI';
+          connection.name === 'LPX MIDI';
         return isIncorrectPort
           ? {
               isIncorrectPort: true,
               reason:
-                connection.inputDeviceName === 'LPX MIDI'
+                connection.name === 'LPX MIDI'
                   ? 'This profile cannot be used with port 1 of this device, please use the MIDIIN2 port instead.'
                   : 'This profile cannot be used with the LPX DAW port, please use the MIDI port instead.',
             }
@@ -448,20 +448,18 @@ export const NOVATION_LAUNCHPAD_MK3_X: MidiProfileDefinition = {
     ],
   },
   autoSelect: (connection: MidiInputConnectionInfo) =>
-    connection.inputDeviceName.includes('LPX'),
-  autoSelectOutput: ({ inputDeviceName }, outputs) => {
-    let search = inputDeviceName;
-    if (inputDeviceName.startsWith('MIDIIN')) {
-      search = `MIDIOUT${inputDeviceName.slice(6)}`;
+    connection.name.includes('LPX'),
+  autoSelectOutput: ({ name }, outputs) => {
+    let search = name;
+    if (name.startsWith('MIDIIN')) {
+      search = `MIDIOUT${name.slice(6)}`;
     }
-    if (inputDeviceName.endsWith(' Out')) {
-      search = `${inputDeviceName.slice(0, -4)} In`;
+    if (name.endsWith(' Out')) {
+      search = `${name.slice(0, -4)} In`;
     }
-    const exact = outputs.find((output) => output.outputDeviceName === search);
+    const exact = outputs.find((output) => output.name === search);
     return (
-      exact ??
-      outputs.find((output) => output.outputDeviceName.includes(search)) ??
-      null
+      exact ?? outputs.find((output) => output.name.includes(search)) ?? null
     );
   },
   subProfiles: {

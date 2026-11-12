@@ -407,7 +407,7 @@ describe('real profiles', () => {
   describe('bitchboy', () => {
     const profile = KNOWN_MIDI_PROFILES.bitchboy.subProfiles.default.input({
       connection: {
-        inputDeviceName: 'Bitchboy',
+        name: 'Bitchboy',
       },
     });
     it('getMaxContiguousArea', () => {

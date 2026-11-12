@@ -417,7 +417,7 @@ export const NOVATION_LAUNCHPAD_MK3_MINI: MidiProfileDefinition = {
     ready: false,
   },
   autoSelect: (connection: MidiInputConnectionInfo) =>
-    connection.inputDeviceName.includes('LPMiniMK3'),
+    connection.name.includes('LPMiniMK3'),
   subProfiles: {
     default: {
       name: 'Sysex RGB Feedback',

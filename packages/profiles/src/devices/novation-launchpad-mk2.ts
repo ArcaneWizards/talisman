@@ -399,7 +399,7 @@ export const NOVATION_LAUNCHPAD_MK2: MidiProfileDefinition = {
     ready: false,
   },
   autoSelect: (connection: MidiInputConnectionInfo) =>
-    connection.inputDeviceName === 'Launchpad',
+    connection.name === 'Launchpad',
   subProfiles: {
     default: {
       name: 'Session Mode - Sysex RGB Feedback',

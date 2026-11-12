@@ -1292,7 +1292,7 @@ export const HERCULES_DJCONTROL_INPULSE_300: MidiProfileDefinition = {
     ],
   },
   autoSelect: (connection: MidiInputConnectionInfo) =>
-    connection.inputDeviceName.includes('DJControl Inpulse 300'),
+    connection.name.includes('DJControl Inpulse 300'),
   subProfiles: {
     default: {
       input: createHerculesDJControlInpulse300Profile,

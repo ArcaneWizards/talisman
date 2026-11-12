@@ -234,7 +234,7 @@ export const NOVATION_LAUNCHPAD_MK2_MINI: MidiProfileDefinition = {
     ],
   },
   autoSelect: (connection: MidiInputConnectionInfo) =>
-    connection.inputDeviceName.includes('Launchpad Mini'),
+    connection.name.includes('Launchpad Mini'),
   subProfiles: {
     default: {
       name: 'Default (Red + Green LED Only)',
