@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 import { midi, MIDIInput, MIDIOutput } from '@arcanewizards/midi';
 import {
   autoSelectProfileAndSubprofile,

@@ -32,7 +32,7 @@ export const autoSelectProfileAndSubprofile = <
   connection: MidiInputConnectionInfo,
   profiles: Profiles,
   mainProfile?: string,
-): null | [keyof Profiles, string] => {
+): null | [keyof Profiles & string, string] => {
   if (!mainProfile) {
     for (const [key, profile] of Object.entries(profiles)) {
       if (profile.autoSelect(connection)) {
