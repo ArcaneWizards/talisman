@@ -1,5 +1,15 @@
 # @talisman-midi/arcade
 
+## 0.1.4
+
+### Patch Changes
+
+- 5263ee8: Don't limit number of moles for non-grid devices
+
+  Previously, tap-a-mole was limiting the selection of buttons usable for moles to
+  8 when the device did not have a large-enough grid. This now removes the limit
+  so all usable items are selected.
+
 ## 0.1.3
 
 ### Patch Changes

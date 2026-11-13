@@ -160,7 +160,6 @@ export const TapAMole: FC = () => {
           ANY_LED_INTERACTIVE_ITEMS,
           {
             minItems: MIN_TARGETS,
-            maxItems: MIN_TARGETS,
           },
           hasMidiCoordinatePointPosition,
         );
