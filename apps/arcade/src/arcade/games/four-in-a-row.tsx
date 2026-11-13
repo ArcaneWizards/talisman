@@ -212,7 +212,7 @@ export const FourInARow: FC = () => {
 
     // Check if top row is full (draw condition)
     const topRowFull = gameData.current.grid.every(
-      (column) => column[0] !== null,
+      (column) => column[column.length - 1] !== null,
     );
     if (topRowFull) {
       setGameState({
