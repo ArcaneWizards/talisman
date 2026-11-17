@@ -347,6 +347,20 @@ class NovationLaunchpadMk2ProProfileProgrammerMode extends NovationButtonOnlyPro
       getLayout: novationLaunchpadMK2ProProgrammerLayout,
       noteOffMode: 'note-off',
       modeSwitching: NOVATION_LAUNCHPAD_MK2_PRO_MODE_SWITCHING,
+      validatePort: () => {
+        const isIncorrectPort =
+          // MacOS
+          connection.name.endsWith('Live Port') ||
+          connection.name.endsWith('MIDI Port');
+        return isIncorrectPort
+          ? {
+              isIncorrectPort: true,
+              reason: connection.name.endsWith('Live Port')
+                ? 'This profile cannot be used with the Live port of this device, please use the Standalone port instead.'
+                : 'This profile cannot be used with the MIDI port of this device, please use the Standalone port instead.',
+            }
+          : { isIncorrectPort: false };
+      },
       getFeedbackCapabilities: () => ({
         [FEEDBACK_KEY]: {
           led:
@@ -518,9 +532,20 @@ export const NOVATION_LAUNCHPAD_MK2_PRO: MidiProfileDefinition = {
   // though it was officially released as part of the mk2 series.
   name: 'Launchpad Pro (mk1 / mk2)',
   testing: {
-    ready: false,
+    ready: true,
+    community: [
+      {
+        // Matt
+        date: '2026-11-17',
+        os: ['macos'],
+      },
+    ],
   },
-  autoSelect: () => false,
+  autoSelect: (connection: MidiInputConnectionInfo) =>
+    connection.name.startsWith('Launchpad Pro ') &&
+    (connection.name.endsWith('MIDI Port') ||
+      connection.name.endsWith('Live Port') ||
+      connection.name.endsWith('Standalone Port')),
   subProfiles: {
     default: {
       name: 'Programmer Mode - Sysex RGB Feedback',
