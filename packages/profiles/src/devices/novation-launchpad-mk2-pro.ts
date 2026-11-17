@@ -348,16 +348,19 @@ class NovationLaunchpadMk2ProProfileProgrammerMode extends NovationButtonOnlyPro
       noteOffMode: 'note-off',
       modeSwitching: NOVATION_LAUNCHPAD_MK2_PRO_MODE_SWITCHING,
       validatePort: () => {
-        const isIncorrectPort =
-          // MacOS
+        const isIncorrectMacosPort =
           connection.name.endsWith('Live Port') ||
           connection.name.endsWith('MIDI Port');
+        const isIncorrectWindowsPort =
+          connection.name === 'Launchpad Pro' ||
+          connection.name === 'MIDIIN3 (Launchpad Pro)';
+        const isIncorrectPort = isIncorrectMacosPort || isIncorrectWindowsPort;
         return isIncorrectPort
           ? {
               isIncorrectPort: true,
-              reason: connection.name.endsWith('Live Port')
-                ? 'This profile cannot be used with the Live port of this device, please use the Standalone port instead.'
-                : 'This profile cannot be used with the MIDI port of this device, please use the Standalone port instead.',
+              reason: isIncorrectMacosPort
+                ? `This profile cannot be used with the ${connection.name.endsWith('Live Port') ? 'Live' : 'MIDI'} port of this device, please use the Standalone port instead.`
+                : `This profile cannot be used with this port of this device, please use the MIDIIN2 port instead.`,
             }
           : { isIncorrectPort: false };
       },
@@ -542,10 +545,27 @@ export const NOVATION_LAUNCHPAD_MK2_PRO: MidiProfileDefinition = {
     ],
   },
   autoSelect: (connection: MidiInputConnectionInfo) =>
-    connection.name.startsWith('Launchpad Pro ') &&
-    (connection.name.endsWith('MIDI Port') ||
-      connection.name.endsWith('Live Port') ||
-      connection.name.endsWith('Standalone Port')),
+    // Mac
+    (connection.name.startsWith('Launchpad Pro ') &&
+      (connection.name.endsWith('MIDI Port') ||
+        connection.name.endsWith('Live Port') ||
+        connection.name.endsWith('Standalone Port'))) ||
+    // Windows
+    connection.name === 'Launchpad Pro' ||
+    connection.name.endsWith('(Launchpad Pro)'),
+  autoSelectOutput: ({ name }, outputs) => {
+    let search = name;
+    if (name.startsWith('MIDIIN')) {
+      search = `MIDIOUT${name.slice(6)}`;
+    }
+    if (name.endsWith(' Out')) {
+      search = `${name.slice(0, -4)} In`;
+    }
+    const exact = outputs.find((output) => output.name === search);
+    return (
+      exact ?? outputs.find((output) => output.name.includes(search)) ?? null
+    );
+  },
   subProfiles: {
     default: {
       name: 'Programmer Mode - Sysex RGB Feedback',
