@@ -1034,6 +1034,8 @@ export type MidiProfileSubprofileDefaultKey = 'default';
 export type MidiProfileTester = {
   /** GitHub username of the tester */
   ghUsername?: string;
+  /** Instagram username of the tester */
+  instagramUsername?: string;
   /**
    * The operating system that the tester verified this profile & hardware with.
    */

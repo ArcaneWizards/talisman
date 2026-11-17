@@ -41,6 +41,19 @@ const GithubUsername: FC<{ username: string }> = ({ username }) => {
   );
 };
 
+const InstagramUsername: FC<{ username: string }> = ({ username }) => {
+  const { openExternalLink } = useBrowserContext();
+
+  return (
+    <span
+      onClick={() => openExternalLink(`https://instagram.com/${username}`)}
+      className="cursor-pointer font-mono text-sigil-foreground-highlight"
+    >
+      {username}
+    </span>
+  );
+};
+
 const DeviceEntry: FC<{
   profileId: string;
   device: TalismanSupportedDeviceData;
@@ -144,6 +157,9 @@ const DeviceEntry: FC<{
                     )}
                     {tester.ghUsername && (
                       <GithubUsername username={tester.ghUsername} />
+                    )}
+                    {tester.instagramUsername && (
+                      <InstagramUsername username={tester.instagramUsername} />
                     )}
                     {`-`}
                     <span>{`on ${DATE_FORMAT.format(new Date(tester.date))}`}</span>
