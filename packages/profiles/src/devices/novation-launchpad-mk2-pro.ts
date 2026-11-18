@@ -507,7 +507,7 @@ export const NOVATION_LAUNCHPAD_MK2_PRO: MidiProfileDefinition = {
       {
         instagramUsername: 'ForMayna',
         date: '2026-11-17',
-        os: ['macos'],
+        os: ['macos', 'windows'],
       },
     ],
   },
