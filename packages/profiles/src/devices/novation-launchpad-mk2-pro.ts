@@ -3,11 +3,9 @@ import { createBasicColorVelocityFeedbackProfile } from '@talisman-midi/talisman
 import {
   createNovationLaunchpadRGBColorSpace,
   createNovationLaunchpadRGBPallette,
-  createNovationModeSwitcher,
   NovationButtonInfo,
   NovationButtonOnlyLayout,
   NovationButtonOnlyProfile,
-  NovationModeSwitchingOptions,
 } from './shared/novation.js';
 import {
   getMidiNote,
@@ -25,15 +23,6 @@ import {
 const NOVATION_LAUNCHPAD_MK2_PRO_SYSEX_HEADER = [
   0xf0, 0x00, 0x20, 0x29, 0x02, 0x10,
 ];
-
-const NOVATION_LAUNCHPAD_MK2_PRO_MODE_SWITCHING: NovationModeSwitchingOptions =
-  {
-    sysexHeader: NOVATION_LAUNCHPAD_MK2_PRO_SYSEX_HEADER,
-    modeName: 'Programmer Mode',
-    command: 0x2c,
-    requiredMode: 0x03,
-    defaultMode: 0,
-  };
 
 const FEEDBACK_KEY = 'feedback-rgb';
 
@@ -346,7 +335,6 @@ class NovationLaunchpadMk2ProProfileProgrammerMode extends NovationButtonOnlyPro
     super({
       getLayout: novationLaunchpadMK2ProProgrammerLayout,
       noteOffMode: 'note-off',
-      modeSwitching: NOVATION_LAUNCHPAD_MK2_PRO_MODE_SWITCHING,
       validatePort: () => {
         const isIncorrectMacosPort =
           connection.name.endsWith('Live Port') ||
@@ -391,10 +379,6 @@ let colorSpace: ColorSpace<[number]> | null = null;
 
 export const createNovationLaunchpadMk2ProFeedbackProfile: MidiFeedbackProfileInit =
   ({ connection, inputProfile, sendMessage }) => {
-    const modeSwitcher = createNovationModeSwitcher({
-      ...NOVATION_LAUNCHPAD_MK2_PRO_MODE_SWITCHING,
-      sendMessage,
-    });
     const profile = createBasicColorVelocityFeedbackProfile({
       defaultVelocities: {
         empty: 0,
@@ -409,14 +393,7 @@ export const createNovationLaunchpadMk2ProFeedbackProfile: MidiFeedbackProfileIn
       },
     })({ connection, inputProfile, sendMessage });
 
-    return {
-      ...profile,
-      performModeSwitch: () => {
-        modeSwitcher.performModeSwitch?.();
-        profile.clear();
-      },
-      close: modeSwitcher.close,
-    };
+    return profile;
   };
 
 const getMaxId = (inputProfile: MidiProfile) => {
@@ -468,11 +445,6 @@ export const createNovationLaunchpadMk2ProFeedbackProfileRGB: MidiFeedbackProfil
       }
     };
 
-    const modeSwitcher = createNovationModeSwitcher({
-      ...NOVATION_LAUNCHPAD_MK2_PRO_MODE_SWITCHING,
-      sendMessage,
-    });
-
     const clear = () => {
       lastColours.fill([-1, -1, -1]);
       colorUpdated.fill(false);
@@ -483,11 +455,6 @@ export const createNovationLaunchpadMk2ProFeedbackProfileRGB: MidiFeedbackProfil
     };
 
     return {
-      performModeSwitch: () => {
-        modeSwitcher.performModeSwitch?.();
-        clear();
-      },
-      close: modeSwitcher.close,
       clear,
       setItemColor,
       setItemValue: () => {
