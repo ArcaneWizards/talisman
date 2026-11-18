@@ -1,5 +1,11 @@
 # @talisman-midi/profiles
 
+## 0.0.7
+
+### Patch Changes
+
+- b88d299: Address testing feedback for LP Pro Mk2
+
 ## 0.0.6
 
 ### Patch Changes
