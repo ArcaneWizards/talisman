@@ -9,9 +9,9 @@ publicHoistPattern:
 minimumReleaseAge: 10080 # 7 days
 minimumReleaseAgeStrict: true
 minimumReleaseAgeExclude:
-  - '@arcanewizards/apis@0.1.0'
-  - '@arcanewizards/sigil@0.6.1'
-  - '@arcanejs/react-toolkit@0.16.6'
+  - '@arcanewizards/apis@0.2.0'
+  - '@arcanewizards/sigil@0.7.0'
+  - '@arcanejs/react-toolkit@0.17.0'
 allowBuilds:
   '@arcanewizards/electron-media-service': true
   '@arcanewizards/midi': true

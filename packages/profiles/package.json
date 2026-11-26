@@ -40,7 +40,6 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "@talisman-midi/talisman": "workspace:^",
-    "zod": "^3.25.76"
+    "@talisman-midi/talisman": "workspace:^"
   }
 }
