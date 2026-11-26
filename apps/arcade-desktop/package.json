@@ -32,7 +32,7 @@
   "devDependencies": {
     "@talisman-midi/eslint-config": "workspace:^",
     "@talisman-midi/arcade": "workspace:^",
-    "@arcanewizards/sigil": "^0.6.1",
+    "@arcanewizards/sigil": "^0.7.0",
     "@arcanewizards/sigil-assets": "^0.1.1",
     "@talisman-midi/assets": "workspace:^",
     "@talisman-midi/typescript-config": "workspace:^",

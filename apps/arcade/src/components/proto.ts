@@ -47,7 +47,7 @@ export const ARCADE_CONFIG = z.object({
   agreedToEula: AGREED_TO_EULA.optional(),
   checkForUpdates: z.boolean().optional().default(true),
   animatedLogo: z.boolean().optional().default(true),
-  devices: z.record(ARCADE_DEVICE_CONFIG),
+  devices: z.record(z.uuid(), ARCADE_DEVICE_CONFIG),
 });
 
 export type ArcadeConfig = z.infer<typeof ARCADE_CONFIG>;
