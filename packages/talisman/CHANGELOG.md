@@ -1,5 +1,11 @@
 # @talisman-midi/talisman
 
+## 0.1.4
+
+### Patch Changes
+
+- 2d5aa7a: Remove unnecessary dependency
+
 ## 0.1.3
 
 ### Patch Changes
